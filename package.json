@@ -6,12 +6,15 @@
   "scripts": {
     "dev": "bun run --watch index.ts",
     "build": "tsc",
-    "lint": "biome lint --config-path=biome.json .",
-    "format": "biome format --write --config-path=biome.json ."
+    "pretest": "bun run build",
+    "test": "bun test",
+    "lint": "biome lint src",
+    "format": "biome format --write src"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.1.2",
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "vitest": "^3.2.4"
   },
   "peerDependencies": {
     "typescript": "^5"
