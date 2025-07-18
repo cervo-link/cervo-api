@@ -1,0 +1,22 @@
+{
+  "name": "cervo-api",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun run --watch index.ts",
+    "build": "tsc",
+    "lint": "biome lint --config-path=biome.json .",
+    "format": "biome format --write --config-path=biome.json ."
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.1.2",
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "zod": "^4.0.5"
+  }
+}
