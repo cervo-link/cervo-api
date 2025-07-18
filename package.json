@@ -17,6 +17,7 @@
   "devDependencies": {
     "@biomejs/biome": "^2.1.2",
     "@types/bun": "latest",
+    "@types/uuid": "^10.0.0",
     "drizzle-kit": "^0.31.4",
     "vitest": "^3.2.4"
   },
@@ -26,6 +27,7 @@
   "dependencies": {
     "drizzle-orm": "^0.44.3",
     "postgres": "^3.4.7",
+    "uuid": "^11.1.0",
     "zod": "^4.0.5"
   }
 }
