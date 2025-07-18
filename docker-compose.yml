@@ -1,0 +1,10 @@
+services:
+  pg:
+    image: bitnami/postgresql:latest
+    container_name: cervo_pg
+    ports:
+      - '5432:5432'
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=cervo

@@ -7,7 +7,9 @@
     "dev": "bun run --watch index.ts",
     "build": "tsc",
     "lint": "biome lint --config-path=biome.json .",
-    "format": "biome format --write --config-path=biome.json ."
+    "format": "biome format --write --config-path=biome.json .",
+    "pretest": "bun run build",
+    "test": "bun run test"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.1.2",
