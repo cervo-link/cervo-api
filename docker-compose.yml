@@ -1,6 +1,8 @@
 services:
   pg:
-    image: bitnami/postgresql:latest
+    build:
+      context: .
+      dockerfile: pg.dockerfile
     container_name: cervo_pg
     ports:
       - '5432:5432'
