@@ -8,6 +8,7 @@ import {
   uniqueIndex,
   foreignKey,
   char,
+  vector,
 } from 'drizzle-orm/pg-core'
 import { v7 as uuidv7 } from 'uuid'
 
@@ -79,7 +80,7 @@ export const bookmarks = pgTable(
     urlHashId: char('url_hash_id', { length: 64 }).notNull(),
     title: text(),
     description: text(),
-    embedding: text(),
+    embedding: vector('embedding', { dimensions: 1536 }),
     createdAt: timestamp().defaultNow().notNull(),
     updatedAt: timestamp().defaultNow().notNull(),
     visible: boolean().default(true).notNull(),
