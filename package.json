@@ -19,6 +19,7 @@
     "@types/bun": "latest",
     "@types/uuid": "^10.0.0",
     "drizzle-kit": "^0.31.4",
+    "testcontainers": "^11.4.0",
     "vitest": "^3.2.4"
   },
   "peerDependencies": {
