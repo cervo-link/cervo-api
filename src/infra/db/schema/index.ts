@@ -11,8 +11,8 @@ import {
 } from 'drizzle-orm/pg-core'
 import { v7 as uuidv7 } from 'uuid'
 
-export const member = pgTable(
-  'member',
+export const members = pgTable(
+  'members',
   {
     id: uuid()
       .primaryKey()
@@ -33,7 +33,7 @@ export const member = pgTable(
   ]
 )
 
-export const workspace = pgTable('workspace', {
+export const workspaces = pgTable('workspaces', {
   id: uuid()
     .primaryKey()
     .$defaultFn(() => uuidv7()),
@@ -46,8 +46,8 @@ export const workspace = pgTable('workspace', {
   active: boolean().default(true).notNull(),
 })
 
-export const membership = pgTable(
-  'membership',
+export const memberships = pgTable(
+  'memberships',
   {
     id: uuid()
       .primaryKey()
@@ -58,17 +58,17 @@ export const membership = pgTable(
   t => [
     foreignKey({
       columns: [t.memberId],
-      foreignColumns: [member.id],
+      foreignColumns: [members.id],
     }),
     foreignKey({
       columns: [t.workspaceId],
-      foreignColumns: [workspace.id],
+      foreignColumns: [workspaces.id],
     }),
   ]
 )
 
-export const bookmark = pgTable(
-  'bookmark',
+export const bookmarks = pgTable(
+  'bookmarks',
   {
     id: uuid()
       .primaryKey()
@@ -87,18 +87,18 @@ export const bookmark = pgTable(
   t => [
     foreignKey({
       columns: [t.workspaceId],
-      foreignColumns: [workspace.id],
+      foreignColumns: [workspaces.id],
     }),
     foreignKey({
       columns: [t.memberId],
-      foreignColumns: [member.id],
+      foreignColumns: [members.id],
     }),
   ]
 )
 
 export const schema = {
-  member,
-  workspace,
-  membership,
-  bookmark,
+  members,
+  workspaces,
+  memberships,
+  bookmarks,
 }

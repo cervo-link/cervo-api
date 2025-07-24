@@ -1,5 +1,5 @@
 ```
-Table member {
+Table members {
   id uuid [primary key]
   name varchar
   username varchar
@@ -11,7 +11,7 @@ Table member {
   active boolean
 }
 
-Table workspace {
+Table workspaces {
   id uuid [primary key]
   name varchar [not null]
   description text
@@ -22,7 +22,7 @@ Table workspace {
   active boolean
 }
 
-Table bookmark {
+Table bookmarks {
   id uuid [primary key]
   workspace_id uuid [not null]
   member_id uuid [not null]
@@ -36,15 +36,15 @@ Table bookmark {
   visible boolean
 }
 
-Table membership {
+Table memberships {
   id uuid [primary key]
   member_id uuid [not null]
   workspace_id uuid [not null]
   // UNIQUE (member_id, workspace_id)
 }
 
-Ref: bookmark.member_id > member.id
-Ref: bookmark.workspace_id > workspace.id
-Ref: membership.member_id > member.id
-Ref: membership.workspace_id > workspace.id
+Ref: bookmarks.member_id > members.id
+Ref: bookmarks.workspace_id > workspaces.id
+Ref: memberships.member_id > members.id
+Ref: memberships.workspace_id > workspaces.id
 ```
