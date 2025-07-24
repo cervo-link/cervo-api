@@ -1,13 +1,13 @@
 import {
+  bigint,
+  boolean,
+  char,
+  foreignKey,
   pgTable,
   text,
   timestamp,
-  boolean,
-  bigint,
-  uuid,
   uniqueIndex,
-  foreignKey,
-  char,
+  uuid,
   vector,
 } from 'drizzle-orm/pg-core'
 import { v7 as uuidv7 } from 'uuid'
