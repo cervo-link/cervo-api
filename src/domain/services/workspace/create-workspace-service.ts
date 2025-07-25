@@ -3,6 +3,8 @@ import { insertWorkspace } from '@/infra/db/repositories/workspaces-repository'
 
 export async function createWorkspace(
   workspace: InsertWorkspace
-): Promise<Workspace> {
-  return await insertWorkspace(workspace)
+): Promise<Workspace | Error> {
+  const result = await insertWorkspace(workspace)
+
+  return result
 }

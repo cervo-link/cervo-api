@@ -34,18 +34,27 @@ export const members = pgTable(
   ]
 )
 
-export const workspaces = pgTable('workspaces', {
-  id: uuid()
-    .primaryKey()
-    .$defaultFn(() => uuidv7()),
-  name: text().notNull(),
-  description: text(),
-  platform: text().notNull(),
-  platformId: text(),
-  createdAt: timestamp().defaultNow().notNull(),
-  updatedAt: timestamp().defaultNow().notNull(),
-  active: boolean().default(true).notNull(),
-})
+export const workspaces = pgTable(
+  'workspaces',
+  {
+    id: uuid()
+      .primaryKey()
+      .$defaultFn(() => uuidv7()),
+    name: text().notNull(),
+    description: text(),
+    platform: text().notNull(),
+    platformId: text().notNull(),
+    createdAt: timestamp().defaultNow().notNull(),
+    updatedAt: timestamp().defaultNow().notNull(),
+    active: boolean().default(true).notNull(),
+  },
+  t => [
+    uniqueIndex('platform_id_platform_workspace_idx').on(
+      t.platformId,
+      t.platform
+    ),
+  ]
+)
 
 export const memberships = pgTable(
   'memberships',
