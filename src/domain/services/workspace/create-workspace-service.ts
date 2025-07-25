@@ -1,5 +1,5 @@
 import type { InsertWorkspace, Workspace } from '@/domain/entities/workspace'
-import { insertWorkspace } from '@/infra/db/repositories/workspace-repository'
+import { insertWorkspace } from '@/infra/db/repositories/workspaces-repository'
 
 export async function createWorkspace(
   workspace: InsertWorkspace
