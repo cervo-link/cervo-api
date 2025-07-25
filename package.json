@@ -7,7 +7,7 @@
     "dev": "bun run --watch index.ts",
     "build": "tsc",
     "pretest": "bun run build",
-    "test": "bun test",
+    "test": "bunx vitest --config vitest.config.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "bun run drizzle-kit migrate",
     "db:migrate:test": "bun run drizzle-kit migrate --env-file .env.test",

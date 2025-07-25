@@ -17,28 +17,12 @@ declare global {
   var __DB_CONFIG__: typeof dbConfig
 }
 
-async function waitForPostgres(dbUrl: string, retries = 10, delay = 500) {
-  const { Client } = await import('pg')
-  for (let i = 0; i < retries; i++) {
-    try {
-      const client = new Client({ connectionString: dbUrl })
-      await client.connect()
-      await client.end()
-      return
-    } catch (e) {
-      await new Promise(res => setTimeout(res, delay))
-    }
-  }
-  throw new Error('Postgres did not become ready in time')
-}
-
 export async function setup() {
-  const container = await new GenericContainer('postgres')
+  const container = await new GenericContainer('pgvector/pgvector:pg16')
     .withEnvironment({
       POSTGRES_PASSWORD: 'test',
       POSTGRES_DB: 'cervo',
     })
-    .withName('cervo-test-db')
     .withExposedPorts(5432)
     .start()
 
@@ -56,10 +40,15 @@ export async function setup() {
 
   global.__DB_CONFIG__ = dbConfig
 
+  console.log('Connecting to:', dbUrl)
+
   const client = new Client({ connectionString: dbUrl })
   await client.connect()
+
+  // Ensure pgvector extension is enabled
+  await client.query('CREATE EXTENSION IF NOT EXISTS vector;')
+
   const db = drizzle(client)
-  await waitForPostgres(dbUrl)
   await migrate(db, { migrationsFolder: './src/infra/db/migrations' }) // ajuste o path se necessário
   await client.end()
 
