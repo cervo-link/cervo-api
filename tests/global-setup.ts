@@ -1,7 +1,7 @@
-import { GenericContainer, type StartedTestContainer } from 'testcontainers'
 import { migrate } from 'drizzle-orm/node-postgres/migrator'
-import { drizzle } from 'drizzle-orm/node-postgres'
+import { type StartedTestContainer, GenericContainer } from 'testcontainers'
 import { Client } from 'pg'
+import { drizzle } from 'drizzle-orm/node-postgres'
 
 let dbConfig: {
   host: string
@@ -45,11 +45,10 @@ export async function setup() {
   const client = new Client({ connectionString: dbUrl })
   await client.connect()
 
-  // Ensure pgvector extension is enabled
   await client.query('CREATE EXTENSION IF NOT EXISTS vector;')
 
   const db = drizzle(client)
-  await migrate(db, { migrationsFolder: './src/infra/db/migrations' }) // ajuste o path se necessário
+  await migrate(db, { migrationsFolder: './src/infra/db/migrations' })
   await client.end()
 
   return async () => {

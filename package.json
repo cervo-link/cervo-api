@@ -8,6 +8,7 @@
     "build": "tsc",
     "pretest": "bun run build",
     "test": "bunx vitest --config vitest.config.ts",
+    "test:watch": "bunx vitest --config vitest.config.ts --watch",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "bun run drizzle-kit migrate",
     "db:migrate:test": "bun run drizzle-kit migrate --env-file .env.test",

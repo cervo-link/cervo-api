@@ -5,6 +5,13 @@
     {
       "idx": 0,
       "version": "7",
+      "when": 1753311600,
+      "tag": "20250723230000_add-pg-vector-plugin",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
       "when": 1753409266887,
       "tag": "20250725020746_init-migrations",
       "breakpoints": true
