@@ -1,5 +1,4 @@
 import {
-  bigint,
   boolean,
   char,
   foreignKey,
@@ -21,7 +20,7 @@ export const members = pgTable(
     name: text(),
     username: text(),
     email: text(),
-    discordUserId: bigint('discord_user_id', { mode: 'number' }),
+    discordUserId: text(),
     passwordHash: text(),
     createdAt: timestamp().defaultNow().notNull(),
     updatedAt: timestamp().defaultNow().notNull(),

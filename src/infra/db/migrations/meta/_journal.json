@@ -22,6 +22,13 @@
       "when": 1753413859844,
       "tag": "20250725032419_alter_workspace_table_add_constraint",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1753728720543,
+      "tag": "20250728185200_alter-table-use-string-instead-of-int",
+      "breakpoints": true
     }
   ]
 }
