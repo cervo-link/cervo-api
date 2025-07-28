@@ -4,6 +4,7 @@ import { makeMember, makeRawMember } from '@/tests/factories/make-member'
 import { createMember } from './create-member-service'
 import { makeWorkspace } from '@/tests/factories/make-workspace'
 import { faker } from '@faker-js/faker'
+import { WorkspaceNotFound } from '@/domain/errors/workspace-not-found'
 
 describe('CreateMemberService', () => {
   it('should create a member', async () => {
@@ -37,8 +38,8 @@ describe('CreateMemberService', () => {
 
     const invalidWorkspaceId = faker.string.uuid()
 
-    await expect(createMember(member, invalidWorkspaceId)).rejects.toThrow(
-      'Workspace not found'
-    )
+    const result = await createMember(member, invalidWorkspaceId)
+
+    expect(result).toBeInstanceOf(WorkspaceNotFound)
   })
 })

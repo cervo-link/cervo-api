@@ -5,6 +5,7 @@ import { db } from '@/infra/db'
 import { schema } from '@/infra/db/schema'
 import { getPgError } from '@/infra/db/utils/get-pg-error'
 import { PgIntegrityConstraintViolation } from '@/infra/db/utils/postgres-error-codes'
+import { eq } from 'drizzle-orm'
 
 export async function insertWorkspace(
   workspace: InsertWorkspace
@@ -30,4 +31,13 @@ export async function insertWorkspace(
 
     throw error
   }
+}
+
+export async function findById(id: string): Promise<Workspace | null> {
+  const [result] = await db
+    .select()
+    .from(schema.workspaces)
+    .where(eq(schema.workspaces.id, id))
+
+  return result
 }
