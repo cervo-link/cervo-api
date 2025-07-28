@@ -37,4 +37,22 @@ describe('createWorkspace', () => {
       `Key (platform_id, platform)=(${platformId}, ${workspace.platform}) already exists.`
     )
   })
+
+  it('should insert when id exists but platform is different', async () => {
+    const platformId = faker.string.uuid()
+
+    await makeWorkspace({
+      platform: 'discord',
+      platformId,
+    })
+
+    const workspaceWithDifferentPlatform = makeRawWorkspace({
+      platform: 'slack',
+      platformId,
+    })
+
+    const result = await createWorkspace(workspaceWithDifferentPlatform)
+
+    expect(result).toBeDefined()
+  })
 })
