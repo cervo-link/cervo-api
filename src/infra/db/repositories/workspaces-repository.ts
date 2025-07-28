@@ -3,7 +3,8 @@ import { CannotCreateWorkspaceDueConstraintError } from '@/domain/errors/cannot-
 import type { DomainError } from '@/domain/errors/domain-error'
 import { db } from '@/infra/db'
 import { schema } from '@/infra/db/schema'
-import { DrizzleQueryError } from 'drizzle-orm/errors'
+import { getPgError } from '@/infra/db/utils/get-pg-error'
+import { PgIntegrityConstraintViolation } from '@/infra/db/utils/postgres-error-codes'
 
 export async function insertWorkspace(
   workspace: InsertWorkspace
@@ -20,10 +21,11 @@ export async function insertWorkspace(
 
     return result
   } catch (error) {
-    if (error instanceof DrizzleQueryError) {
-      return new CannotCreateWorkspaceDueConstraintError(
-        (error.cause as { detail?: string })?.detail
-      )
+    const pgError = getPgError(error)
+    if (pgError) {
+      if (pgError.code === PgIntegrityConstraintViolation.UniqueViolation) {
+        return new CannotCreateWorkspaceDueConstraintError(pgError.detail)
+      }
     }
 
     throw error
