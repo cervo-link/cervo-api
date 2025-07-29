@@ -1,10 +1,9 @@
-import { describe, expect, it } from 'vitest'
-
-import { makeMember, makeRawMember } from '@/tests/factories/make-member'
-import { createMember } from './create-member-service'
-import { makeWorkspace } from '@/tests/factories/make-workspace'
 import { faker } from '@faker-js/faker'
+import { describe, expect, it } from 'vitest'
 import { WorkspaceNotFound } from '@/domain/errors/workspace-not-found'
+import { makeMember, makeRawMember } from '@/tests/factories/make-member'
+import { makeWorkspace } from '@/tests/factories/make-workspace'
+import { createMember } from './create-member-service'
 
 describe('CreateMemberService', () => {
   it('should create a member', async () => {
