@@ -1,0 +1,1 @@
+ALTER TABLE "members" ALTER COLUMN "discord_user_id" SET DATA TYPE text;

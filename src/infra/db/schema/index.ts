@@ -1,13 +1,12 @@
 import {
+  boolean,
+  char,
+  foreignKey,
   pgTable,
   text,
   timestamp,
-  boolean,
-  bigint,
-  uuid,
   uniqueIndex,
-  foreignKey,
-  char,
+  uuid,
   vector,
 } from 'drizzle-orm/pg-core'
 import { v7 as uuidv7 } from 'uuid'
@@ -21,7 +20,7 @@ export const members = pgTable(
     name: text(),
     username: text(),
     email: text(),
-    discordUserId: bigint('discord_user_id', { mode: 'number' }),
+    discordUserId: text(),
     passwordHash: text(),
     createdAt: timestamp().defaultNow().notNull(),
     updatedAt: timestamp().defaultNow().notNull(),
@@ -34,18 +33,27 @@ export const members = pgTable(
   ]
 )
 
-export const workspaces = pgTable('workspaces', {
-  id: uuid()
-    .primaryKey()
-    .$defaultFn(() => uuidv7()),
-  name: text().notNull(),
-  description: text(),
-  platform: text().notNull(),
-  platformId: text(),
-  createdAt: timestamp().defaultNow().notNull(),
-  updatedAt: timestamp().defaultNow().notNull(),
-  active: boolean().default(true).notNull(),
-})
+export const workspaces = pgTable(
+  'workspaces',
+  {
+    id: uuid()
+      .primaryKey()
+      .$defaultFn(() => uuidv7()),
+    name: text().notNull(),
+    description: text(),
+    platform: text().notNull(),
+    platformId: text().notNull(),
+    createdAt: timestamp().defaultNow().notNull(),
+    updatedAt: timestamp().defaultNow().notNull(),
+    active: boolean().default(true).notNull(),
+  },
+  t => [
+    uniqueIndex('platform_id_platform_workspace_idx').on(
+      t.platformId,
+      t.platform
+    ),
+  ]
+)
 
 export const memberships = pgTable(
   'memberships',

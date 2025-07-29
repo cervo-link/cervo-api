@@ -7,7 +7,8 @@
     "dev": "bun run --watch index.ts",
     "build": "tsc",
     "pretest": "bun run build",
-    "test": "bun test",
+    "test": "bunx vitest --config vitest.config.ts",
+    "test:watch": "bunx vitest --config vitest.config.ts --watch",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "bun run drizzle-kit migrate",
     "db:migrate:test": "bun run drizzle-kit migrate --env-file .env.test",
@@ -16,9 +17,11 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.1.2",
+    "@faker-js/faker": "^9.9.0",
     "@types/bun": "latest",
     "@types/uuid": "^10.0.0",
     "drizzle-kit": "^0.31.4",
+    "testcontainers": "^11.4.0",
     "vitest": "^3.2.4"
   },
   "peerDependencies": {

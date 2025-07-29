@@ -1,40 +1,33 @@
 {
-  "version": "5",
+  "version": "7",
   "dialect": "postgresql",
   "entries": [
     {
       "idx": 0,
       "version": "7",
-      "when": 1752844493619,
-      "tag": "20250718131453_create-members-table",
+      "when": 1753311600,
+      "tag": "20250723230000_add-pg-vector-plugin",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "7",
-      "when": 1752844560142,
-      "tag": "20250718131600_create-workspaces-table",
+      "when": 1753409266887,
+      "tag": "20250725020746_init-migrations",
       "breakpoints": true
     },
     {
       "idx": 2,
       "version": "7",
-      "when": 1752844587746,
-      "tag": "20250718131627_create-memberships-table",
+      "when": 1753413859844,
+      "tag": "20250725032419_alter_workspace_table_add_constraint",
       "breakpoints": true
     },
     {
       "idx": 3,
       "version": "7",
-      "when": 1752844805631,
-      "tag": "20250718132005_create-bookmarks-table",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1753322922562,
-      "tag": "20250724020842_alter-embeddings-column",
+      "when": 1753728720543,
+      "tag": "20250728185200_alter-table-use-string-instead-of-int",
       "breakpoints": true
     }
   ]

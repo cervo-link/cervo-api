@@ -1,0 +1,2 @@
+ALTER TABLE "workspaces" ALTER COLUMN "platform_id" SET NOT NULL;--> statement-breakpoint
+CREATE UNIQUE INDEX "platform_id_platform_workspace_idx" ON "workspaces" USING btree ("platform_id","platform");
