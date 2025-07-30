@@ -1,6 +1,5 @@
 import { z } from 'zod'
-import { DomainError } from '@/domain/errors/domain-error'
-import { getMembership } from '../membership/get-membership'
+import { scrappingBeeAdapter } from '@/infra/adapters/scrapping-bee'
 
 export const insertBookmarkSchema = z.object({
   workspaceId: z.string(),
@@ -12,14 +11,16 @@ export type InsertBookmarkInput = z.infer<typeof insertBookmarkSchema>
 
 export async function createBookmark(bookmark: InsertBookmarkInput) {
   // move to controller later
-  const membership = await getMembership(
-    bookmark.workspaceId,
-    bookmark.memberId
-  )
+  // const membership = await getMembership(
+  //   bookmark.workspaceId,
+  //   bookmark.memberId
+  // )
 
-  if (membership instanceof DomainError) {
-    return membership
-  }
+  // if (membership instanceof DomainError) {
+  //   return membership
+  // }
 
-  // scrapping do link
+  const response = await scrappingBeeAdapter(bookmark.url)
+
+  console.log(response)
 }
