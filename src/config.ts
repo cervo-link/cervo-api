@@ -10,7 +10,7 @@ function getDbConfig() {
 
 function getAppConfig() {
   const schema = z.object({
-    PORT: z.number(),
+    PORT: z.string(),
     ENV: z.enum(['development', 'production', 'test']),
   })
 

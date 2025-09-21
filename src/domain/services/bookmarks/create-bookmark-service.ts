@@ -18,9 +18,16 @@ export async function createBookmark(bookmark: InsertBookmarkInput) {
 
   // if (membership instanceof DomainError) {
   //   return membership
-  // }
+  // }createBookmark
 
   const response = await scrappingBeeAdapter(bookmark.url)
+    .then(response => {
+      const decoder = new TextDecoder()
+      const text = decoder.decode(response.data)
 
-  console.log(response)
+      return text
+    })
+    .catch(e => console.log(`A problem occurred : ${e.response.data}`))
+
+  return response
 }

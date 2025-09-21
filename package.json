@@ -28,8 +28,12 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@fastify/cookie": "^11.0.2",
+    "@fastify/cors": "^11.1.0",
+    "@fastify/swagger-ui": "^5.2.3",
     "drizzle-orm": "^0.44.3",
     "fastify": "^5.4.0",
+    "fastify-type-provider-zod": "^6.0.0",
     "postgres": "^3.4.7",
     "scrapingbee": "^1.7.5",
     "uuid": "^11.1.0",

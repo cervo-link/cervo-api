@@ -1,0 +1,54 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Dochelp",
+    "version": "1.0.0"
+  },
+  "components": {
+    "schemas": {}
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "healthcheck",
+        "tags": [
+          "service"
+        ],
+        "description": "Check if the system is up and running",
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "~standard": {
+                    "vendor": "zod",
+                    "version": 1
+                  },
+                  "def": {
+                    "type": "object",
+                    "shape": {
+                      "message": {
+                        "~standard": {
+                          "vendor": "zod",
+                          "version": 1
+                        },
+                        "def": {
+                          "type": "literal",
+                          "values": [
+                            "ok"
+                          ]
+                        },
+                        "values": {}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
