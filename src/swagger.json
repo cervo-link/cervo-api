@@ -49,6 +49,168 @@
           }
         }
       }
+    },
+    "/bookmarks": {
+      "post": {
+        "tags": [
+          "bookmarks"
+        ],
+        "description": "Create a bookmark",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "~standard": {
+                  "vendor": "zod",
+                  "version": 1
+                },
+                "def": {
+                  "type": "object",
+                  "shape": {
+                    "workspaceId": {
+                      "~standard": {
+                        "vendor": "zod",
+                        "version": 1
+                      },
+                      "def": {
+                        "type": "string",
+                        "checks": [
+                          {}
+                        ]
+                      },
+                      "format": null,
+                      "minLength": 1,
+                      "maxLength": null
+                    },
+                    "memberId": {
+                      "~standard": {
+                        "vendor": "zod",
+                        "version": 1
+                      },
+                      "def": {
+                        "type": "string",
+                        "checks": [
+                          {}
+                        ]
+                      },
+                      "format": null,
+                      "minLength": 1,
+                      "maxLength": null
+                    },
+                    "url": {
+                      "~standard": {
+                        "vendor": "zod",
+                        "version": 1
+                      },
+                      "def": {
+                        "type": "string",
+                        "checks": [
+                          {}
+                        ]
+                      },
+                      "format": null,
+                      "minLength": 1,
+                      "maxLength": null
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Bookmark saved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "~standard": {
+                    "vendor": "zod",
+                    "version": 1
+                  },
+                  "def": {
+                    "type": "object",
+                    "shape": {
+                      "message": {
+                        "~standard": {
+                          "vendor": "zod",
+                          "version": 1
+                        },
+                        "def": {
+                          "type": "string"
+                        },
+                        "format": null,
+                        "minLength": null,
+                        "maxLength": null
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Failed to create bookmark",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "~standard": {
+                    "vendor": "zod",
+                    "version": 1
+                  },
+                  "def": {
+                    "type": "object",
+                    "shape": {
+                      "message": {
+                        "~standard": {
+                          "vendor": "zod",
+                          "version": 1
+                        },
+                        "def": {
+                          "type": "string"
+                        },
+                        "format": null,
+                        "minLength": null,
+                        "maxLength": null
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to create bookmark",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "~standard": {
+                    "vendor": "zod",
+                    "version": 1
+                  },
+                  "def": {
+                    "type": "object",
+                    "shape": {
+                      "message": {
+                        "~standard": {
+                          "vendor": "zod",
+                          "version": 1
+                        },
+                        "def": {
+                          "type": "string"
+                        },
+                        "format": null,
+                        "minLength": null,
+                        "maxLength": null
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

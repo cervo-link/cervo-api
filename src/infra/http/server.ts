@@ -11,7 +11,6 @@ import {
   validatorCompiler,
 } from 'fastify-type-provider-zod'
 import { config } from '@/config'
-// import { createBookmark } from '@/domain/services/bookmarks/create-bookmark-service'
 import { routes } from './routes'
 
 export function startServer() {
@@ -21,16 +20,6 @@ export function startServer() {
   app.setValidatorCompiler(validatorCompiler)
   app.setSerializerCompiler(serializerCompiler)
   app.register(fastifyCors, { origin: '*' })
-
-  // app.get('/', async (_, reply) => {
-  //   const response = await createBookmark({
-  //     workspaceId: '123',
-  //     memberId: '123',
-  //     url: 'https://www.linkedin.com/posts/gabrielbernardo_boasorte-activity-7354553926672596992-ac55?utm_source=share&utm_medium=member_desktop&rcm=ACoAACGmL48BNUSqSc0TqiVt8xnUEwJrLHC-HF8',
-  //   })
-
-  //   return reply.send(response)
-  // })
 
   app.register(fastifyCookie)
 
