@@ -2,8 +2,8 @@ import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import { createBookmarkController } from '@/infra/http/controllers/bookmarks-controller'
 import {
-  createBookmarkQuerySchema,
-  createBookmarkResponseSchema,
+  createBookmarkBodySchemaRequest,
+  createBookmarkBodySchemaResponse,
 } from '@/infra/http/schemas/bookmarks-schema'
 
 export async function bookmarksRoutes(app: FastifyInstance) {
@@ -13,8 +13,8 @@ export async function bookmarksRoutes(app: FastifyInstance) {
     schema: {
       description: 'Create a bookmark',
       tags: ['bookmarks'],
-      response: createBookmarkResponseSchema,
-      body: createBookmarkQuerySchema,
+      response: createBookmarkBodySchemaResponse,
+      body: createBookmarkBodySchemaRequest,
     },
     handler: createBookmarkController,
   })

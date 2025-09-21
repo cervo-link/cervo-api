@@ -1,12 +1,12 @@
 import { z } from 'zod'
 
-export const createBookmarkQuerySchema = z.object({
-  workspaceId: z.string().min(1, 'Workspace ID is required.'),
-  memberId: z.string().min(1, 'Member ID is required.'),
-  url: z.string().min(1, 'URL is required.'),
+export const createBookmarkBodySchemaRequest = z.object({
+  workspaceId: z.uuidv7().nonempty('Workspace ID is required.'),
+  memberId: z.uuidv7().nonempty('Member ID is required.'),
+  url: z.url().nonempty('URL is required.'),
 })
 
-export const createBookmarkResponseSchema = {
+export const createBookmarkBodySchemaResponse = {
   500: z
     .object({
       message: z.string(),

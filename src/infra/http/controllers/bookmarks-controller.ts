@@ -2,13 +2,13 @@ import type { FastifyReply, FastifyRequest } from 'fastify'
 import { DomainError } from '@/domain/errors/domain-error'
 import { createBookmark } from '@/domain/services/bookmarks/create-bookmark-service'
 import { getMembership } from '@/domain/services/membership/get-membership'
-import { createBookmarkQuerySchema } from '../schemas/bookmarks-schema'
+import { createBookmarkBodySchemaRequest } from '../schemas/bookmarks-schema'
 
 export async function createBookmarkController(
   request: FastifyRequest,
   reply: FastifyReply
 ) {
-  const { workspaceId, memberId, url } = createBookmarkQuerySchema.parse(
+  const { workspaceId, memberId, url } = createBookmarkBodySchemaRequest.parse(
     request.body
   )
 
@@ -19,7 +19,6 @@ export async function createBookmarkController(
     })
   }
 
-  // https://www.linkedin.com/posts/gabrielbernardo_boasorte-activity-7354553926672596992-ac55?utm_source=share&utm_medium=member_desktop&rcm=ACoAACGmL48BNUSqSc0TqiVt8xnUEwJrLHC-HF8'
   const response = await createBookmark({
     workspaceId,
     memberId,

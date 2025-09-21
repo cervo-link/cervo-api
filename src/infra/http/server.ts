@@ -7,6 +7,7 @@ import { type FastifyInstance, fastify } from 'fastify'
 import {
   hasZodFastifySchemaValidationErrors,
   isResponseSerializationError,
+  jsonSchemaTransform,
   serializerCompiler,
   validatorCompiler,
 } from 'fastify-type-provider-zod'
@@ -42,16 +43,17 @@ function enableSagger(app: FastifyInstance) {
     return
   }
 
-  const spec = './swagger.json'
+  const spec = './infra/http/swagger/spec.json'
   const specFile = resolve(import.meta.dirname, '../..', spec)
 
   app.register(fastifySwagger, {
     openapi: {
       info: {
-        title: 'Dochelp',
+        title: 'Cervo API',
         version: '1.0.0',
       },
     },
+    transform: jsonSchemaTransform,
   })
 
   app.register(fastifySwaggerUi, {
@@ -62,7 +64,7 @@ function enableSagger(app: FastifyInstance) {
     const apiSpec = JSON.stringify(app.swagger() || {}, null, 2)
 
     Bun.write(specFile, apiSpec).then(() => {
-      console.info(`Swagger specification file write to ${spec}`)
+      console.info(`Swagger specification file write to ${specFile}`)
     })
   })
 }
