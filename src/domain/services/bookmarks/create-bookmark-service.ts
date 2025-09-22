@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import type { DomainError } from '@/domain/errors/domain-error'
 import { FailedToCreateBookmark } from '@/domain/errors/failed-to-create-bookmark'
-import { scrappingBeeAdapter } from '@/infra/adapters/scrapping-bee'
+import type { ScrappingService } from '@/infra/ports/scrapping'
 
 export const insertBookmarkSchema = z.object({
   workspaceId: z.string(),
@@ -12,16 +12,10 @@ export const insertBookmarkSchema = z.object({
 export type InsertBookmarkInput = z.infer<typeof insertBookmarkSchema>
 
 export async function createBookmark(
-  bookmark: InsertBookmarkInput
+  bookmark: InsertBookmarkInput,
+  scrappingService: ScrappingService
 ): Promise<string | DomainError> {
-  const response = await scrappingBeeAdapter(bookmark.url)
-    .then(response => {
-      const decoder = new TextDecoder()
-      const text = decoder.decode(response.data)
-
-      return text
-    })
-    .catch(e => console.log(`A problem occurred : ${e.response.data}`))
+  const response = await scrappingService.scrapping(bookmark.url)
 
   if (!response) {
     return new FailedToCreateBookmark()

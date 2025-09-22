@@ -11,7 +11,7 @@ function getDbConfig() {
 function getAppConfig() {
   const schema = z.object({
     PORT: z.string(),
-    ENV: z.enum(['development', 'production', 'test']),
+    NODE_ENV: z.enum(['development', 'production', 'test']),
   })
 
   return schema.parse(process.env)

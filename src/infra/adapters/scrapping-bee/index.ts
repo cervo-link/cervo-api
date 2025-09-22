@@ -1,7 +1,8 @@
 import scrapingbee from 'scrapingbee'
 import { config } from '@/config'
+import type { ScrappingService } from '@/infra/ports/scrapping'
 
-export async function scrappingBeeAdapter(url: string) {
+export async function scrapping(url: string) {
   const apiKey = config.scrappingBee.SCRAPPING_BEE_API_KEY
 
   const client = new scrapingbee.ScrapingBeeClient(apiKey)
@@ -17,5 +18,9 @@ export async function scrappingBeeAdapter(url: string) {
     },
   })
 
-  return response
+  return response.data
+}
+
+export const ScrappingBeeAdapter: ScrappingService = {
+  scrapping: async (url: string) => scrapping(url),
 }

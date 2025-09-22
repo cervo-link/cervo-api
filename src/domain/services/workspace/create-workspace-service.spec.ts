@@ -1,11 +1,11 @@
+import { faker } from '@faker-js/faker'
 import { describe, expect, it } from 'vitest'
-import { createWorkspace } from './create-workspace-service'
+import { CannotCreateWorkspaceDueConstraintError } from '@/domain/errors/cannot-create-workspace-due-constraint'
 import {
   makeRawWorkspace,
   makeWorkspace,
 } from '@/tests/factories/make-workspace'
-import { faker } from '@faker-js/faker'
-import { CannotCreateWorkspaceDueConstraintError } from '@/domain/errors/cannot-create-workspace-due-constraint'
+import { createWorkspace } from './create-workspace-service'
 
 describe('createWorkspace', () => {
   it('should create a workspace', async () => {
