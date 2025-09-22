@@ -5,7 +5,6 @@ export default defineConfig({
   test: {
     globalSetup: './src/tests/global-setup.ts',
   },
-  envDir: '.env.test',
   resolve: {
     alias: {
       '@': join(__dirname, 'src'),
