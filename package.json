@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "bun run --watch src/main.ts",
     "build": "tsc",
-    "pretest": "bun run build",
     "test": "bun --env-file=.env.test run vitest --config vitest.config.ts",
     "test:watch": "bun --env-file=.env.test run vitest --config vitest.config.ts --watch",
     "db:generate": "drizzle-kit generate",

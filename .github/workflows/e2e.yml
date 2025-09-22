@@ -30,4 +30,4 @@ jobs:
         run: bun run pretest
 
       - name: Test
-        run: bun run test
+        run: bun run test --env-file=.env.test
