@@ -1,6 +1,7 @@
 import { z } from 'zod'
-import { DomainError } from '@/domain/errors/domain-error'
-import { getMembership } from '../membership/get-membership'
+import type { DomainError } from '@/domain/errors/domain-error'
+import { FailedToCreateBookmark } from '@/domain/errors/failed-to-create-bookmark'
+import type { ScrappingService } from '@/infra/ports/scrapping'
 
 export const insertBookmarkSchema = z.object({
   workspaceId: z.string(),
@@ -10,16 +11,15 @@ export const insertBookmarkSchema = z.object({
 
 export type InsertBookmarkInput = z.infer<typeof insertBookmarkSchema>
 
-export async function createBookmark(bookmark: InsertBookmarkInput) {
-  // move to controller later
-  const membership = await getMembership(
-    bookmark.workspaceId,
-    bookmark.memberId
-  )
+export async function createBookmark(
+  bookmark: InsertBookmarkInput,
+  scrappingService: ScrappingService
+): Promise<string | DomainError> {
+  const response = await scrappingService.scrapping(bookmark.url)
 
-  if (membership instanceof DomainError) {
-    return membership
+  if (!response) {
+    return new FailedToCreateBookmark()
   }
 
-  // scrapping do link
+  return response
 }

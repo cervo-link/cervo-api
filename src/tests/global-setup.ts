@@ -1,7 +1,7 @@
-import { migrate } from 'drizzle-orm/node-postgres/migrator'
-import { type StartedTestContainer, GenericContainer } from 'testcontainers'
-import { Client } from 'pg'
 import { drizzle } from 'drizzle-orm/node-postgres'
+import { migrate } from 'drizzle-orm/node-postgres/migrator'
+import { Client } from 'pg'
+import { GenericContainer, type StartedTestContainer } from 'testcontainers'
 
 let dbConfig: {
   host: string

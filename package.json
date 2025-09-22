@@ -4,11 +4,10 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "bun run --watch index.ts",
+    "dev": "bun run --watch src/main.ts",
     "build": "tsc",
-    "pretest": "bun run build",
-    "test": "bunx vitest --config vitest.config.ts",
-    "test:watch": "bunx vitest --config vitest.config.ts --watch",
+    "test": "bun --env-file=.env.test run vitest --config vitest.config.ts",
+    "test:watch": "bun --env-file=.env.test run vitest --config vitest.config.ts --watch",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "bun run drizzle-kit migrate",
     "db:migrate:test": "bun run drizzle-kit migrate --env-file .env.test",
@@ -28,8 +27,15 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@fastify/cookie": "^11.0.2",
+    "@fastify/cors": "^11.1.0",
+    "@fastify/swagger": "^9.5.1",
+    "@fastify/swagger-ui": "^5.2.3",
     "drizzle-orm": "^0.44.3",
+    "fastify": "^5.6.0",
+    "fastify-type-provider-zod": "^4.0.2",
     "postgres": "^3.4.7",
+    "scrapingbee": "^1.7.5",
     "uuid": "^11.1.0",
     "zod": "^4.0.5"
   }
