@@ -1,9 +1,13 @@
+import { resolve } from 'node:path'
 import fastifyCookie from '@fastify/cookie'
 import fastifyCors from '@fastify/cors'
+import { fastifySwagger } from '@fastify/swagger'
+import { fastifySwaggerUi } from '@fastify/swagger-ui'
 import { type FastifyInstance, fastify } from 'fastify'
 import {
   hasZodFastifySchemaValidationErrors,
   isResponseSerializationError,
+  jsonSchemaTransform,
   serializerCompiler,
   validatorCompiler,
 } from 'fastify-type-provider-zod'
@@ -19,6 +23,8 @@ export function startServer() {
   app.register(fastifyCors, { origin: '*' })
 
   app.register(fastifyCookie)
+
+  enableSagger(app)
 
   routes(app)
 
@@ -67,4 +73,55 @@ function setErrorHandler(app: FastifyInstance) {
       statusCode: err.statusCode ?? 500,
     })
   })
+}
+
+function enableSagger(server: FastifyInstance) {
+  if (config.app.NODE_ENV !== 'dev') {
+    return
+  }
+
+  const spec = './infra/http/swagger/spec.json'
+  const specFile = resolve(import.meta.dirname, '../..', spec)
+
+  server.register(fastifySwagger, {
+    openapi: {
+      info: {
+        title: 'Cervo API',
+        version: '1.0.0',
+      },
+    },
+    transform: transformSwaggerSchema,
+  })
+
+  server.register(fastifySwaggerUi, {
+    routePrefix: '/swagger',
+  })
+
+  server.ready(async () => {
+    const apiSpec = JSON.stringify(server.swagger() || {}, null, 2)
+
+    await Bun.write(specFile, apiSpec)
+    console.info(`Swagger specification file write to ${spec}`)
+  })
+}
+
+export function transformSwaggerSchema(
+  data: Parameters<typeof jsonSchemaTransform>[0]
+) {
+  const { schema, url } = jsonSchemaTransform(data)
+
+  if (schema?.consumes?.includes('multipart/form-data')) {
+    schema.body = {
+      type: 'object',
+      required: ['file'],
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    }
+  }
+
+  return { schema, url }
 }
