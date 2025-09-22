@@ -2,6 +2,7 @@ import type { FastifyReply, FastifyRequest } from 'fastify'
 import { DomainError } from '@/domain/errors/domain-error'
 import { createBookmark } from '@/domain/services/bookmarks/create-bookmark-service'
 import { getMembership } from '@/domain/services/membership/get-membership'
+import { createScrappingService } from '@/infra/factories/scrapping-service-factory'
 import { createBookmarkBodySchemaRequest } from '../schemas/bookmarks-schema'
 
 export async function createBookmarkController(
@@ -19,11 +20,16 @@ export async function createBookmarkController(
     })
   }
 
-  const response = await createBookmark({
-    workspaceId,
-    memberId,
-    url,
-  })
+  const adapter = createScrappingService('scrapping-bee')
+
+  const response = await createBookmark(
+    {
+      workspaceId,
+      memberId,
+      url,
+    },
+    adapter
+  )
 
   if (response instanceof DomainError) {
     return reply.status(response.status).send({
