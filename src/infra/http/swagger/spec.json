@@ -56,25 +56,23 @@
                   "workspaceId": {
                     "type": "string",
                     "format": "uuid",
-                    "minLength": 1
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
                   },
                   "memberId": {
                     "type": "string",
                     "format": "uuid",
-                    "minLength": 1
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
                   },
                   "url": {
                     "type": "string",
-                    "format": "uri",
-                    "minLength": 1
+                    "format": "uri"
                   }
                 },
                 "required": [
                   "workspaceId",
                   "memberId",
                   "url"
-                ],
-                "additionalProperties": false
+                ]
               }
             }
           },
@@ -86,6 +84,7 @@
             "content": {
               "application/json": {
                 "schema": {
+                  "description": "Bookmark saved.",
                   "type": "object",
                   "properties": {
                     "message": {
@@ -95,8 +94,7 @@
                   "required": [
                     "message"
                   ],
-                  "additionalProperties": false,
-                  "description": "Bookmark saved."
+                  "additionalProperties": false
                 }
               }
             }
@@ -106,6 +104,7 @@
             "content": {
               "application/json": {
                 "schema": {
+                  "description": "Failed to create bookmark",
                   "type": "object",
                   "properties": {
                     "message": {
@@ -115,8 +114,7 @@
                   "required": [
                     "message"
                   ],
-                  "additionalProperties": false,
-                  "description": "Failed to create bookmark"
+                  "additionalProperties": false
                 }
               }
             }
@@ -126,6 +124,7 @@
             "content": {
               "application/json": {
                 "schema": {
+                  "description": "Failed to create bookmark",
                   "type": "object",
                   "properties": {
                     "message": {
@@ -135,8 +134,7 @@
                   "required": [
                     "message"
                   ],
-                  "additionalProperties": false,
-                  "description": "Failed to create bookmark"
+                  "additionalProperties": false
                 }
               }
             }
