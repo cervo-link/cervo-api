@@ -39,7 +39,7 @@ export function startServer() {
 }
 
 function enableSagger(app: FastifyInstance) {
-  if (config.app.ENV !== 'development') {
+  if (config.app.NODE_ENV !== 'dev') {
     return
   }
 
