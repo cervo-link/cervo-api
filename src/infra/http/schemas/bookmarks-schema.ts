@@ -1,9 +1,9 @@
 import { z } from 'zod'
 
 export const createBookmarkBodySchemaRequest = z.object({
-  workspaceId: z.uuidv7().nonempty('Workspace ID is required.'),
-  memberId: z.uuidv7().nonempty('Member ID is required.'),
-  url: z.url().nonempty('URL is required.'),
+  workspaceId: z.uuid('Workspace ID must be a valid UUID'),
+  memberId: z.uuid('Member ID must be a valid UUID'),
+  url: z.string().url('URL must be a valid URL'),
 })
 
 export const createBookmarkBodySchemaResponse = {
