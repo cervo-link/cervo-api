@@ -1,13 +1,9 @@
-import { resolve } from 'node:path'
 import fastifyCookie from '@fastify/cookie'
 import fastifyCors from '@fastify/cors'
-import fastifySwagger from '@fastify/swagger'
-import fastifySwaggerUi from '@fastify/swagger-ui'
 import { type FastifyInstance, fastify } from 'fastify'
 import {
   hasZodFastifySchemaValidationErrors,
   isResponseSerializationError,
-  jsonSchemaTransform,
   serializerCompiler,
   validatorCompiler,
 } from 'fastify-type-provider-zod'
@@ -24,8 +20,6 @@ export function startServer() {
 
   app.register(fastifyCookie)
 
-  enableSagger(app)
-
   routes(app)
 
   app
@@ -36,37 +30,6 @@ export function startServer() {
     .then(() => {
       console.log(`HTTP server running at ${config.app.PORT}`)
     })
-}
-
-function enableSagger(app: FastifyInstance) {
-  if (config.app.NODE_ENV !== 'dev') {
-    return
-  }
-
-  const spec = './infra/http/swagger/spec.json'
-  const specFile = resolve(import.meta.dirname, '../..', spec)
-
-  app.register(fastifySwagger, {
-    openapi: {
-      info: {
-        title: 'Cervo API',
-        version: '1.0.0',
-      },
-    },
-    transform: jsonSchemaTransform,
-  })
-
-  app.register(fastifySwaggerUi, {
-    routePrefix: '/swagger',
-  })
-
-  app.ready(() => {
-    const apiSpec = JSON.stringify(app.swagger() || {}, null, 2)
-
-    Bun.write(specFile, apiSpec).then(() => {
-      console.info(`Swagger specification file write to ${specFile}`)
-    })
-  })
 }
 
 function setErrorHandler(app: FastifyInstance) {
