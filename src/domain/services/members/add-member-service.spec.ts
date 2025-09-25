@@ -1,8 +1,7 @@
 import { faker } from '@faker-js/faker'
 import { describe, expect, it } from 'vitest'
-import { CannotCreateDuplicatedMember } from '@/domain/errors/cannot-create-duplicated-member'
 import { WorkspaceNotFound } from '@/domain/errors/workspace-not-found'
-import { makeMember, makeRawMember } from '@/tests/factories/make-member'
+import { makeRawMember } from '@/tests/factories/make-member'
 import { makeWorkspace } from '@/tests/factories/make-workspace'
 import { addMemberToWorkspace } from './add-member-service'
 
