@@ -1,13 +1,12 @@
-import type { InsertMember, Member } from '@/domain/entities/member'
-
-import { members } from '@/infra/db/schema'
-import { db } from '@/infra/db/'
 import { eq } from 'drizzle-orm'
-import type { Transaction } from '@/infra/db/utils/transactions'
-import type { DomainError } from '@/domain/errors/domain-error'
+import type { InsertMember, Member } from '@/domain/entities/member'
 import { CannotCreateDuplicatedMember } from '@/domain/errors/cannot-create-duplicated-member'
+import type { DomainError } from '@/domain/errors/domain-error'
+import { db } from '@/infra/db/'
+import { members } from '@/infra/db/schema'
 import { getPgError } from '@/infra/db/utils/get-pg-error'
 import { PgIntegrityConstraintViolation } from '@/infra/db/utils/postgres-error-codes'
+import type { Transaction } from '@/infra/db/utils/transactions'
 
 export async function insertMember(
   member: InsertMember
