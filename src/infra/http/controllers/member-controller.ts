@@ -7,14 +7,19 @@ export async function createMemberController(
   request: FastifyRequest,
   reply: FastifyReply
 ) {
-  const { name, username, email, discordUserId } =
+  const { name, username, email, discordUserId, password } =
     createMemberBodySchemaRequest.parse(request.body)
+
+  const hashedPassword = await Bun.password.hash(password, {
+    algorithm: 'bcrypt',
+  })
 
   const member = await createMember({
     name,
     username,
     email,
     discordUserId,
+    passwordHash: hashedPassword,
   })
 
   if (member instanceof DomainError) {
