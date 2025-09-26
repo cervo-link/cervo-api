@@ -2,6 +2,7 @@ import type { FastifyReply, FastifyRequest } from 'fastify'
 import { DomainError } from '@/domain/errors/domain-error'
 import { createBookmark } from '@/domain/services/bookmarks/create-bookmark-service'
 import { getMembership } from '@/domain/services/membership/get-membership'
+import { createEmbeddingProvider } from '@/infra/factories/embedding-service-factory'
 import { createScrappingService } from '@/infra/factories/scrapping-service-factory'
 import { createBookmarkBodySchemaRequest } from '../schemas/bookmarks-schema'
 
@@ -20,7 +21,8 @@ export async function createBookmarkController(
     })
   }
 
-  const adapter = createScrappingService('scrapping-bee')
+  const scrappingAdapter = createScrappingService('scrapping-bee')
+  const embeddingAdapter = createEmbeddingProvider('embeddinggemma')
 
   const response = await createBookmark(
     {
@@ -28,7 +30,8 @@ export async function createBookmarkController(
       memberId,
       url,
     },
-    adapter
+    scrappingAdapter,
+    embeddingAdapter
   )
 
   if (response instanceof DomainError) {
