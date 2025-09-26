@@ -16,7 +16,6 @@ export async function insertBookmark(
 
     return result
   } catch (error) {
-    console.log(error)
     const pgError = getPgError(error)
 
     return new FailedToCreateBookmark(pgError?.message)

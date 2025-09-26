@@ -29,6 +29,13 @@
       "when": 1753728720543,
       "tag": "20250728185200_alter-table-use-string-instead-of-int",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1758896909325,
+      "tag": "20250926142829_alter_bookmarks_migrations_change_embedding_vector_size",
+      "breakpoints": true
     }
   ]
 }

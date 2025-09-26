@@ -18,25 +18,27 @@ export async function createBookmark(
   scrappingService: ScrappingService,
   embeddingService: EmbeddingService
 ): Promise<string | DomainError> {
-  // const response = await scrappingService.scrapping(bookmark.url)
+  const response = await scrappingService.scrapping(params.url)
 
-  // if (!response) {
-  //   return new FailedToCreateBookmark()
-  // }
+  if (!response) {
+    return new FailedToCreateBookmark()
+  }
 
-  const response =
-    'Este link fala sobre a importância da IA no mercado de trabalho, como podemos utilizar ela para nos ajudar no nosso dia a dia'
-
-  // send to IA to generate embedding
   const embedding = await embeddingService.generateEmbedding(response)
 
   if (!embedding) {
     return new FailedToCreateBookmark()
   }
 
+  const encoder = new TextEncoder()
+  const data = encoder.encode(params.url)
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+  const urlHashId = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+
   await insertBookmark({
     ...params,
-    urlHashId: 'asidhaisud',
+    urlHashId,
     embedding,
   })
 
