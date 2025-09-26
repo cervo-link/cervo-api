@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import type { DomainError } from '@/domain/errors/domain-error'
 import { FailedToCreateBookmark } from '@/domain/errors/failed-to-create-bookmark'
+import { insertBookmark } from '@/infra/db/repositories/bookmark-repository'
 import type { EmbeddingService } from '@/infra/ports/embedding'
 import type { ScrappingService } from '@/infra/ports/scrapping'
 
@@ -13,7 +14,7 @@ export const insertBookmarkSchema = z.object({
 export type InsertBookmarkInput = z.infer<typeof insertBookmarkSchema>
 
 export async function createBookmark(
-  bookmark: InsertBookmarkInput,
+  params: InsertBookmarkInput,
   scrappingService: ScrappingService,
   embeddingService: EmbeddingService
 ): Promise<string | DomainError> {
@@ -32,6 +33,12 @@ export async function createBookmark(
   if (!embedding) {
     return new FailedToCreateBookmark()
   }
+
+  await insertBookmark({
+    ...params,
+    urlHashId: 'asidhaisud',
+    embedding,
+  })
 
   return response
 }

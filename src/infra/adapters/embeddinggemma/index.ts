@@ -1,23 +1,30 @@
+import { request } from 'undici'
 import { config } from '@/config'
 import type { EmbeddingService } from '@/infra/ports/embedding'
+
+type EmbeddingGemmaResponse = {
+  embedding: number[]
+}
 
 export async function generateEmbedding(message: string) {
   const url = `${config.embeddingGemma.EMBEDDINGGEMMA_URL}/api/embeddings`
 
-  const response = await fetch(url, {
+  const options = {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
       model: 'embeddinggemma:latest',
-      input: message,
+      prompt: message,
     }),
-  })
+  }
 
-  console.log(response)
+  const response = await request(url, options)
 
-  return []
+  const data = (await response.body.json()) as EmbeddingGemmaResponse
+
+  return data.embedding
 }
 
 export const EmbeddingGemmaAdapter: EmbeddingService = {
