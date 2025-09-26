@@ -22,6 +22,13 @@ export async function generateEmbedding(message: string) {
 
   const response = await request(url, options)
 
+  if (response.statusCode !== 200) {
+    const body = (await response.body.json()) as { message: string }
+    throw new Error(
+      `HTTP ${response.statusCode}: ${body.message || 'Request failed'}`
+    )
+  }
+
   const data = (await response.body.json()) as EmbeddingGemmaResponse
 
   return data.embedding

@@ -18,7 +18,7 @@ export async function scrapping(url: string) {
     },
   })
 
-  return response.data
+  return response.data.toString('utf-8')
 }
 
 export const ScrappingBeeAdapter: ScrappingService = {
