@@ -6,9 +6,15 @@ describe('createBookmark', () => {
   it('should create a bookmark', async () => {
     const fakeId = faker.string.uuid()
 
-    const mockAdapter = {
+    const scrappingService = {
       scrapping: async () => {
         return 'test'
+      },
+    }
+
+    const embeddingService = {
+      generateEmbedding: async () => {
+        return [1, 2, 3]
       },
     }
 
@@ -18,7 +24,8 @@ describe('createBookmark', () => {
         memberId: fakeId,
         url: 'https://www.google.com',
       },
-      mockAdapter
+      scrappingService,
+      embeddingService
     )
 
     expect(result).toBe('test')

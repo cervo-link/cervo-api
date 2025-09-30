@@ -1,26 +1,10 @@
 import { faker } from '@faker-js/faker'
-import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { InsertMember } from '@/domain/entities/member'
 import { CannotCreateDuplicatedMember } from '@/domain/errors/cannot-create-duplicated-member'
 import { DomainError } from '@/domain/errors/domain-error'
 
-// Create a mock implementation of the createMember function
-const createMember = async (member: any) => {
-  // This is a simplified version of the actual createMember function
-  // In a real test, this would be mocked
-  const mockInsertMember = vi.fn()
-  
-  // Mock the repository call
-  const memberResult = await mockInsertMember(member)
-
-  if (memberResult instanceof DomainError) {
-    return memberResult
-  }
-
-  return memberResult
-}
-
-// Helper function to create test member data
-const createTestMember = (overrides: any = {}) => {
+const createTestMember = (overrides: InsertMember = {}) => {
   return {
     name: faker.person.fullName(),
     email: faker.internet.email(),
@@ -51,11 +35,9 @@ describe('CreateMemberService - Final Tests', () => {
         updatedAt: new Date(),
       }
 
-      // Mock the repository to return the expected member
       const mockInsertMember = vi.fn().mockResolvedValue(expectedMember)
-      
-      // Replace the mock function in the createMember function
-      const createMemberWithMock = async (member: any) => {
+
+      const createMemberWithMock = async (member: InsertMember) => {
         const memberResult = await mockInsertMember(member)
 
         if (memberResult instanceof DomainError) {
@@ -90,8 +72,8 @@ describe('CreateMemberService - Final Tests', () => {
       }
 
       const mockInsertMember = vi.fn().mockResolvedValue(expectedMember)
-      
-      const createMemberWithMock = async (member: any) => {
+
+      const createMemberWithMock = async (member: InsertMember) => {
         const memberResult = await mockInsertMember(member)
 
         if (memberResult instanceof DomainError) {
@@ -114,8 +96,8 @@ describe('CreateMemberService - Final Tests', () => {
       const duplicateError = new CannotCreateDuplicatedMember()
 
       const mockInsertMember = vi.fn().mockResolvedValue(duplicateError)
-      
-      const createMemberWithMock = async (member: any) => {
+
+      const createMemberWithMock = async (member: InsertMember) => {
         const memberResult = await mockInsertMember(member)
 
         if (memberResult instanceof DomainError) {
@@ -136,8 +118,8 @@ describe('CreateMemberService - Final Tests', () => {
       const customError = new DomainError('Custom error message', 400)
 
       const mockInsertMember = vi.fn().mockResolvedValue(customError)
-      
-      const createMemberWithMock = async (member: any) => {
+
+      const createMemberWithMock = async (member: InsertMember) => {
         const memberResult = await mockInsertMember(member)
 
         if (memberResult instanceof DomainError) {
@@ -159,8 +141,8 @@ describe('CreateMemberService - Final Tests', () => {
       const error = new Error('Database connection failed')
 
       const mockInsertMember = vi.fn().mockRejectedValue(error)
-      
-      const createMemberWithMock = async (member: any) => {
+
+      const createMemberWithMock = async (member: InsertMember) => {
         const memberResult = await mockInsertMember(member)
 
         if (memberResult instanceof DomainError) {
@@ -170,7 +152,9 @@ describe('CreateMemberService - Final Tests', () => {
         return memberResult
       }
 
-      await expect(createMemberWithMock(memberData)).rejects.toThrow('Database connection failed')
+      await expect(createMemberWithMock(memberData)).rejects.toThrow(
+        'Database connection failed'
+      )
       expect(mockInsertMember).toHaveBeenCalledWith(memberData)
     })
   })
@@ -197,8 +181,8 @@ describe('CreateMemberService - Final Tests', () => {
       }
 
       const mockInsertMember = vi.fn().mockResolvedValue(expectedMember)
-      
-      const createMemberWithMock = async (member: any) => {
+
+      const createMemberWithMock = async (member: InsertMember) => {
         const memberResult = await mockInsertMember(member)
 
         if (memberResult instanceof DomainError) {
@@ -235,8 +219,8 @@ describe('CreateMemberService - Final Tests', () => {
       }
 
       const mockInsertMember = vi.fn().mockResolvedValue(expectedMember)
-      
-      const createMemberWithMock = async (member: any) => {
+
+      const createMemberWithMock = async (member: InsertMember) => {
         const memberResult = await mockInsertMember(member)
 
         if (memberResult instanceof DomainError) {
@@ -273,8 +257,8 @@ describe('CreateMemberService - Final Tests', () => {
       }
 
       const mockInsertMember = vi.fn().mockResolvedValue(expectedMember)
-      
-      const createMemberWithMock = async (member: any) => {
+
+      const createMemberWithMock = async (member: InsertMember) => {
         const memberResult = await mockInsertMember(member)
 
         if (memberResult instanceof DomainError) {
@@ -292,7 +276,7 @@ describe('CreateMemberService - Final Tests', () => {
 
     it('should handle special characters in member data', async () => {
       const memberWithSpecialChars = createTestMember({
-        name: 'José María O\'Connor-Smith',
+        name: "José María O'Connor-Smith",
         email: 'josé.maría+test@example.com',
         username: 'josé_maría_123',
       })
@@ -309,8 +293,8 @@ describe('CreateMemberService - Final Tests', () => {
       }
 
       const mockInsertMember = vi.fn().mockResolvedValue(expectedMember)
-      
-      const createMemberWithMock = async (member: any) => {
+
+      const createMemberWithMock = async (member: InsertMember) => {
         const memberResult = await mockInsertMember(member)
 
         if (memberResult instanceof DomainError) {
