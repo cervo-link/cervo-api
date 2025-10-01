@@ -1,6 +1,5 @@
 import { DrizzleQueryError } from 'drizzle-orm/errors'
 
-// Define PostgresError type based on the actual postgres error structure
 interface PostgresError {
   code: string
   message: string

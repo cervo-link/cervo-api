@@ -40,8 +40,6 @@ export async function setup() {
 
   global.__DB_CONFIG__ = dbConfig
 
-  console.log('Connecting to:', dbUrl)
-
   const client = new Client({ connectionString: dbUrl })
   await client.connect()
 
