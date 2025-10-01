@@ -1,6 +1,5 @@
 import { randomBytes } from 'node:crypto'
 import { faker } from '@faker-js/faker'
-import { randomBytes } from 'crypto'
 
 import type { InsertWorkspace } from '@/domain/entities/workspace'
 import { DomainError } from '@/domain/errors/domain-error'
