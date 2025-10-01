@@ -1,4 +1,10 @@
+import { createSelectSchema } from 'drizzle-zod'
 import { z } from 'zod'
+import { schema } from '@/infra/db/schema'
+
+export const bookmarkSchema = createSelectSchema(schema.bookmarks).omit({
+  embedding: true,
+})
 
 export const createBookmarkBodySchemaRequest = z.object({
   workspaceId: z.uuid('Workspace ID must be a valid UUID'),
@@ -17,11 +23,7 @@ export const createBookmarkBodySchemaResponse = {
       message: z.string(),
     })
     .describe('Failed to create bookmark'),
-  201: z
-    .object({
-      message: z.string(),
-    })
-    .describe('Bookmark saved.'),
+  201: bookmarkSchema.describe('Bookmark created successfully'),
 }
 
 export const getBookmarksQuerySchemaRequest = z.object({
@@ -41,20 +43,5 @@ export const getBookmarksBodySchemaResponse = {
       message: z.string(),
     })
     .describe('Failed to get bookmarks'),
-  200: z
-    .object({
-      message: z.string(),
-      bookmarks: z
-        .object({
-          id: z.string().uuid(),
-          workspaceId: z.string().uuid(),
-          memberId: z.string().uuid(),
-          url: z.url(),
-          title: z.string().optional(),
-          createdAt: z.string().datetime(),
-          updatedAt: z.string().datetime(),
-        })
-        .array(),
-    })
-    .describe('Bookmarks retrieved successfully'),
+  200: z.array(bookmarkSchema).describe('Bookmarks retrieved successfully'),
 }
