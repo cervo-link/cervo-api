@@ -34,7 +34,7 @@ export async function findBookmarks(
       and(
         eq(schema.bookmarks.workspaceId, workspaceId),
         eq(schema.bookmarks.visible, true),
-        sql`embedding <-> ${JSON.stringify(embedded)}::vector < 1.1`
+        sql`embedding <-> ${JSON.stringify(embedded)}::vector < 0.9`
       )
     )
 

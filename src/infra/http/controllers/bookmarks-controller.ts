@@ -5,6 +5,7 @@ import { getBookmarks } from '@/domain/services/bookmarks/get-bookmark-service'
 import { getMembership } from '@/domain/services/membership/get-membership'
 import { createEmbeddingProvider } from '@/infra/factories/embedding-service-factory'
 import { createScrappingService } from '@/infra/factories/scrapping-service-factory'
+import { createSummarizeService } from '@/infra/factories/summarize-service-factory'
 import {
   createBookmarkBodySchemaRequest,
   getBookmarksQuerySchemaRequest,
@@ -27,6 +28,7 @@ export async function createBookmarkController(
 
   const scrappingAdapter = createScrappingService('scrapping-bee')
   const embeddingAdapter = createEmbeddingProvider('embeddinggemma')
+  const summarizeAdapter = createSummarizeService('gemma')
 
   const response = await createBookmark(
     {
@@ -35,7 +37,8 @@ export async function createBookmarkController(
       url,
     },
     scrappingAdapter,
-    embeddingAdapter
+    embeddingAdapter,
+    summarizeAdapter
   )
 
   if (response instanceof DomainError) {

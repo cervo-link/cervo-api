@@ -5,11 +5,11 @@ import type { SummarizeService } from '@/infra/ports/summarize'
 export async function summarize(text: string) {
   const url = config.gemma.GEMMA_URL
 
-  const prompt = `You are helping build a smart search system. Summarize the following content in exactly one concise, information-rich sentence, explicitly mentioning the main topics, technologies, 
-    names, and keywords present in the text. The goal is to maximize the semantic richness and clarity of the sentence, 
-    making it highly suitable for vector-based search and retrieval. Focus on what the content is about and avoid generic or vague summaries:`
+  const prompt = `You are helping build a smart search system. Summarize the following content in exactly one concise, information-rich sentence, 
+  explicitly mentioning the main topics, technologies, names, and keywords present in the text. 
+  You must answer ONLY with the summary sentence. If you add any introduction or explanation, your answer will be discarded. Here is the content:`
 
-  const response = await request(`${url}/api/summarize`, {
+  const response = await request(`${url}/api/generate`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -17,6 +17,7 @@ export async function summarize(text: string) {
     body: JSON.stringify({
       model: 'gemma:2b',
       prompt: `${prompt} ${text}`,
+      stream: false,
     }),
   })
 
@@ -27,9 +28,21 @@ export async function summarize(text: string) {
     )
   }
 
-  const data = (await response.body.json()) as { summary: string }
+  const data = (await response.body.json()) as { response: string }
 
-  return data.summary
+  const lines = data.response
+    .split('\n')
+    .filter(
+      l =>
+        l &&
+        !l.toLowerCase().includes('sure') &&
+        !l.toLowerCase().includes('summary') &&
+        !l.toLowerCase().includes('here') &&
+        !l.toLowerCase().includes('requested')
+    )
+  const summary = lines[0].trim()
+
+  return summary
 }
 
 export const GemmaAdapter: SummarizeService = {

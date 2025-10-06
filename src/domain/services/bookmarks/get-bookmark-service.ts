@@ -24,7 +24,5 @@ export async function getBookmarks(
     return bookmarks
   }
 
-  console.log(bookmarks)
-
   return bookmarks
 }
