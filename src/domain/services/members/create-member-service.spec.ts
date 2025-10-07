@@ -1,313 +1,54 @@
-import { faker } from '@faker-js/faker'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { InsertMember } from '@/domain/entities/member'
+import { describe, expect, it } from 'vitest'
 import { CannotCreateDuplicatedMember } from '@/domain/errors/cannot-create-duplicated-member'
-import { DomainError } from '@/domain/errors/domain-error'
+import { makeMember, makeRawMember } from '@/tests/factories/make-member'
+import { createMember } from './create-member-service'
 
-const createTestMember = (overrides: InsertMember = {}) => {
-  return {
-    name: faker.person.fullName(),
-    email: faker.internet.email(),
-    active: true,
-    discordUserId: faker.string.uuid(),
-    username: faker.internet.username(),
-    ...overrides,
-  }
-}
+describe('CreateMemberService', () => {
+  it('should be able to create member', async () => {
+    const member = makeRawMember()
 
-describe('CreateMemberService - Final Tests', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
+    const result = await createMember(member)
 
-  describe('successful member creation', () => {
-    it('should create a member with valid data', async () => {
-      const memberData = createTestMember()
-      const expectedMember = {
-        id: faker.string.uuid(),
-        name: memberData.name ?? null,
-        username: memberData.username ?? null,
-        email: memberData.email ?? null,
-        discordUserId: memberData.discordUserId ?? null,
-        passwordHash: null,
-        active: memberData.active ?? true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }
-
-      const mockInsertMember = vi.fn().mockResolvedValue(expectedMember)
-
-      const createMemberWithMock = async (member: InsertMember) => {
-        const memberResult = await mockInsertMember(member)
-
-        if (memberResult instanceof DomainError) {
-          return memberResult
-        }
-
-        return memberResult
-      }
-
-      const result = await createMemberWithMock(memberData)
-
-      expect(mockInsertMember).toHaveBeenCalledWith(memberData)
-      expect(result).toEqual(expectedMember)
-    })
-
-    it('should create a member with custom overrides', async () => {
-      const memberData = createTestMember({
-        name: 'John Doe',
-        email: 'john@example.com',
-        active: false,
-      })
-      const expectedMember = {
-        id: faker.string.uuid(),
-        name: memberData.name ?? null,
-        username: memberData.username ?? null,
-        email: memberData.email ?? null,
-        discordUserId: memberData.discordUserId ?? null,
-        passwordHash: null,
-        active: memberData.active ?? true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }
-
-      const mockInsertMember = vi.fn().mockResolvedValue(expectedMember)
-
-      const createMemberWithMock = async (member: InsertMember) => {
-        const memberResult = await mockInsertMember(member)
-
-        if (memberResult instanceof DomainError) {
-          return memberResult
-        }
-
-        return memberResult
-      }
-
-      const result = await createMemberWithMock(memberData)
-
-      expect(mockInsertMember).toHaveBeenCalledWith(memberData)
-      expect(result).toEqual(expectedMember)
+    expect(result).toEqual({
+      id: expect.any(String),
+      name: member.name,
+      username: member.username,
+      email: member.email,
+      discordUserId: member.discordUserId,
+      passwordHash: member.passwordHash,
+      createdAt: expect.any(Date),
+      updatedAt: expect.any(Date),
+      active: true,
     })
   })
 
-  describe('error handling', () => {
-    it('should return CannotCreateDuplicatedMember error when member already exists', async () => {
-      const memberData = createTestMember()
-      const duplicateError = new CannotCreateDuplicatedMember()
+  it('should be able to return error when username already exists', async () => {
+    const member = await makeMember()
 
-      const mockInsertMember = vi.fn().mockResolvedValue(duplicateError)
+    const rawMember = makeRawMember({ username: member.username })
 
-      const createMemberWithMock = async (member: InsertMember) => {
-        const memberResult = await mockInsertMember(member)
+    const result = await createMember(rawMember)
 
-        if (memberResult instanceof DomainError) {
-          return memberResult
-        }
-
-        return memberResult
-      }
-
-      const result = await createMemberWithMock(memberData)
-
-      expect(mockInsertMember).toHaveBeenCalledWith(memberData)
-      expect(result).toBeInstanceOf(CannotCreateDuplicatedMember)
-    })
-
-    it('should return any other DomainError from repository', async () => {
-      const memberData = createTestMember()
-      const customError = new DomainError('Custom error message', 400)
-
-      const mockInsertMember = vi.fn().mockResolvedValue(customError)
-
-      const createMemberWithMock = async (member: InsertMember) => {
-        const memberResult = await mockInsertMember(member)
-
-        if (memberResult instanceof DomainError) {
-          return memberResult
-        }
-
-        return memberResult
-      }
-
-      const result = await createMemberWithMock(memberData)
-
-      expect(mockInsertMember).toHaveBeenCalledWith(memberData)
-      expect(result).toBeInstanceOf(DomainError)
-      expect((result as DomainError).message).toBe('Custom error message')
-    })
-
-    it('should propagate non-DomainError exceptions', async () => {
-      const memberData = createTestMember()
-      const error = new Error('Database connection failed')
-
-      const mockInsertMember = vi.fn().mockRejectedValue(error)
-
-      const createMemberWithMock = async (member: InsertMember) => {
-        const memberResult = await mockInsertMember(member)
-
-        if (memberResult instanceof DomainError) {
-          return memberResult
-        }
-
-        return memberResult
-      }
-
-      await expect(createMemberWithMock(memberData)).rejects.toThrow(
-        'Database connection failed'
-      )
-      expect(mockInsertMember).toHaveBeenCalledWith(memberData)
-    })
+    expect(result).toBeInstanceOf(CannotCreateDuplicatedMember)
   })
 
-  describe('input validation', () => {
-    it('should handle member with minimal required fields', async () => {
-      const minimalMember = {
-        name: 'Test User',
-        email: 'test@example.com',
-        active: true,
-        discordUserId: faker.string.uuid(),
-        username: 'testuser',
-      }
-      const expectedMember = {
-        id: faker.string.uuid(),
-        name: minimalMember.name,
-        username: minimalMember.username,
-        email: minimalMember.email,
-        discordUserId: minimalMember.discordUserId,
-        passwordHash: null,
-        active: minimalMember.active,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }
+  it('should be able to return error when email already exists', async () => {
+    const member = await makeMember()
 
-      const mockInsertMember = vi.fn().mockResolvedValue(expectedMember)
+    const rawMember = makeRawMember({ email: member.email })
 
-      const createMemberWithMock = async (member: InsertMember) => {
-        const memberResult = await mockInsertMember(member)
+    const result = await createMember(rawMember)
 
-        if (memberResult instanceof DomainError) {
-          return memberResult
-        }
-
-        return memberResult
-      }
-
-      const result = await createMemberWithMock(minimalMember)
-
-      expect(mockInsertMember).toHaveBeenCalledWith(minimalMember)
-      expect(result).toEqual(expectedMember)
-    })
-
-    it('should handle member with all optional fields', async () => {
-      const fullMember = createTestMember({
-        name: 'Full Name User',
-        email: 'full@example.com',
-        active: true,
-        discordUserId: faker.string.uuid(),
-        username: 'fulluser',
-      })
-      const expectedMember = {
-        id: faker.string.uuid(),
-        name: fullMember.name ?? null,
-        username: fullMember.username ?? null,
-        email: fullMember.email ?? null,
-        discordUserId: fullMember.discordUserId ?? null,
-        passwordHash: null,
-        active: fullMember.active ?? true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }
-
-      const mockInsertMember = vi.fn().mockResolvedValue(expectedMember)
-
-      const createMemberWithMock = async (member: InsertMember) => {
-        const memberResult = await mockInsertMember(member)
-
-        if (memberResult instanceof DomainError) {
-          return memberResult
-        }
-
-        return memberResult
-      }
-
-      const result = await createMemberWithMock(fullMember)
-
-      expect(mockInsertMember).toHaveBeenCalledWith(fullMember)
-      expect(result).toEqual(expectedMember)
-    })
+    expect(result).toBeInstanceOf(CannotCreateDuplicatedMember)
   })
 
-  describe('edge cases', () => {
-    it('should handle empty string values', async () => {
-      const memberWithEmptyStrings = createTestMember({
-        name: '',
-        email: '',
-        username: '',
-      })
-      const expectedMember = {
-        id: faker.string.uuid(),
-        name: memberWithEmptyStrings.name ?? null,
-        username: memberWithEmptyStrings.username ?? null,
-        email: memberWithEmptyStrings.email ?? null,
-        discordUserId: memberWithEmptyStrings.discordUserId ?? null,
-        passwordHash: null,
-        active: memberWithEmptyStrings.active ?? true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }
+  it('should be able to return error when discordUserId already exists', async () => {
+    const member = await makeMember()
 
-      const mockInsertMember = vi.fn().mockResolvedValue(expectedMember)
+    const rawMember = makeRawMember({ discordUserId: member.discordUserId })
 
-      const createMemberWithMock = async (member: InsertMember) => {
-        const memberResult = await mockInsertMember(member)
+    const result = await createMember(rawMember)
 
-        if (memberResult instanceof DomainError) {
-          return memberResult
-        }
-
-        return memberResult
-      }
-
-      const result = await createMemberWithMock(memberWithEmptyStrings)
-
-      expect(mockInsertMember).toHaveBeenCalledWith(memberWithEmptyStrings)
-      expect(result).toEqual(expectedMember)
-    })
-
-    it('should handle special characters in member data', async () => {
-      const memberWithSpecialChars = createTestMember({
-        name: "José María O'Connor-Smith",
-        email: 'josé.maría+test@example.com',
-        username: 'josé_maría_123',
-      })
-      const expectedMember = {
-        id: faker.string.uuid(),
-        name: memberWithSpecialChars.name ?? null,
-        username: memberWithSpecialChars.username ?? null,
-        email: memberWithSpecialChars.email ?? null,
-        discordUserId: memberWithSpecialChars.discordUserId ?? null,
-        passwordHash: null,
-        active: memberWithSpecialChars.active ?? true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }
-
-      const mockInsertMember = vi.fn().mockResolvedValue(expectedMember)
-
-      const createMemberWithMock = async (member: InsertMember) => {
-        const memberResult = await mockInsertMember(member)
-
-        if (memberResult instanceof DomainError) {
-          return memberResult
-        }
-
-        return memberResult
-      }
-
-      const result = await createMemberWithMock(memberWithSpecialChars)
-
-      expect(mockInsertMember).toHaveBeenCalledWith(memberWithSpecialChars)
-      expect(result).toEqual(expectedMember)
-    })
+    expect(result).toBeInstanceOf(CannotCreateDuplicatedMember)
   })
 })

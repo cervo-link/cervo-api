@@ -6,6 +6,8 @@ describe('createBookmark', () => {
   it('should create a bookmark', async () => {
     const fakeId = faker.string.uuid()
 
+    const embedding = [1, 2, 3]
+
     const scrappingService = {
       scrapping: async () => {
         return 'test'
@@ -14,7 +16,7 @@ describe('createBookmark', () => {
 
     const embeddingService = {
       generateEmbedding: async () => {
-        return [1, 2, 3]
+        return embedding
       },
     }
     const summarizeService = {

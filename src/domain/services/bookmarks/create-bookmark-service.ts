@@ -1,5 +1,4 @@
 import { z } from 'zod'
-import type { DomainError } from '@/domain/errors/domain-error'
 import { FailedToCreateBookmark } from '@/domain/errors/failed-to-create-bookmark'
 import { FailedToSummarize } from '@/domain/errors/failed-to-summarize'
 import { insertBookmark } from '@/infra/db/repositories/bookmark-repository'
@@ -21,22 +20,22 @@ export async function createBookmark(
   scrappingService: ScrappingService,
   embeddingService: EmbeddingService,
   summarizeService: SummarizeService
-): Promise<string | DomainError> {
+): Promise<string> {
   const response = await scrappingService.scrapping(params.url)
 
   if (!response) {
-    return new FailedToCreateBookmark()
+    throw new FailedToCreateBookmark()
   }
 
   const summarized = await summarizeService.summarize(response)
   if (!summarized) {
-    return new FailedToSummarize()
+    throw new FailedToSummarize()
   }
 
   const embedding = await embeddingService.generateEmbedding(summarized)
 
   if (!embedding) {
-    return new FailedToCreateBookmark()
+    throw new FailedToCreateBookmark()
   }
 
   const encoder = new TextEncoder()
