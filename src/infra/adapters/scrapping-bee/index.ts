@@ -8,7 +8,7 @@ export async function scrapping(url: string) {
   const client = new scrapingbee.ScrapingBeeClient(apiKey)
 
   const prompt =
-    'Make a brief and objective summary of the following content, explaining what it is about:'
+    'Generate a concise but information-rich summary of the following content, mentioning the main topics, technologies, names, or keywords covered. Focus on what the content is about:'
 
   const response = await client.get({
     url: url,

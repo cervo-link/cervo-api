@@ -17,6 +17,11 @@ describe('createBookmark', () => {
         return [1, 2, 3]
       },
     }
+    const summarizeService = {
+      summarize: async () => {
+        return 'test'
+      },
+    }
 
     const result = await createBookmark(
       {
@@ -25,7 +30,8 @@ describe('createBookmark', () => {
         url: 'https://www.google.com',
       },
       scrappingService,
-      embeddingService
+      embeddingService,
+      summarizeService
     )
 
     expect(result).toBe('test')

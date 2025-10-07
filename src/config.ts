@@ -17,6 +17,13 @@ function getAppConfig() {
   return schema.parse(process.env)
 }
 
+function getGemmaConfig() {
+  const schema = z.object({
+    GEMMA_URL: z.url(),
+  })
+
+  return schema.parse(process.env)
+}
 function getScrappingBeeConfig() {
   const schema = z.object({
     SCRAPPING_BEE_API_KEY: z.string(),
@@ -35,6 +42,7 @@ function getEmbeddingGemmaConfig() {
 export const config = {
   db: getDbConfig(),
   app: getAppConfig(),
+  gemma: getGemmaConfig(),
   scrappingBee: getScrappingBeeConfig(),
   embeddingGemma: getEmbeddingGemmaConfig(),
 }

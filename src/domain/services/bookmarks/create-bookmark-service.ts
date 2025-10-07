@@ -1,9 +1,12 @@
 import { z } from 'zod'
 import type { DomainError } from '@/domain/errors/domain-error'
 import { FailedToCreateBookmark } from '@/domain/errors/failed-to-create-bookmark'
+import { FailedToSummarize } from '@/domain/errors/failed-to-summarize'
 import { insertBookmark } from '@/infra/db/repositories/bookmark-repository'
+
 import type { EmbeddingService } from '@/infra/ports/embedding'
 import type { ScrappingService } from '@/infra/ports/scrapping'
+import type { SummarizeService } from '@/infra/ports/summarize'
 
 export const insertBookmarkSchema = z.object({
   workspaceId: z.string(),
@@ -16,7 +19,8 @@ export type InsertBookmarkInput = z.infer<typeof insertBookmarkSchema>
 export async function createBookmark(
   params: InsertBookmarkInput,
   scrappingService: ScrappingService,
-  embeddingService: EmbeddingService
+  embeddingService: EmbeddingService,
+  summarizeService: SummarizeService
 ): Promise<string | DomainError> {
   const response = await scrappingService.scrapping(params.url)
 
@@ -24,7 +28,12 @@ export async function createBookmark(
     return new FailedToCreateBookmark()
   }
 
-  const embedding = await embeddingService.generateEmbedding(response)
+  const summarized = await summarizeService.summarize(response)
+  if (!summarized) {
+    return new FailedToSummarize()
+  }
+
+  const embedding = await embeddingService.generateEmbedding(summarized)
 
   if (!embedding) {
     return new FailedToCreateBookmark()
@@ -42,5 +51,5 @@ export async function createBookmark(
     embedding,
   })
 
-  return response
+  return summarized
 }
