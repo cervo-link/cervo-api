@@ -1,6 +1,6 @@
 import type { Bookmark } from '@/domain/entities/bookmark'
-import { DomainError } from '@/domain/errors/domain-error'
 import { FailedToGenerateEmbedding } from '@/domain/errors/failed-to-generate-embedding'
+import { FailedToGetBookmarks } from '@/domain/errors/failed-to-get-bookmarks'
 import { findBookmarks } from '@/infra/db/repositories/bookmark-repository'
 import type { EmbeddingService } from '@/infra/ports/embedding'
 
@@ -13,15 +13,16 @@ export type GetBookmarksInput = {
 export async function getBookmarks(
   input: GetBookmarksInput,
   embeddingService: EmbeddingService
-): Promise<Bookmark[] | DomainError> {
+): Promise<Bookmark[]> {
   const embedded = await embeddingService.generateEmbedding(input.text)
   if (!embedded) {
-    return new FailedToGenerateEmbedding()
+    throw new FailedToGenerateEmbedding()
   }
 
   const bookmarks = await findBookmarks(input.workspaceId, embedded)
-  if (bookmarks instanceof DomainError) {
-    return bookmarks
+
+  if (!bookmarks) {
+    throw new FailedToGetBookmarks()
   }
 
   return bookmarks

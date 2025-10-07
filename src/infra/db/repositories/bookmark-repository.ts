@@ -26,7 +26,7 @@ export async function insertBookmark(
 export async function findBookmarks(
   workspaceId: string,
   embedded: number[]
-): Promise<Bookmark[] | DomainError> {
+): Promise<Bookmark[]> {
   const bookmarks = await db
     .select()
     .from(schema.bookmarks)
