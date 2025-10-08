@@ -1,6 +1,7 @@
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import { DomainError } from '@/domain/errors/domain-error'
 import { createMember } from '@/domain/services/members/create-member-service'
+import { hashPassword } from '@/infra/utils/password-hash'
 import { createMemberBodySchemaRequest } from '../schemas/members-schema'
 
 export async function createMemberController(
@@ -10,9 +11,7 @@ export async function createMemberController(
   const { name, username, email, discordUserId, password } =
     createMemberBodySchemaRequest.parse(request.body)
 
-  const hashedPassword = await Bun.password.hash(password, {
-    algorithm: 'bcrypt',
-  })
+  const hashedPassword = await hashPassword(password)
 
   const member = await createMember({
     name,
@@ -28,5 +27,5 @@ export async function createMemberController(
     })
   }
 
-  return reply.send(member)
+  return reply.status(201).send({ member })
 }

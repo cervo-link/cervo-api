@@ -52,7 +52,6 @@ describe('getBookmark', () => {
       embeddingService
     )
 
-    console.log(bookmarks)
     expect(bookmarks).toHaveLength(1)
     expect(bookmarks[0].url).toBe(url)
     expect(bookmarks[0].workspaceId).toBe(workspaceId)

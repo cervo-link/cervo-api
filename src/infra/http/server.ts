@@ -36,6 +36,8 @@ export function startServer() {
     .then(() => {
       console.log(`HTTP server running at ${config.app.PORT}`)
     })
+
+  return app
 }
 
 function setErrorHandler(app: FastifyInstance) {

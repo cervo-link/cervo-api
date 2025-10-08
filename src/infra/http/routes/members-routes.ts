@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
-import { createMemberController } from '../controllers/member-controller'
+import { createMemberController } from '../controllers/members-controller'
 import {
   createMemberBodySchemaRequest,
   createMemberBodySchemaResponse,

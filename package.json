@@ -17,6 +17,7 @@
   "devDependencies": {
     "@biomejs/biome": "^2.2.4",
     "@faker-js/faker": "^9.9.0",
+    "@types/argon2": "^0.15.4",
     "@types/bun": "latest",
     "@types/uuid": "^10.0.0",
     "drizzle-kit": "^0.31.4",
@@ -31,6 +32,7 @@
     "@fastify/cors": "^11.1.0",
     "@fastify/swagger": "^9.5.1",
     "@fastify/swagger-ui": "^5.2.3",
+    "argon2": "^0.44.0",
     "drizzle-orm": "^0.44.5",
     "drizzle-zod": "^0.8.3",
     "fastify": "^5.6.1",
