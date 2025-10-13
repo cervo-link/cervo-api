@@ -14,7 +14,7 @@ import {
 import { config } from '@/config'
 import { routes } from './routes'
 
-export function startServer() {
+export async function startServer() {
   const app = fastify()
 
   setErrorHandler(app)
@@ -28,14 +28,12 @@ export function startServer() {
 
   routes(app)
 
-  app
-    .listen({
-      port: Number(config.app.PORT),
-      host: '0.0.0.0',
-    })
-    .then(() => {
-      console.log(`HTTP server running at ${config.app.PORT}`)
-    })
+  await app.listen({
+    port: Number(config.app.PORT),
+    host: '0.0.0.0',
+  })
+
+  console.log(`HTTP server running at ${config.app.PORT}`)
 
   return app
 }

@@ -1,7 +1,9 @@
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { migrate } from 'drizzle-orm/node-postgres/migrator'
+import type { FastifyInstance } from 'fastify'
 import { Client } from 'pg'
 import { GenericContainer, type StartedTestContainer } from 'testcontainers'
+import { startServer } from '@/infra/http/server'
 
 let dbConfig: {
   host: string
@@ -15,9 +17,20 @@ let dbConfig: {
 declare global {
   // eslint-disable-next-line no-var
   var __DB_CONFIG__: typeof dbConfig
+  var __SERVER__: FastifyInstance
 }
 
 export async function setup() {
+  await setupDatabase()
+  await setupServer()
+
+  return async () => {
+    await global.__DB_CONFIG__?.container?.stop()
+    await global.__SERVER__?.close()
+  }
+}
+
+async function setupDatabase() {
   const container = await new GenericContainer('pgvector/pgvector:pg16')
     .withEnvironment({
       POSTGRES_PASSWORD: 'test',
@@ -48,8 +61,9 @@ export async function setup() {
   const db = drizzle(client)
   await migrate(db, { migrationsFolder: './src/infra/db/migrations' })
   await client.end()
+}
 
-  return async () => {
-    await global.__DB_CONFIG__?.container?.stop()
-  }
+async function setupServer() {
+  const server = await startServer()
+  global.__SERVER__ = server
 }

@@ -1,20 +1,7 @@
-import type { FastifyInstance } from 'fastify'
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { startServer } from '@/infra/http/server'
+import { describe, expect, it } from 'vitest'
 import { makeMember, makeRawMember } from '@/tests/factories/make-member'
 
 describe('MembersController', () => {
-  let server: FastifyInstance
-  beforeAll(async () => {
-    server = startServer()
-
-    await server.ready()
-  })
-
-  afterAll(async () => {
-    await server.close()
-  })
-
   it('should be able to create a member', async () => {
     const member = makeRawMember()
 
@@ -26,7 +13,7 @@ describe('MembersController', () => {
       password: 'some-password',
     }
 
-    const response = await server.inject({
+    const response = await global.__SERVER__.inject({
       method: 'POST',
       url: '/members/create',
       payload,
@@ -57,7 +44,7 @@ describe('MembersController', () => {
       discordUserId: member.discordUserId,
     }
 
-    const response = await server.inject({
+    const response = await global.__SERVER__.inject({
       method: 'POST',
       url: '/members/create',
       payload,
@@ -82,7 +69,7 @@ describe('MembersController', () => {
       password: 'some-password',
     }
 
-    const response = await server.inject({
+    const response = await global.__SERVER__.inject({
       method: 'POST',
       url: '/members/create',
       payload,
@@ -107,7 +94,7 @@ describe('MembersController', () => {
       password: 'some-password',
     }
 
-    const response = await server.inject({
+    const response = await global.__SERVER__.inject({
       method: 'POST',
       url: '/members/create',
       payload,

@@ -1,7 +1,7 @@
 import { startServer } from '@/infra/http/server'
 
 async function main() {
-  startServer()
+  await startServer()
 }
 
 main().catch(err => {
