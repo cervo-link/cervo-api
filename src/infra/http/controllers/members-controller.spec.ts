@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import app from '@/infra/http/app'
 import { makeMember, makeRawMember } from '@/tests/factories/make-member'
 
 describe('MembersController', () => {
@@ -13,7 +14,7 @@ describe('MembersController', () => {
       password: 'some-password',
     }
 
-    const response = await global.__SERVER__.inject({
+    const response = await app.inject({
       method: 'POST',
       url: '/members/create',
       payload,
@@ -44,7 +45,7 @@ describe('MembersController', () => {
       discordUserId: member.discordUserId,
     }
 
-    const response = await global.__SERVER__.inject({
+    const response = await app.inject({
       method: 'POST',
       url: '/members/create',
       payload,
@@ -69,7 +70,7 @@ describe('MembersController', () => {
       password: 'some-password',
     }
 
-    const response = await global.__SERVER__.inject({
+    const response = await app.inject({
       method: 'POST',
       url: '/members/create',
       payload,
@@ -94,7 +95,7 @@ describe('MembersController', () => {
       password: 'some-password',
     }
 
-    const response = await global.__SERVER__.inject({
+    const response = await app.inject({
       method: 'POST',
       url: '/members/create',
       payload,

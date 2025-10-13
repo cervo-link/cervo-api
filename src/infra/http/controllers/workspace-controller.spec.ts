@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import app from '@/infra/http/app'
 import {
   makeRawWorkspace,
   makeWorkspace,
@@ -15,7 +16,7 @@ describe('WorkspaceController', () => {
       platformId: workspace.platformId,
     }
 
-    const response = await global.__SERVER__.inject({
+    const response = await app.inject({
       method: 'POST',
       url: '/workspaces/create',
       payload,
@@ -48,7 +49,7 @@ describe('WorkspaceController', () => {
       platformId: workspace.platformId,
     }
 
-    const response = await global.__SERVER__.inject({
+    const response = await app.inject({
       method: 'POST',
       url: '/workspaces/create',
       payload,
