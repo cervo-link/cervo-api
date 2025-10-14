@@ -389,12 +389,42 @@
                   "description": "Workspace created.",
                   "type": "object",
                   "properties": {
-                    "message": {
+                    "id": {
                       "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "platform": {
+                      "type": "string"
+                    },
+                    "platformId": {
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "active": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
-                    "message"
+                    "id",
+                    "name",
+                    "description",
+                    "platform",
+                    "platformId",
+                    "createdAt",
+                    "updatedAt",
+                    "active"
                   ],
                   "additionalProperties": false
                 }
