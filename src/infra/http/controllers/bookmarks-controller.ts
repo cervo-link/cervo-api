@@ -31,24 +31,24 @@ export async function createBookmarkController(
   const embeddingAdapter = createEmbeddingProvider('embeddinggemma')
   const summarizeAdapter = createSummarizeService('gemma')
 
-  try {
-    await createBookmark(
-      {
-        workspaceId,
-        memberId,
-        url,
-      },
-      scrappingAdapter,
-      embeddingAdapter,
-      summarizeAdapter
-    )
-  } catch (error) {
-    return reply.status((error as DomainError).status).send({
-      message: (error as DomainError).message,
+  const result = await createBookmark(
+    {
+      workspaceId,
+      memberId,
+      url,
+    },
+    scrappingAdapter,
+    embeddingAdapter,
+    summarizeAdapter
+  )
+
+  if (result instanceof DomainError) {
+    return reply.status(result.status).send({
+      message: result.message,
     })
   }
 
-  return reply.send({
+  return reply.status(201).send({
     message: 'Bookmark created successfully',
   })
 }
@@ -74,5 +74,5 @@ export async function getBookmarksController(
     })
   }
 
-  return reply.send(bookmarks)
+  return reply.status(200).send(bookmarks)
 }
