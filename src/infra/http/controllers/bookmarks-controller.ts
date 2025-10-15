@@ -19,11 +19,11 @@ export async function createBookmarkController(
     request.body
   )
 
-  try {
-    await getMembership(workspaceId, memberId)
-  } catch (error) {
-    return reply.status((error as DomainError).status).send({
-      message: (error as DomainError).message,
+  const membership = await getMembership(workspaceId, memberId)
+
+  if (membership instanceof DomainError) {
+    return reply.status(membership.status).send({
+      message: membership.message,
     })
   }
 

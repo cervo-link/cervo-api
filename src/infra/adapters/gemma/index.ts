@@ -1,8 +1,11 @@
 import { request } from 'undici'
 import { config } from '@/config'
+import { FailedToSummarize } from '@/domain/errors/failed-to-summarize'
 import type { SummarizeService } from '@/infra/ports/summarize'
 
-export async function summarize(text: string) {
+export async function summarize(
+  text: string
+): Promise<string | FailedToSummarize> {
   const url = config.gemma.GEMMA_URL
 
   const prompt = `You are helping build a smart search system. Summarize the following content in exactly one concise, information-rich sentence, 
@@ -23,7 +26,7 @@ export async function summarize(text: string) {
 
   if (response.statusCode !== 200) {
     const body = (await response.body.json()) as { message: string }
-    throw new Error(
+    return new FailedToSummarize(
       `HTTP ${response.statusCode}: ${body.message || 'Request failed'}`
     )
   }
@@ -46,7 +49,7 @@ export async function summarize(text: string) {
 }
 
 export const GemmaAdapter: SummarizeService = {
-  summarize: async (text: string) => {
+  summarize: async (text: string): Promise<string | FailedToSummarize> => {
     return summarize(text)
   },
 }

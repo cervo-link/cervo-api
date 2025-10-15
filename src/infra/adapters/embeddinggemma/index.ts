@@ -1,5 +1,7 @@
 import { request } from 'undici'
 import { config } from '@/config'
+import type { DomainError } from '@/domain/errors/domain-error'
+import { FailedToGenerateEmbedding } from '@/domain/errors/failed-to-generate-embedding'
 import type { EmbeddingService } from '@/infra/ports/embedding'
 
 type EmbeddingGemmaResponse = {
@@ -24,7 +26,7 @@ export async function generateEmbedding(message: string) {
 
   if (response.statusCode !== 200) {
     const body = (await response.body.json()) as { message: string }
-    throw new Error(
+    return new FailedToGenerateEmbedding(
       `HTTP ${response.statusCode}: ${body.message || 'Request failed'}`
     )
   }
@@ -35,5 +37,6 @@ export async function generateEmbedding(message: string) {
 }
 
 export const EmbeddingGemmaAdapter: EmbeddingService = {
-  generateEmbedding: async (message: string) => generateEmbedding(message),
+  generateEmbedding: async (message: string): Promise<number[] | DomainError> =>
+    generateEmbedding(message),
 }

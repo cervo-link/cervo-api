@@ -44,7 +44,7 @@ describe('getBookmark', () => {
       summarizeService
     )
 
-    expect(result).toBe('test')
+    expect(result).toBe(url)
 
     const bookmarks = await getBookmarks(
       {
