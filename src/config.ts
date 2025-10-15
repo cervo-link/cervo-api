@@ -11,7 +11,7 @@ function getDbConfig() {
 function getAppConfig() {
   const schema = z.object({
     PORT: z.string().default('8080'),
-    NODE_ENV: z.enum(['dev', 'production', 'test']),
+    NODE_ENV: z.enum(['dev', 'production', 'test']).default('test'),
   })
 
   return schema.parse(process.env)
@@ -19,21 +19,21 @@ function getAppConfig() {
 
 function getGemmaConfig() {
   const schema = z.object({
-    GEMMA_URL: z.url(),
+    GEMMA_URL: z.url().optional(),
   })
 
   return schema.parse(process.env)
 }
 function getScrappingBeeConfig() {
   const schema = z.object({
-    SCRAPPING_BEE_API_KEY: z.string(),
+    SCRAPPING_BEE_API_KEY: z.string().optional(),
   })
 
   return schema.parse(process.env)
 }
 function getEmbeddingGemmaConfig() {
   const schema = z.object({
-    EMBEDDINGGEMMA_URL: z.url(),
+    EMBEDDINGGEMMA_URL: z.url().optional(),
   })
 
   return schema.parse(process.env)

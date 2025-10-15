@@ -1,0 +1,37 @@
+import { createHash } from 'node:crypto'
+import { faker } from '@faker-js/faker'
+
+import type { InsertBookmark } from '@/domain/entities/bookmark'
+import { DomainError } from '@/domain/errors/domain-error'
+import { insertBookmark } from '@/infra/db/repositories/bookmark-repository'
+import { makeRawEmbedding } from './make-embedding'
+
+type Overrides = Partial<Omit<InsertBookmark, 'workspaceId' | 'memberId'>> & {
+  workspaceId: string
+  memberId: string
+}
+
+export function makeRawBookmark(overrides: Overrides): InsertBookmark {
+  const url = overrides.url || faker.internet.url()
+  const urlHashId = createHash('sha256').update(url).digest('hex')
+
+  return {
+    workspaceId: overrides.workspaceId,
+    memberId: overrides.memberId,
+    url,
+    urlHashId,
+    title: overrides.title || faker.lorem.sentence(),
+    description: overrides.description || faker.lorem.paragraph(),
+    embedding: overrides.embedding || makeRawEmbedding(),
+    visible: overrides.visible ?? true,
+  }
+}
+
+export async function makeBookmark(overrides: Overrides) {
+  const bookmark = await insertBookmark(makeRawBookmark(overrides))
+  if (bookmark instanceof DomainError) {
+    throw bookmark
+  }
+
+  return bookmark
+}

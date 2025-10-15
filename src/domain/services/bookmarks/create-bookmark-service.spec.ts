@@ -1,10 +1,17 @@
-import { faker } from '@faker-js/faker'
 import { describe, expect, it } from 'vitest'
+import { makeRawEmbedding } from '@/tests/factories/make-embedding'
+import { makeMember } from '@/tests/factories/make-member'
+import { makeMembership } from '@/tests/factories/make-membership'
+import { makeWorkspace } from '@/tests/factories/make-workspace'
 import { createBookmark } from './create-bookmark-service'
 
 describe('createBookmark', () => {
   it('should create a bookmark', async () => {
-    const fakeId = faker.string.uuid()
+    const { id: workspaceId } = await makeWorkspace()
+    const { id: memberId } = await makeMember()
+    await makeMembership(workspaceId, memberId)
+
+    const embedding = makeRawEmbedding()
 
     const scrappingService = {
       scrapping: async () => {
@@ -14,7 +21,7 @@ describe('createBookmark', () => {
 
     const embeddingService = {
       generateEmbedding: async () => {
-        return [1, 2, 3]
+        return embedding
       },
     }
     const summarizeService = {
@@ -23,17 +30,19 @@ describe('createBookmark', () => {
       },
     }
 
+    const url = 'https://www.google.com'
+
     const result = await createBookmark(
       {
-        workspaceId: fakeId,
-        memberId: fakeId,
-        url: 'https://www.google.com',
+        workspaceId,
+        memberId,
+        url,
       },
       scrappingService,
       embeddingService,
       summarizeService
     )
 
-    expect(result).toBe('test')
+    expect(result).toBe(url)
   })
 })

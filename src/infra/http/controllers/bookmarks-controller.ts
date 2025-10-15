@@ -20,6 +20,7 @@ export async function createBookmarkController(
   )
 
   const membership = await getMembership(workspaceId, memberId)
+
   if (membership instanceof DomainError) {
     return reply.status(membership.status).send({
       message: membership.message,
@@ -30,7 +31,7 @@ export async function createBookmarkController(
   const embeddingAdapter = createEmbeddingProvider('embeddinggemma')
   const summarizeAdapter = createSummarizeService('gemma')
 
-  const response = await createBookmark(
+  const result = await createBookmark(
     {
       workspaceId,
       memberId,
@@ -41,13 +42,15 @@ export async function createBookmarkController(
     summarizeAdapter
   )
 
-  if (response instanceof DomainError) {
-    return reply.status(response.status).send({
-      message: response.message,
+  if (result instanceof DomainError) {
+    return reply.status(result.status).send({
+      message: result.message,
     })
   }
 
-  return reply.send(response)
+  return reply.status(201).send({
+    message: 'Bookmark created successfully',
+  })
 }
 
 export async function getBookmarksController(
@@ -71,5 +74,5 @@ export async function getBookmarksController(
     })
   }
 
-  return reply.send(bookmarks)
+  return reply.status(200).send(bookmarks)
 }

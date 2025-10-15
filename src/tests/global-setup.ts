@@ -18,6 +18,14 @@ declare global {
 }
 
 export async function setup() {
+  await setupDatabase()
+
+  return async () => {
+    await global.__DB_CONFIG__?.container?.stop()
+  }
+}
+
+async function setupDatabase() {
   const container = await new GenericContainer('pgvector/pgvector:pg16')
     .withEnvironment({
       POSTGRES_PASSWORD: 'test',
@@ -48,8 +56,4 @@ export async function setup() {
   const db = drizzle(client)
   await migrate(db, { migrationsFolder: './src/infra/db/migrations' })
   await client.end()
-
-  return async () => {
-    await global.__DB_CONFIG__?.container?.stop()
-  }
 }

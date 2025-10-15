@@ -5,6 +5,7 @@ import {
   pgTable,
   text,
   timestamp,
+  unique,
   uniqueIndex,
   uuid,
   vector,
@@ -63,6 +64,7 @@ export const memberships = pgTable(
       .$defaultFn(() => uuidv7()),
     memberId: uuid().notNull(),
     workspaceId: uuid().notNull(),
+    createdAt: timestamp().defaultNow().notNull(),
   },
   t => [
     foreignKey({
@@ -73,6 +75,7 @@ export const memberships = pgTable(
       columns: [t.workspaceId],
       foreignColumns: [workspaces.id],
     }),
+    unique('unique_member_workspace_idx').on(t.memberId, t.workspaceId),
   ]
 )
 

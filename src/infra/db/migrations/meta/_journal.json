@@ -36,6 +36,13 @@
       "when": 1758896909325,
       "tag": "20250926142829_alter_bookmarks_migrations_change_embedding_vector_size",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1759890234978,
+      "tag": "20251008022354_alter_membership_table_add_constraint",
+      "breakpoints": true
     }
   ]
 }

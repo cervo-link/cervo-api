@@ -23,7 +23,11 @@ export const createBookmarkBodySchemaResponse = {
       message: z.string(),
     })
     .describe('Failed to create bookmark'),
-  201: bookmarkSchema.describe('Bookmark created successfully'),
+  201: z
+    .object({
+      message: z.string(),
+    })
+    .describe('Bookmark created successfully'),
 }
 
 export const getBookmarksQuerySchemaRequest = z.object({

@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker'
 import { describe, expect, it } from 'vitest'
-import { CannotCreateWorkspaceDueConstraintError } from '@/domain/errors/cannot-create-workspace-due-constraint'
+import { CannotCreateWorkspaceAlreadyExists } from '@/domain/errors/cannot-create-workspace-already-exists'
 import {
   makeRawWorkspace,
   makeWorkspace,
@@ -32,10 +32,7 @@ describe('createWorkspace', () => {
 
     const result = await createWorkspace(workspaceWithSamePlatformId)
 
-    expect(result).toBeInstanceOf(CannotCreateWorkspaceDueConstraintError)
-    expect((result as CannotCreateWorkspaceDueConstraintError).message).toBe(
-      `Key (platform_id, platform)=(${platformId}, ${workspace.platform}) already exists.`
-    )
+    expect(result).toBeInstanceOf(CannotCreateWorkspaceAlreadyExists)
   })
 
   it('should insert when id exists but platform is different', async () => {

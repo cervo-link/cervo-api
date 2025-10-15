@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm'
 import type { InsertWorkspace, Workspace } from '@/domain/entities/workspace'
-import { CannotCreateWorkspaceDueConstraintError } from '@/domain/errors/cannot-create-workspace-due-constraint'
-import type { DomainError } from '@/domain/errors/domain-error'
+import { CannotCreateWorkspaceAlreadyExists } from '@/domain/errors/cannot-create-workspace-already-exists'
+import { DomainError } from '@/domain/errors/domain-error'
 import { db } from '@/infra/db'
 import { schema } from '@/infra/db/schema'
 import { getPgError } from '@/infra/db/utils/get-pg-error'
@@ -25,11 +25,14 @@ export async function insertWorkspace(
     const pgError = getPgError(error)
     if (pgError) {
       if (pgError.code === PgIntegrityConstraintViolation.UniqueViolation) {
-        return new CannotCreateWorkspaceDueConstraintError(pgError.detail)
+        return new CannotCreateWorkspaceAlreadyExists()
       }
     }
 
-    throw error
+    return new DomainError(
+      `Failed to insert workspace due error: ${error as string}`,
+      500
+    )
   }
 }
 

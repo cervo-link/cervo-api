@@ -1,6 +1,9 @@
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
-import { createMemberController } from '../controllers/member-controller'
+import {
+  addMemberToWorkspaceController,
+  createMemberController,
+} from '../controllers/members-controller'
 import {
   createMemberBodySchemaRequest,
   createMemberBodySchemaResponse,
@@ -19,15 +22,15 @@ export async function memberRoutes(app: FastifyInstance) {
     handler: createMemberController,
   })
 
-  // app.withTypeProvider<ZodTypeProvider>().route({
-  //   method: 'PUT',
-  //   url: '/members/add',
-  //   schema: {
-  //     description: 'Add a member to a workspace',
-  //     tags: ['members'],
-  //     response: createMemberBodySchemaResponse,
-  //     body: createMemberBodySchemaRequest,
-  //   },
-  //   handler: addMemberToWorkspaceController,
-  // })
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: 'PUT',
+    url: '/members/add',
+    schema: {
+      description: 'Add a member to a workspace',
+      tags: ['members'],
+      response: createMemberBodySchemaResponse,
+      body: createMemberBodySchemaRequest,
+    },
+    handler: addMemberToWorkspaceController,
+  })
 }

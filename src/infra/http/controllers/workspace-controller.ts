@@ -23,5 +23,5 @@ export async function createWorkspaceController(
     })
   }
 
-  return reply.send(workspace)
+  return reply.status(201).send({ workspace })
 }

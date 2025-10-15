@@ -1,0 +1,2 @@
+ALTER TABLE "memberships" ADD COLUMN "created_at" timestamp DEFAULT now() NOT NULL;--> statement-breakpoint
+ALTER TABLE "memberships" ADD CONSTRAINT "unique_member_workspace_idx" UNIQUE("member_id","workspace_id");
