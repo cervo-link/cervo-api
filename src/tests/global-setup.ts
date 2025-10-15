@@ -1,9 +1,7 @@
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { migrate } from 'drizzle-orm/node-postgres/migrator'
-import type { FastifyInstance } from 'fastify'
 import { Client } from 'pg'
 import { GenericContainer, type StartedTestContainer } from 'testcontainers'
-import { startServer } from '@/infra/http/server'
 
 let dbConfig: {
   host: string
@@ -17,16 +15,13 @@ let dbConfig: {
 declare global {
   // eslint-disable-next-line no-var
   var __DB_CONFIG__: typeof dbConfig
-  var __SERVER__: FastifyInstance
 }
 
 export async function setup() {
   await setupDatabase()
-  await setupServer()
 
   return async () => {
     await global.__DB_CONFIG__?.container?.stop()
-    await global.__SERVER__?.close()
   }
 }
 
@@ -61,9 +56,4 @@ async function setupDatabase() {
   const db = drizzle(client)
   await migrate(db, { migrationsFolder: './src/infra/db/migrations' })
   await client.end()
-}
-
-async function setupServer() {
-  const server = await startServer()
-  global.__SERVER__ = server
 }
