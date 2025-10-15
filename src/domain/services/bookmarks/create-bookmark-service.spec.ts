@@ -1,4 +1,3 @@
-import { faker } from '@faker-js/faker'
 import { describe, expect, it } from 'vitest'
 import { makeRawEmbedding } from '@/tests/factories/make-embedding'
 import { makeMember } from '@/tests/factories/make-member'
