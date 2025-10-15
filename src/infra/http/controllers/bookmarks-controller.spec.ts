@@ -4,6 +4,7 @@ import { FailedToGenerateEmbedding } from '@/domain/errors/failed-to-generate-em
 import { FailedToScrap } from '@/domain/errors/failed-to-scrap'
 import { FailedToSummarize } from '@/domain/errors/failed-to-summarize'
 import app from '@/infra/http/app'
+import { makeBookmark } from '@/tests/factories/make-bookmark'
 import { makeRawEmbedding } from '@/tests/factories/make-embedding'
 import { makeMember } from '@/tests/factories/make-member'
 import { makeMembership } from '@/tests/factories/make-membership'
@@ -33,7 +34,7 @@ vi.mock('@/infra/factories/summarize-service-factory', () => ({
   createSummarizeService: () => mockSummarizeService,
 }))
 
-describe('BookmarksController', () => {
+describe('createBookmarkController', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockScrappingService.scrapping.mockResolvedValue('test content')
@@ -174,5 +175,72 @@ describe('BookmarksController', () => {
     expect(JSON.parse(response.body)).toEqual({
       message: 'Failed to generate embedding',
     })
+  })
+})
+
+describe('getBookmarksController', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockEmbeddingService.generateEmbedding.mockResolvedValue(makeRawEmbedding())
+  })
+
+  it('should be able to get bookmarks', async () => {
+    const member = await makeMember()
+    const workspace = await makeWorkspace()
+    await makeMembership(workspace.id, member.id)
+
+    const bookmark = await makeBookmark({
+      workspaceId: workspace.id,
+      memberId: member.id,
+    })
+
+    const payload = {
+      workspaceId: workspace.id,
+      memberId: member.id,
+      text: 'test',
+    }
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/bookmarks',
+      query: payload,
+    })
+
+    expect(response.statusCode).toBe(200)
+    const responseBody = JSON.parse(response.body)[0]
+    expect(responseBody).toEqual({
+      id: bookmark.id,
+      workspaceId: workspace.id,
+      memberId: member.id,
+      url: bookmark.url,
+      urlHashId: bookmark.urlHashId,
+      title: bookmark.title,
+      description: bookmark.description,
+      createdAt: bookmark.createdAt.toISOString(),
+      updatedAt: bookmark.updatedAt.toISOString(),
+      visible: bookmark.visible,
+    })
+  })
+
+  it('should be able to return empty array when no bookmarks are found', async () => {
+    const member = await makeMember()
+    const workspace = await makeWorkspace()
+    await makeMembership(workspace.id, member.id)
+
+    const payload = {
+      workspaceId: workspace.id,
+      memberId: member.id,
+      text: 'invalid text',
+    }
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/bookmarks',
+      query: payload,
+    })
+
+    expect(response.statusCode).toBe(200)
+    const responseBody = JSON.parse(response.body)
+    expect(responseBody).toEqual([])
   })
 })
