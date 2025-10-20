@@ -1,4 +1,4 @@
-import { trace } from '@opentelemetry/api'
+import { SpanStatusCode, trace } from '@opentelemetry/api'
 import { eq } from 'drizzle-orm'
 import type { InsertWorkspace, Workspace } from '@/domain/entities/workspace'
 import { CannotCreateWorkspaceAlreadyExists } from '@/domain/errors/cannot-create-workspace-already-exists'
@@ -21,7 +21,12 @@ export async function insertWorkspace(
         .returning()
 
       if (!result) {
-        throw new Error('Workspace not created')
+        span.setStatus({
+          code: SpanStatusCode.ERROR,
+          message: 'Workspace not created',
+        })
+        span.end()
+        return new DomainError('Workspace not created', 500)
       }
 
       span.end()
@@ -30,11 +35,18 @@ export async function insertWorkspace(
       const pgError = getPgError(error)
       if (pgError) {
         if (pgError.code === PgIntegrityConstraintViolation.UniqueViolation) {
+          span.setStatus({
+            code: SpanStatusCode.ERROR,
+            message: 'Workspace already exists',
+          })
           span.end()
           return new CannotCreateWorkspaceAlreadyExists()
         }
       }
-
+      span.setStatus({
+        code: SpanStatusCode.ERROR,
+        message: `Failed to insert workspace due error: ${error as string}`,
+      })
       span.end()
       return new DomainError(
         `Failed to insert workspace due error: ${error as string}`,

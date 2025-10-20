@@ -1,4 +1,4 @@
-import { trace } from '@opentelemetry/api'
+import { SpanStatusCode, trace } from '@opentelemetry/api'
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import { DomainError } from '@/domain/errors/domain-error'
 import { createWorkspace } from '@/domain/services/workspace/create-workspace-service'
@@ -22,8 +22,8 @@ export async function createWorkspaceController(
     })
 
     if (workspace instanceof DomainError) {
-      span.end()
-      return reply.status(workspace.status).send({
+      span.setStatus({
+        code: SpanStatusCode.ERROR,
         message: workspace.message,
       })
     }

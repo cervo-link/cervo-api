@@ -12,7 +12,7 @@ import {
 
 const sdk = new NodeSDK({
   resource: resourceFromAttributes({
-    [ATTR_SERVICE_NAME]: 'cervo',
+    [ATTR_SERVICE_NAME]: 'cervo-api',
     [ATTR_SERVICE_VERSION]: '0.1.0',
   }),
   traceExporter: new OTLPTraceExporter({
