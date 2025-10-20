@@ -22,14 +22,14 @@ export async function createBookmark(
 ): Promise<string | DomainError> {
   const tracer = trace.getTracer('create-bookmark')
 
-  return tracer.startActiveSpan('create-bookmark', async span => {
-    const response = await scrappingService.scrapping(params.url)
+  return tracer.startActiveSpan('create-bookmark-service', async span => {
+    const response = await scrappingService.scrapping(params.url, tracer)
     if (response instanceof DomainError) {
       span.end()
       return response
     }
 
-    const summarized = await summarizeService.summarize(response)
+    const summarized = await summarizeService.summarize(response, tracer)
     if (summarized instanceof DomainError) {
       span.end()
       return summarized
@@ -44,13 +44,7 @@ export async function createBookmark(
       return embedding
     }
 
-    const encoder = new TextEncoder()
-    const data = encoder.encode(params.url)
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data)
-    const hashArray = Array.from(new Uint8Array(hashBuffer))
-    const urlHashId = hashArray
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('')
+    const urlHashId = await generateUrlHashId(params)
 
     const result = await insertBookmark({
       ...params,
@@ -66,4 +60,12 @@ export async function createBookmark(
     span.end()
     return result.url
   })
+}
+
+async function generateUrlHashId(params: InsertBookmarkInput): Promise<string> {
+  const encoder = new TextEncoder()
+  const data = encoder.encode(params.url)
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
 }

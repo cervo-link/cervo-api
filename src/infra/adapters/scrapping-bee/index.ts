@@ -1,3 +1,4 @@
+import type { Tracer } from '@opentelemetry/api'
 import scrapingbee from 'scrapingbee'
 import { config } from '@/config'
 import { FailedToScrap } from '@/domain/errors/failed-to-scrap'
@@ -27,5 +28,10 @@ export async function scrapping(url: string) {
 }
 
 export const ScrappingBeeAdapter: ScrappingService = {
-  scrapping: async (url: string) => scrapping(url),
+  scrapping: async (url: string, tracer: Tracer) =>
+    tracer.startActiveSpan('scrapping-bee-service', async span => {
+      const response = await scrapping(url)
+      span.end()
+      return response
+    }),
 }
