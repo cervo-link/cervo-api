@@ -11,30 +11,37 @@ import { PgIntegrityConstraintViolation } from '@/infra/db/utils/postgres-error-
 export async function insertWorkspace(
   workspace: InsertWorkspace
 ): Promise<Workspace | DomainError> {
-  try {
-    const [result] = await db
-      .insert(schema.workspaces)
-      .values(workspace)
-      .returning()
+  const tracer = trace.getTracer('insert-workspace')
 
-    if (!result) {
-      throw new Error('Workspace not created')
-    }
+  return tracer.startActiveSpan('insert-workspace-repository', async span => {
+    try {
+      const [result] = await db
+        .insert(schema.workspaces)
+        .values(workspace)
+        .returning()
 
-    return result
-  } catch (error) {
-    const pgError = getPgError(error)
-    if (pgError) {
-      if (pgError.code === PgIntegrityConstraintViolation.UniqueViolation) {
-        return new CannotCreateWorkspaceAlreadyExists()
+      if (!result) {
+        throw new Error('Workspace not created')
       }
-    }
 
-    return new DomainError(
-      `Failed to insert workspace due error: ${error as string}`,
-      500
-    )
-  }
+      span.end()
+      return result
+    } catch (error) {
+      const pgError = getPgError(error)
+      if (pgError) {
+        if (pgError.code === PgIntegrityConstraintViolation.UniqueViolation) {
+          span.end()
+          return new CannotCreateWorkspaceAlreadyExists()
+        }
+      }
+
+      span.end()
+      return new DomainError(
+        `Failed to insert workspace due error: ${error as string}`,
+        500
+      )
+    }
+  })
 }
 
 export async function findById(id: string): Promise<Workspace | null> {

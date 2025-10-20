@@ -5,27 +5,27 @@ import { CannotCreateMembershipAlreadyExists } from '@/domain/errors/cannot-crea
 import { DomainError } from '@/domain/errors/domain-error'
 import { db } from '@/infra/db'
 import { memberships } from '@/infra/db/schema'
-import type { Transaction } from '@/infra/db/utils/transactions'
 import { getPgError } from '../utils/get-pg-error'
 import { PgIntegrityConstraintViolation } from '../utils/postgres-error-codes'
-
-export async function insertMembershipWithTransaction(
-  tx: Transaction,
-  membership: InsertMembership
-): Promise<Membership | DomainError> {
-  const [result] = await tx.insert(memberships).values(membership).returning()
-  return result
-}
 
 export async function insertMembership(
   membership: InsertMembership
 ): Promise<Membership | DomainError> {
-  try {
-    const [result] = await db.insert(memberships).values(membership).returning()
-    return result
-  } catch (error) {
-    return handleError(error)
-  }
+  const tracer = trace.getTracer('insert-membership')
+
+  return tracer.startActiveSpan('insert-membership-repository', async span => {
+    try {
+      const [result] = await db
+        .insert(memberships)
+        .values(membership)
+        .returning()
+      span.end()
+      return result
+    } catch (error) {
+      span.end()
+      return handleError(error)
+    }
+  })
 }
 
 export async function findMembership(

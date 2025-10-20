@@ -10,18 +10,24 @@ import { getPgError } from '../utils/get-pg-error'
 export async function insertBookmark(
   params: InsertBookmark
 ): Promise<Bookmark | DomainError> {
-  try {
-    const [result] = await db
-      .insert(schema.bookmarks)
-      .values(params)
-      .returning()
+  const tracer = trace.getTracer('insert-bookmark')
 
-    return result
-  } catch (error) {
-    const pgError = getPgError(error)
+  return tracer.startActiveSpan('insert-bookmark-repository', async span => {
+    try {
+      const [result] = await db
+        .insert(schema.bookmarks)
+        .values(params)
+        .returning()
 
-    return new FailedToCreateBookmark(pgError?.message)
-  }
+      span.end()
+      return result
+    } catch (error) {
+      const pgError = getPgError(error)
+
+      span.end()
+      return new FailedToCreateBookmark(pgError?.message)
+    }
+  })
 }
 
 export async function findBookmarks(
