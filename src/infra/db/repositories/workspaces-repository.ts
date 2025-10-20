@@ -1,3 +1,4 @@
+import { trace } from '@opentelemetry/api'
 import { eq } from 'drizzle-orm'
 import type { InsertWorkspace, Workspace } from '@/domain/entities/workspace'
 import { CannotCreateWorkspaceAlreadyExists } from '@/domain/errors/cannot-create-workspace-already-exists'
@@ -37,10 +38,17 @@ export async function insertWorkspace(
 }
 
 export async function findById(id: string): Promise<Workspace | null> {
-  const [result] = await db
-    .select()
-    .from(schema.workspaces)
-    .where(eq(schema.workspaces.id, id))
+  const tracer = trace.getTracer('find-workspace')
 
-  return result
+  return tracer.startActiveSpan(
+    'find-workspace-by-idrepository',
+    async span => {
+      const [result] = await db
+        .select()
+        .from(schema.workspaces)
+        .where(eq(schema.workspaces.id, id))
+      span.end()
+      return result
+    }
+  )
 }
