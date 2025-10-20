@@ -1,3 +1,4 @@
+import { trace } from '@opentelemetry/api'
 import { z } from 'zod'
 import { DomainError } from '@/domain/errors/domain-error'
 import { insertBookmark } from '@/infra/db/repositories/bookmark-repository'
@@ -19,36 +20,50 @@ export async function createBookmark(
   embeddingService: EmbeddingService,
   summarizeService: SummarizeService
 ): Promise<string | DomainError> {
-  const response = await scrappingService.scrapping(params.url)
-  if (response instanceof DomainError) {
-    return response
-  }
+  const tracer = trace.getTracer('create-bookmark')
 
-  const summarized = await summarizeService.summarize(response)
-  if (summarized instanceof DomainError) {
-    return summarized
-  }
+  return tracer.startActiveSpan('create-bookmark', async span => {
+    const response = await scrappingService.scrapping(params.url)
+    if (response instanceof DomainError) {
+      span.end()
+      return response
+    }
 
-  const embedding = await embeddingService.generateEmbedding(summarized)
-  if (embedding instanceof DomainError) {
-    return embedding
-  }
+    const summarized = await summarizeService.summarize(response)
+    if (summarized instanceof DomainError) {
+      span.end()
+      return summarized
+    }
 
-  const encoder = new TextEncoder()
-  const data = encoder.encode(params.url)
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
-  const hashArray = Array.from(new Uint8Array(hashBuffer))
-  const urlHashId = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+    const embedding = await embeddingService.generateEmbedding(
+      summarized,
+      tracer
+    )
+    if (embedding instanceof DomainError) {
+      span.end()
+      return embedding
+    }
 
-  const result = await insertBookmark({
-    ...params,
-    urlHashId,
-    embedding,
+    const encoder = new TextEncoder()
+    const data = encoder.encode(params.url)
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+    const hashArray = Array.from(new Uint8Array(hashBuffer))
+    const urlHashId = hashArray
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('')
+
+    const result = await insertBookmark({
+      ...params,
+      urlHashId,
+      embedding,
+    })
+
+    if (result instanceof DomainError) {
+      span.end()
+      return result
+    }
+
+    span.end()
+    return result.url
   })
-
-  if (result instanceof DomainError) {
-    return result
-  }
-
-  return result.url
 }

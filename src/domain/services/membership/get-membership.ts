@@ -1,3 +1,4 @@
+import { trace } from '@opentelemetry/api'
 import type { Membership } from '@/domain/entities/membership'
 import type { DomainError } from '@/domain/errors/domain-error'
 import { MembershipNotFound } from '@/domain/errors/membership-not-found'
@@ -7,10 +8,16 @@ export async function getMembership(
   workspaceId: string,
   memberId: string
 ): Promise<Membership | DomainError> {
-  const membership = await findMembership(workspaceId, memberId)
-  if (!membership) {
-    return new MembershipNotFound()
-  }
+  const tracer = trace.getTracer('get-membership')
 
-  return membership
+  return tracer.startActiveSpan('get-membership-service', async span => {
+    const membership = await findMembership(workspaceId, memberId)
+    if (!membership) {
+      span.end()
+      return new MembershipNotFound()
+    }
+
+    span.end()
+    return membership
+  })
 }

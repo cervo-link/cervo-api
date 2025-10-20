@@ -1,3 +1,4 @@
+import { trace } from '@opentelemetry/api'
 import { and, eq, sql } from 'drizzle-orm'
 import type { Bookmark, InsertBookmark } from '@/domain/entities/bookmark'
 import type { DomainError } from '@/domain/errors/domain-error'
@@ -27,16 +28,21 @@ export async function findBookmarks(
   workspaceId: string,
   embedded: number[]
 ): Promise<Bookmark[]> {
-  const bookmarks = await db
-    .select()
-    .from(schema.bookmarks)
-    .where(
-      and(
-        eq(schema.bookmarks.workspaceId, workspaceId),
-        eq(schema.bookmarks.visible, true),
-        sql`embedding <-> ${JSON.stringify(embedded)}::vector < 0.9`
-      )
-    )
+  const tracer = trace.getTracer('get-bookmarks')
 
-  return bookmarks
+  return tracer.startActiveSpan('find-bookmarks-repository', async span => {
+    const bookmarks = await db
+      .select()
+      .from(schema.bookmarks)
+      .where(
+        and(
+          eq(schema.bookmarks.workspaceId, workspaceId),
+          eq(schema.bookmarks.visible, true),
+          sql`embedding <-> ${JSON.stringify(embedded)}::vector < 0.9`
+        )
+      )
+
+    span.end()
+    return bookmarks
+  })
 }

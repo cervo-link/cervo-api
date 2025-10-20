@@ -1,3 +1,4 @@
+import { trace } from '@opentelemetry/api'
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import { DomainError } from '@/domain/errors/domain-error'
 import { createBookmark } from '@/domain/services/bookmarks/create-bookmark-service'
@@ -57,22 +58,27 @@ export async function getBookmarksController(
   request: FastifyRequest,
   reply: FastifyReply
 ) {
-  const { workspaceId, memberId, text } = getBookmarksQuerySchemaRequest.parse(
-    request.query
-  )
+  const tracer = trace.getTracer('get-bookmarks')
 
-  const embeddingAdapter = createEmbeddingProvider('embeddinggemma')
+  return tracer.startActiveSpan('get-bookmarks-controller', async span => {
+    const { workspaceId, memberId, text } =
+      getBookmarksQuerySchemaRequest.parse(request.query)
 
-  const bookmarks = await getBookmarks(
-    { workspaceId, memberId, text },
-    embeddingAdapter
-  )
+    const embeddingAdapter = createEmbeddingProvider('embeddinggemma')
 
-  if (bookmarks instanceof DomainError) {
-    return reply.status(bookmarks.status).send({
-      message: bookmarks.message,
-    })
-  }
+    const bookmarks = await getBookmarks(
+      { workspaceId, memberId, text },
+      embeddingAdapter
+    )
 
-  return reply.status(200).send(bookmarks)
+    if (bookmarks instanceof DomainError) {
+      span.end()
+      return reply.status(bookmarks.status).send({
+        message: bookmarks.message,
+      })
+    }
+
+    span.end()
+    return reply.status(200).send(bookmarks)
+  })
 }

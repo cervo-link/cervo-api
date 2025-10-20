@@ -1,3 +1,4 @@
+import { trace } from '@opentelemetry/api'
 import { and, eq } from 'drizzle-orm'
 import type { InsertMembership, Membership } from '@/domain/entities/membership'
 import { CannotCreateMembershipAlreadyExists } from '@/domain/errors/cannot-create-membership-already-exists'
@@ -31,16 +32,21 @@ export async function findMembership(
   workspaceId: string,
   memberId: string
 ): Promise<Membership | null> {
-  const [result] = await db
-    .select()
-    .from(memberships)
-    .where(
-      and(
-        eq(memberships.workspaceId, workspaceId),
-        eq(memberships.memberId, memberId)
+  const tracer = trace.getTracer('find-membership')
+
+  return tracer.startActiveSpan('find-membership-repository', async span => {
+    const [result] = await db
+      .select()
+      .from(memberships)
+      .where(
+        and(
+          eq(memberships.workspaceId, workspaceId),
+          eq(memberships.memberId, memberId)
+        )
       )
-    )
-  return result
+    span.end()
+    return result
+  })
 }
 
 function handleError(error: unknown): DomainError {

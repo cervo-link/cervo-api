@@ -1,6 +1,6 @@
+import { trace } from '@opentelemetry/api'
 import type { Bookmark } from '@/domain/entities/bookmark'
-import { FailedToGenerateEmbedding } from '@/domain/errors/failed-to-generate-embedding'
-import { FailedToGetBookmarks } from '@/domain/errors/failed-to-get-bookmarks'
+import { DomainError } from '@/domain/errors/domain-error'
 import { findBookmarks } from '@/infra/db/repositories/bookmark-repository'
 import type { EmbeddingService } from '@/infra/ports/embedding'
 
@@ -13,17 +13,27 @@ export type GetBookmarksInput = {
 export async function getBookmarks(
   input: GetBookmarksInput,
   embeddingService: EmbeddingService
-): Promise<Bookmark[]> {
-  const embedded = await embeddingService.generateEmbedding(input.text)
-  if (!embedded) {
-    throw new FailedToGenerateEmbedding()
-  }
+): Promise<Bookmark[] | DomainError> {
+  const tracer = trace.getTracer('get-bookmarks-service')
 
-  const bookmarks = await findBookmarks(input.workspaceId, embedded)
+  return tracer.startActiveSpan('get-bookmarks-service', async span => {
+    const embedded = await embeddingService.generateEmbedding(
+      input.text,
+      tracer
+    )
+    if (embedded instanceof DomainError) {
+      span.end()
+      return embedded
+    }
 
-  if (!bookmarks) {
-    throw new FailedToGetBookmarks()
-  }
+    const bookmarks = await findBookmarks(input.workspaceId, embedded)
 
-  return bookmarks
+    if (bookmarks instanceof DomainError) {
+      span.end()
+      return bookmarks
+    }
+
+    span.end()
+    return bookmarks
+  })
 }
