@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest'
-import { DomainError } from '@/domain/errors/domain-error'
 import { makeRawEmbedding } from '@/tests/factories/make-embedding'
 import { makeMember } from '@/tests/factories/make-member'
 import { makeMembership } from '@/tests/factories/make-membership'
@@ -56,6 +55,20 @@ describe('getBookmark', () => {
       embeddingService
     )
 
-    expect(bookmarks).toBeInstanceOf(DomainError)
+    expect(bookmarks).toEqual([
+      {
+        id: expect.any(String),
+        workspaceId,
+        memberId,
+        url,
+        urlHashId: expect.any(String),
+        title: null,
+        description: null,
+        createdAt: expect.any(Date),
+        updatedAt: expect.any(Date),
+        embedding: expect.any(Array),
+        visible: true,
+      },
+    ])
   })
 })
