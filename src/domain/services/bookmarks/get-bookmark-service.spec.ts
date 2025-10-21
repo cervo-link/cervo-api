@@ -55,9 +55,20 @@ describe('getBookmark', () => {
       embeddingService
     )
 
-    expect(bookmarks).toHaveLength(1)
-    expect(bookmarks[0].url).toBe(url)
-    expect(bookmarks[0].workspaceId).toBe(workspaceId)
-    expect(bookmarks[0].memberId).toBe(memberId)
+    expect(bookmarks).toEqual([
+      {
+        id: expect.any(String),
+        workspaceId,
+        memberId,
+        url,
+        urlHashId: expect.any(String),
+        title: null,
+        description: null,
+        createdAt: expect.any(Date),
+        updatedAt: expect.any(Date),
+        embedding: expect.any(Array),
+        visible: true,
+      },
+    ])
   })
 })

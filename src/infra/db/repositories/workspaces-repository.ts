@@ -1,3 +1,4 @@
+import { SpanStatusCode, trace } from '@opentelemetry/api'
 import { eq } from 'drizzle-orm'
 import type { InsertWorkspace, Workspace } from '@/domain/entities/workspace'
 import { CannotCreateWorkspaceAlreadyExists } from '@/domain/errors/cannot-create-workspace-already-exists'
@@ -10,37 +11,59 @@ import { PgIntegrityConstraintViolation } from '@/infra/db/utils/postgres-error-
 export async function insertWorkspace(
   workspace: InsertWorkspace
 ): Promise<Workspace | DomainError> {
-  try {
-    const [result] = await db
-      .insert(schema.workspaces)
-      .values(workspace)
-      .returning()
+  const tracer = trace.getTracer('insert-workspace')
 
-    if (!result) {
-      throw new Error('Workspace not created')
-    }
+  return tracer.startActiveSpan('insert-workspace-repository', async span => {
+    try {
+      const [result] = await db
+        .insert(schema.workspaces)
+        .values(workspace)
+        .returning()
 
-    return result
-  } catch (error) {
-    const pgError = getPgError(error)
-    if (pgError) {
-      if (pgError.code === PgIntegrityConstraintViolation.UniqueViolation) {
-        return new CannotCreateWorkspaceAlreadyExists()
+      if (!result) {
+        span.setStatus({
+          code: SpanStatusCode.ERROR,
+          message: 'Workspace not created',
+        })
+        span.end()
+        return new DomainError('Workspace not created', 500)
       }
-    }
 
-    return new DomainError(
-      `Failed to insert workspace due error: ${error as string}`,
-      500
-    )
-  }
+      span.end()
+      return result
+    } catch (error) {
+      const pgError = getPgError(error)
+      if (pgError) {
+        if (pgError.code === PgIntegrityConstraintViolation.UniqueViolation) {
+          span.setStatus({
+            code: SpanStatusCode.ERROR,
+            message: 'Workspace already exists',
+          })
+          span.end()
+          return new CannotCreateWorkspaceAlreadyExists()
+        }
+      }
+      span.end()
+      return new DomainError(
+        `Failed to insert workspace due error: ${error as string}`,
+        500
+      )
+    }
+  })
 }
 
 export async function findById(id: string): Promise<Workspace | null> {
-  const [result] = await db
-    .select()
-    .from(schema.workspaces)
-    .where(eq(schema.workspaces.id, id))
+  const tracer = trace.getTracer('find-workspace')
 
-  return result
+  return tracer.startActiveSpan(
+    'find-workspace-by-idrepository',
+    async span => {
+      const [result] = await db
+        .select()
+        .from(schema.workspaces)
+        .where(eq(schema.workspaces.id, id))
+      span.end()
+      return result
+    }
+  )
 }

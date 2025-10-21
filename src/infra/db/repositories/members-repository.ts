@@ -1,3 +1,4 @@
+import { trace } from '@opentelemetry/api'
 import { eq } from 'drizzle-orm'
 import type { InsertMember, Member } from '@/domain/entities/member'
 import { CannotCreateDuplicatedMember } from '@/domain/errors/cannot-create-duplicated-member'
@@ -11,29 +12,49 @@ import type { Transaction } from '@/infra/db/utils/transactions'
 export async function insertMember(
   member: InsertMember
 ): Promise<Member | DomainError> {
-  try {
-    const [result] = await db.insert(members).values(member).returning()
-    return result
-  } catch (error) {
-    return handleError(error)
-  }
+  const tracer = trace.getTracer('insert-member')
+
+  return tracer.startActiveSpan('insert-member-repository', async span => {
+    try {
+      const [result] = await db.insert(members).values(member).returning()
+      span.end()
+      return result
+    } catch (error) {
+      span.end()
+      return handleError(error)
+    }
+  })
 }
 
 export async function insertMemberWithTransaction(
   tx: Transaction,
   member: InsertMember
 ): Promise<Member | DomainError> {
-  try {
-    const [result] = await tx.insert(members).values(member).returning()
-    return result
-  } catch (error) {
-    return handleError(error)
-  }
+  const tracer = trace.getTracer('insert-member-with-transaction')
+
+  return tracer.startActiveSpan(
+    'insert-member-with-transaction-repository',
+    async span => {
+      try {
+        const [result] = await tx.insert(members).values(member).returning()
+        span.end()
+        return result
+      } catch (error) {
+        span.end()
+        return handleError(error)
+      }
+    }
+  )
 }
 
 export async function findById(id: string): Promise<Member> {
-  const [result] = await db.select().from(members).where(eq(members.id, id))
-  return result
+  const tracer = trace.getTracer('find-member')
+
+  return tracer.startActiveSpan('find-member-repository', async span => {
+    const [result] = await db.select().from(members).where(eq(members.id, id))
+    span.end()
+    return result
+  })
 }
 
 function handleError(error: unknown): DomainError {

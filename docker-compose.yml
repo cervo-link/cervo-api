@@ -10,3 +10,11 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=cervo
+      
+  grafana:
+    image: grafana/otel-lgtm
+    container_name: cervo-grafana
+    ports:
+      - 12345:3000
+      - 4317:4317
+      - 4318:4318

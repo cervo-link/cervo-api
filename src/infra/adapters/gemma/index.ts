@@ -1,3 +1,4 @@
+import type { Tracer } from '@opentelemetry/api'
 import { request } from 'undici'
 import { config } from '@/config'
 import { FailedToSummarize } from '@/domain/errors/failed-to-summarize'
@@ -49,7 +50,14 @@ export async function summarize(
 }
 
 export const GemmaAdapter: SummarizeService = {
-  summarize: async (text: string): Promise<string | FailedToSummarize> => {
-    return summarize(text)
+  summarize: async (
+    text: string,
+    tracer: Tracer
+  ): Promise<string | FailedToSummarize> => {
+    return tracer.startActiveSpan('summarize-gemma-service', async span => {
+      const summary = await summarize(text)
+      span.end()
+      return summary
+    })
   },
 }

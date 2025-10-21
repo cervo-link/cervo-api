@@ -1,3 +1,4 @@
+import type { Tracer } from '@opentelemetry/api'
 import { request } from 'undici'
 import { config } from '@/config'
 import type { DomainError } from '@/domain/errors/domain-error'
@@ -37,6 +38,13 @@ export async function generateEmbedding(message: string) {
 }
 
 export const EmbeddingGemmaAdapter: EmbeddingService = {
-  generateEmbedding: async (message: string): Promise<number[] | DomainError> =>
-    generateEmbedding(message),
+  generateEmbedding: async (
+    message: string,
+    tracer: Tracer
+  ): Promise<number[] | DomainError> =>
+    tracer.startActiveSpan('generate-embedding-embeddinggemma', async span => {
+      const embedding = await generateEmbedding(message)
+      span.end()
+      return embedding
+    }),
 }

@@ -1,3 +1,4 @@
+import { trace } from '@opentelemetry/api'
 import { and, eq, sql } from 'drizzle-orm'
 import type { Bookmark, InsertBookmark } from '@/domain/entities/bookmark'
 import type { DomainError } from '@/domain/errors/domain-error'
@@ -9,34 +10,45 @@ import { getPgError } from '../utils/get-pg-error'
 export async function insertBookmark(
   params: InsertBookmark
 ): Promise<Bookmark | DomainError> {
-  try {
-    const [result] = await db
-      .insert(schema.bookmarks)
-      .values(params)
-      .returning()
+  const tracer = trace.getTracer('insert-bookmark')
 
-    return result
-  } catch (error) {
-    const pgError = getPgError(error)
+  return tracer.startActiveSpan('insert-bookmark-repository', async span => {
+    try {
+      const [result] = await db
+        .insert(schema.bookmarks)
+        .values(params)
+        .returning()
 
-    return new FailedToCreateBookmark(pgError?.message)
-  }
+      span.end()
+      return result
+    } catch (error) {
+      const pgError = getPgError(error)
+
+      span.end()
+      return new FailedToCreateBookmark(pgError?.message)
+    }
+  })
 }
 
 export async function findBookmarks(
   workspaceId: string,
   embedded: number[]
 ): Promise<Bookmark[]> {
-  const bookmarks = await db
-    .select()
-    .from(schema.bookmarks)
-    .where(
-      and(
-        eq(schema.bookmarks.workspaceId, workspaceId),
-        eq(schema.bookmarks.visible, true),
-        sql`embedding <-> ${JSON.stringify(embedded)}::vector < 0.9`
-      )
-    )
+  const tracer = trace.getTracer('get-bookmarks')
 
-  return bookmarks
+  return tracer.startActiveSpan('find-bookmarks-repository', async span => {
+    const bookmarks = await db
+      .select()
+      .from(schema.bookmarks)
+      .where(
+        and(
+          eq(schema.bookmarks.workspaceId, workspaceId),
+          eq(schema.bookmarks.visible, true),
+          sql`embedding <-> ${JSON.stringify(embedded)}::vector < 0.9`
+        )
+      )
+
+    span.end()
+    return bookmarks
+  })
 }

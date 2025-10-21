@@ -1,3 +1,4 @@
+import { trace } from '@opentelemetry/api'
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import { DomainError } from '@/domain/errors/domain-error'
 import { createBookmark } from '@/domain/services/bookmarks/create-bookmark-service'
@@ -15,41 +16,47 @@ export async function createBookmarkController(
   request: FastifyRequest,
   reply: FastifyReply
 ) {
-  const { workspaceId, memberId, url } = createBookmarkBodySchemaRequest.parse(
-    request.body
-  )
+  const tracer = trace.getTracer('create-bookmark')
 
-  const membership = await getMembership(workspaceId, memberId)
+  return tracer.startActiveSpan('create-bookmark-controller', async span => {
+    const { workspaceId, memberId, url } =
+      createBookmarkBodySchemaRequest.parse(request.body)
 
-  if (membership instanceof DomainError) {
-    return reply.status(membership.status).send({
-      message: membership.message,
+    const membership = await getMembership(workspaceId, memberId)
+
+    if (membership instanceof DomainError) {
+      span.end()
+      return reply.status(membership.status).send({
+        message: membership.message,
+      })
+    }
+
+    const scrappingAdapter = createScrappingService('scrapping-bee')
+    const embeddingAdapter = createEmbeddingProvider('embeddinggemma')
+    const summarizeAdapter = createSummarizeService('gemma')
+
+    const result = await createBookmark(
+      {
+        workspaceId,
+        memberId,
+        url,
+      },
+      scrappingAdapter,
+      embeddingAdapter,
+      summarizeAdapter
+    )
+
+    if (result instanceof DomainError) {
+      span.end()
+      return reply.status(result.status).send({
+        message: result.message,
+      })
+    }
+
+    span.end()
+    return reply.status(201).send({
+      message: 'Bookmark created successfully',
     })
-  }
-
-  const scrappingAdapter = createScrappingService('scrapping-bee')
-  const embeddingAdapter = createEmbeddingProvider('embeddinggemma')
-  const summarizeAdapter = createSummarizeService('gemma')
-
-  const result = await createBookmark(
-    {
-      workspaceId,
-      memberId,
-      url,
-    },
-    scrappingAdapter,
-    embeddingAdapter,
-    summarizeAdapter
-  )
-
-  if (result instanceof DomainError) {
-    return reply.status(result.status).send({
-      message: result.message,
-    })
-  }
-
-  return reply.status(201).send({
-    message: 'Bookmark created successfully',
   })
 }
 
@@ -57,22 +64,27 @@ export async function getBookmarksController(
   request: FastifyRequest,
   reply: FastifyReply
 ) {
-  const { workspaceId, memberId, text } = getBookmarksQuerySchemaRequest.parse(
-    request.query
-  )
+  const tracer = trace.getTracer('get-bookmarks')
 
-  const embeddingAdapter = createEmbeddingProvider('embeddinggemma')
+  return tracer.startActiveSpan('get-bookmarks-controller', async span => {
+    const { workspaceId, memberId, text } =
+      getBookmarksQuerySchemaRequest.parse(request.query)
 
-  const bookmarks = await getBookmarks(
-    { workspaceId, memberId, text },
-    embeddingAdapter
-  )
+    const embeddingAdapter = createEmbeddingProvider('embeddinggemma')
 
-  if (bookmarks instanceof DomainError) {
-    return reply.status(bookmarks.status).send({
-      message: bookmarks.message,
-    })
-  }
+    const bookmarks = await getBookmarks(
+      { workspaceId, memberId, text },
+      embeddingAdapter
+    )
 
-  return reply.status(200).send(bookmarks)
+    if (bookmarks instanceof DomainError) {
+      span.end()
+      return reply.status(bookmarks.status).send({
+        message: bookmarks.message,
+      })
+    }
+
+    span.end()
+    return reply.status(200).send(bookmarks)
+  })
 }
