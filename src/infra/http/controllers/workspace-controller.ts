@@ -26,9 +26,18 @@ export async function createWorkspaceController(
         code: SpanStatusCode.ERROR,
         message: workspace.message,
       })
+      span.end()
+      return reply.status(workspace.status).send({
+        message: workspace.message,
+      })
     }
 
+    span.setStatus({
+      code: SpanStatusCode.OK,
+      message: 'Workspace created successfully',
+    })
     span.end()
+
     return reply.status(201).send({ workspace })
   })
 }

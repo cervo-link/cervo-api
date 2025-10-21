@@ -412,6 +412,26 @@
               }
             }
           },
+          "422": {
+            "description": "Cannot create workspace due constraint",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Cannot create workspace due constraint",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "500": {
             "description": "Failed to create workspace",
             "content": {

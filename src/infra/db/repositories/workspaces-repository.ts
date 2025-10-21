@@ -43,10 +43,6 @@ export async function insertWorkspace(
           return new CannotCreateWorkspaceAlreadyExists()
         }
       }
-      span.setStatus({
-        code: SpanStatusCode.ERROR,
-        message: `Failed to insert workspace due error: ${error as string}`,
-      })
       span.end()
       return new DomainError(
         `Failed to insert workspace due error: ${error as string}`,

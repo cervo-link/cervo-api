@@ -18,6 +18,11 @@ export const createWorkspaceBodySchemaResponse = {
       message: z.string(),
     })
     .describe('Failed to create workspace'),
+  422: z
+    .object({
+      message: z.string(),
+    })
+    .describe('Cannot create workspace due constraint'),
   201: z
     .object({
       workspace: z.object({
