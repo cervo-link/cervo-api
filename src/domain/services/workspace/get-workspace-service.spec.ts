@@ -38,4 +38,3 @@ describe('getWorkspace', () => {
     expect(result).toBeInstanceOf(WorkspaceNotFound)
   })
 })
-

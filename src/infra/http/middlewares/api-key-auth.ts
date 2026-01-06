@@ -1,16 +1,14 @@
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import { config } from '@/config'
 
-export async function apiKeyAuth(
-  request: FastifyRequest,
-  reply: FastifyReply
-) {
+export async function apiKeyAuth(request: FastifyRequest, reply: FastifyReply) {
   const apiKey = extractApiKey(request)
 
   if (!apiKey) {
     return reply.code(401).send({
       error: 'Unauthorized',
-      message: 'API key is required. Provide it via Authorization header, X-API-Key header, or api_key query parameter.',
+      message:
+        'API key is required. Provide it via Authorization header, X-API-Key header, or api_key query parameter.',
       statusCode: 401,
     })
   }
@@ -42,4 +40,3 @@ function extractApiKey(request: FastifyRequest): string | null {
 
   return null
 }
-

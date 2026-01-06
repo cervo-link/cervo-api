@@ -32,9 +32,7 @@
     "/health": {
       "get": {
         "operationId": "healthcheck",
-        "tags": [
-          "service"
-        ],
+        "tags": ["service"],
         "description": "Check if the system is up and running",
         "responses": {
           "200": {
@@ -46,14 +44,10 @@
                   "properties": {
                     "message": {
                       "type": "string",
-                      "enum": [
-                        "ok"
-                      ]
+                      "enum": ["ok"]
                     }
                   },
-                  "required": [
-                    "message"
-                  ],
+                  "required": ["message"],
                   "additionalProperties": false
                 }
               }
@@ -64,9 +58,7 @@
     },
     "/bookmarks": {
       "post": {
-        "tags": [
-          "bookmarks"
-        ],
+        "tags": ["bookmarks"],
         "description": "Create a bookmark",
         "requestBody": {
           "content": {
@@ -80,11 +72,7 @@
                   },
                   "platform": {
                     "type": "string",
-                    "enum": [
-                      "discord",
-                      "slack",
-                      "telegram"
-                    ]
+                    "enum": ["discord", "slack", "telegram"]
                   },
                   "discordId": {
                     "type": "string",
@@ -99,11 +87,7 @@
                     "format": "uri"
                   }
                 },
-                "required": [
-                  "platformId",
-                  "platform",
-                  "url"
-                ]
+                "required": ["platformId", "platform", "url"]
               }
             }
           },
@@ -121,9 +105,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "message"
-                  ],
+                  "required": ["message"],
                   "additionalProperties": false,
                   "description": "Bookmark created successfully"
                 }
@@ -141,9 +123,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "message"
-                  ],
+                  "required": ["message"],
                   "additionalProperties": false,
                   "description": "Failed to create bookmark"
                 }
@@ -161,9 +141,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "message"
-                  ],
+                  "required": ["message"],
                   "additionalProperties": false,
                   "description": "Failed to create bookmark"
                 }
@@ -173,9 +151,7 @@
         }
       },
       "get": {
-        "tags": [
-          "bookmarks"
-        ],
+        "tags": ["bookmarks"],
         "description": "Get all bookmarks",
         "parameters": [
           {
@@ -190,11 +166,7 @@
           {
             "schema": {
               "type": "string",
-              "enum": [
-                "discord",
-                "slack",
-                "telegram"
-              ]
+              "enum": ["discord", "slack", "telegram"]
             },
             "in": "query",
             "name": "platform",
@@ -311,9 +283,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "message"
-                  ],
+                  "required": ["message"],
                   "additionalProperties": false,
                   "description": "Failed to get bookmarks"
                 }
@@ -331,9 +301,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "message"
-                  ],
+                  "required": ["message"],
                   "additionalProperties": false,
                   "description": "Failed to get bookmarks"
                 }
@@ -345,9 +313,7 @@
     },
     "/workspaces/create": {
       "post": {
-        "tags": [
-          "workspaces"
-        ],
+        "tags": ["workspaces"],
         "description": "Create a workspace",
         "requestBody": {
           "content": {
@@ -363,22 +329,13 @@
                   },
                   "platform": {
                     "type": "string",
-                    "enum": [
-                      "discord",
-                      "slack",
-                      "telegram"
-                    ]
+                    "enum": ["discord", "slack", "telegram"]
                   },
                   "platformId": {
                     "type": "string"
                   }
                 },
-                "required": [
-                  "name",
-                  "description",
-                  "platform",
-                  "platformId"
-                ]
+                "required": ["name", "description", "platform", "platformId"]
               }
             }
           },
@@ -435,9 +392,7 @@
                       "additionalProperties": false
                     }
                   },
-                  "required": [
-                    "workspace"
-                  ],
+                  "required": ["workspace"],
                   "additionalProperties": false,
                   "description": "Workspace created."
                 }
@@ -455,9 +410,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "message"
-                  ],
+                  "required": ["message"],
                   "additionalProperties": false,
                   "description": "Failed to create workspace"
                 }
@@ -475,9 +428,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "message"
-                  ],
+                  "required": ["message"],
                   "additionalProperties": false,
                   "description": "Cannot create workspace due constraint"
                 }
@@ -495,9 +446,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "message"
-                  ],
+                  "required": ["message"],
                   "additionalProperties": false,
                   "description": "Failed to create workspace"
                 }
@@ -509,9 +458,7 @@
     },
     "/workspaces": {
       "get": {
-        "tags": [
-          "workspaces"
-        ],
+        "tags": ["workspaces"],
         "description": "Get a workspace by platform ID",
         "parameters": [
           {
@@ -525,11 +472,7 @@
           {
             "schema": {
               "type": "string",
-              "enum": [
-                "discord",
-                "slack",
-                "telegram"
-              ]
+              "enum": ["discord", "slack", "telegram"]
             },
             "in": "query",
             "name": "platform",
@@ -587,9 +530,7 @@
                       "additionalProperties": false
                     }
                   },
-                  "required": [
-                    "workspace"
-                  ],
+                  "required": ["workspace"],
                   "additionalProperties": false,
                   "description": "Workspace found."
                 }
@@ -607,9 +548,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "message"
-                  ],
+                  "required": ["message"],
                   "additionalProperties": false,
                   "description": "Failed to get workspace"
                 }
@@ -627,9 +566,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "message"
-                  ],
+                  "required": ["message"],
                   "additionalProperties": false,
                   "description": "Workspace not found"
                 }
@@ -647,9 +584,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "message"
-                  ],
+                  "required": ["message"],
                   "additionalProperties": false,
                   "description": "Failed to get workspace"
                 }
@@ -661,9 +596,7 @@
     },
     "/members/create": {
       "post": {
-        "tags": [
-          "members"
-        ],
+        "tags": ["members"],
         "description": "Create a member",
         "requestBody": {
           "content": {
@@ -754,9 +687,7 @@
                       "additionalProperties": false
                     }
                   },
-                  "required": [
-                    "member"
-                  ],
+                  "required": ["member"],
                   "additionalProperties": false,
                   "description": "Member saved."
                 }
@@ -774,9 +705,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "message"
-                  ],
+                  "required": ["message"],
                   "additionalProperties": false,
                   "description": "Failed to create member"
                 }
@@ -794,9 +723,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "message"
-                  ],
+                  "required": ["message"],
                   "additionalProperties": false,
                   "description": "Failed to create member"
                 }
@@ -808,9 +735,7 @@
     },
     "/members/add": {
       "put": {
-        "tags": [
-          "members"
-        ],
+        "tags": ["members"],
         "description": "Add a member to a workspace",
         "requestBody": {
           "content": {
@@ -825,10 +750,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "workspaceId",
-                  "memberId"
-                ]
+                "required": ["workspaceId", "memberId"]
               }
             }
           },
@@ -846,9 +768,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "message"
-                  ],
+                  "required": ["message"],
                   "additionalProperties": false,
                   "description": "Member invited to workspace."
                 }
@@ -866,9 +786,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "message"
-                  ],
+                  "required": ["message"],
                   "additionalProperties": false,
                   "description": "Failed to add member to workspace"
                 }
@@ -886,9 +804,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "message"
-                  ],
+                  "required": ["message"],
                   "additionalProperties": false,
                   "description": "Workspace or member not found"
                 }
@@ -906,9 +822,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "message"
-                  ],
+                  "required": ["message"],
                   "additionalProperties": false,
                   "description": "Membership already exists"
                 }
@@ -926,9 +840,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "message"
-                  ],
+                  "required": ["message"],
                   "additionalProperties": false,
                   "description": "Failed to add member to workspace"
                 }
