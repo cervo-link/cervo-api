@@ -47,14 +47,32 @@ export async function insertMemberWithTransaction(
   )
 }
 
-export async function findById(id: string): Promise<Member> {
+export async function findById(id: string): Promise<Member | null> {
   const tracer = trace.getTracer('find-member')
 
   return tracer.startActiveSpan('find-member-repository', async span => {
     const [result] = await db.select().from(members).where(eq(members.id, id))
     span.end()
-    return result
+    return result || null
   })
+}
+
+export async function findByDiscordUserId(
+  discordUserId: string
+): Promise<Member | null> {
+  const tracer = trace.getTracer('find-member-by-discord-user-id')
+
+  return tracer.startActiveSpan(
+    'find-member-by-discord-user-id-repository',
+    async span => {
+      const [result] = await db
+        .select()
+        .from(members)
+        .where(eq(members.discordUserId, discordUserId))
+      span.end()
+      return result
+    }
+  )
 }
 
 function handleError(error: unknown): DomainError {
