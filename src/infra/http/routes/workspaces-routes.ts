@@ -5,11 +5,13 @@ import {
   createWorkspaceBodySchemaRequest,
   createWorkspaceBodySchemaResponse,
 } from '../schemas/workspaces-schema'
+import { apiKeyAuth } from '@/infra/http/middlewares/api-key-auth'
 
 export async function workspaceRoutes(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().route({
     method: 'POST',
     url: '/workspaces/create',
+    onRequest: [apiKeyAuth],
     schema: {
       description: 'Create a workspace',
       tags: ['workspaces'],

@@ -10,11 +10,13 @@ import {
   getBookmarksBodySchemaResponse,
   getBookmarksQuerySchemaRequest,
 } from '@/infra/http/schemas/bookmarks-schema'
+import { apiKeyAuth } from '@/infra/http/middlewares/api-key-auth'
 
 export async function bookmarksRoutes(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().route({
     method: 'POST',
     url: '/bookmarks',
+    onRequest: [apiKeyAuth],
     schema: {
       description: 'Create a bookmark',
       tags: ['bookmarks'],
@@ -27,6 +29,7 @@ export async function bookmarksRoutes(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().route({
     method: 'GET',
     url: '/bookmarks',
+    onRequest: [apiKeyAuth],
     schema: {
       description: 'Get all bookmarks',
       tags: ['bookmarks'],

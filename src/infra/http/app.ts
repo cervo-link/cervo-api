@@ -77,7 +77,32 @@ function enableSagger(server: FastifyInstance) {
       info: {
         title: 'Cervo API',
         version: '1.0.0',
+        description:
+          'API for managing bookmarks, workspaces, and members with API key authentication',
       },
+      components: {
+        securitySchemes: {
+          bearerAuth: {
+            type: 'http',
+            scheme: 'bearer',
+            bearerFormat: 'API Key',
+            description: 'Enter your API key as a Bearer token',
+          },
+          apiKeyHeader: {
+            type: 'apiKey',
+            in: 'header',
+            name: 'X-API-Key',
+            description: 'API key in X-API-Key header',
+          },
+          apiKeyQuery: {
+            type: 'apiKey',
+            in: 'query',
+            name: 'api_key',
+            description: 'API key in query parameter',
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }, { apiKeyHeader: [] }, { apiKeyQuery: [] }],
     },
     transform: transformSwaggerSchema,
   })

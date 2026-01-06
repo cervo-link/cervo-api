@@ -8,11 +8,13 @@ import {
   createMemberBodySchemaRequest,
   createMemberBodySchemaResponse,
 } from '../schemas/members-schema'
+import { apiKeyAuth } from '@/infra/http/middlewares/api-key-auth'
 
 export async function memberRoutes(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().route({
     method: 'POST',
     url: '/members/create',
+    onRequest: [apiKeyAuth],
     schema: {
       description: 'Create a member',
       tags: ['members'],
@@ -25,6 +27,7 @@ export async function memberRoutes(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().route({
     method: 'PUT',
     url: '/members/add',
+    onRequest: [apiKeyAuth],
     schema: {
       description: 'Add a member to a workspace',
       tags: ['members'],
