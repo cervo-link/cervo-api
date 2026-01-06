@@ -84,12 +84,8 @@
           "name": "bookmarks_workspace_id_workspaces_id_fk",
           "tableFrom": "bookmarks",
           "tableTo": "workspaces",
-          "columnsFrom": [
-            "workspace_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["workspace_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -97,12 +93,8 @@
           "name": "bookmarks_member_id_members_id_fk",
           "tableFrom": "bookmarks",
           "tableTo": "members",
-          "columnsFrom": [
-            "member_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["member_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -265,12 +257,8 @@
           "name": "memberships_member_id_members_id_fk",
           "tableFrom": "memberships",
           "tableTo": "members",
-          "columnsFrom": [
-            "member_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["member_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -278,12 +266,8 @@
           "name": "memberships_workspace_id_workspaces_id_fk",
           "tableFrom": "memberships",
           "tableTo": "workspaces",
-          "columnsFrom": [
-            "workspace_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["workspace_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -293,10 +277,7 @@
         "unique_member_workspace_idx": {
           "name": "unique_member_workspace_idx",
           "nullsNotDistinct": false,
-          "columns": [
-            "member_id",
-            "workspace_id"
-          ]
+          "columns": ["member_id", "workspace_id"]
         }
       },
       "policies": {},

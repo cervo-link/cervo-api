@@ -39,10 +39,19 @@ function getEmbeddingGemmaConfig() {
   return schema.parse(process.env)
 }
 
+function getAuthConfig() {
+  const schema = z.object({
+    API_KEY: z.string().min(1, 'API_KEY is required for authentication'),
+  })
+
+  return schema.parse(process.env)
+}
+
 export const config = {
   db: getDbConfig(),
   app: getAppConfig(),
   gemma: getGemmaConfig(),
   scrappingBee: getScrappingBeeConfig(),
   embeddingGemma: getEmbeddingGemmaConfig(),
+  auth: getAuthConfig(),
 }

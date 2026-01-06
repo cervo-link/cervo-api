@@ -2,18 +2,37 @@
   "openapi": "3.0.3",
   "info": {
     "title": "Cervo API",
-    "version": "1.0.0"
+    "version": "1.0.0",
+    "description": "API for managing bookmarks, workspaces, and members with API key authentication"
   },
   "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "API Key",
+        "description": "Enter your API key as a Bearer token"
+      },
+      "apiKeyHeader": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "API key in X-API-Key header"
+      },
+      "apiKeyQuery": {
+        "type": "apiKey",
+        "in": "query",
+        "name": "api_key",
+        "description": "API key in query parameter"
+      }
+    },
     "schemas": {}
   },
   "paths": {
     "/health": {
       "get": {
         "operationId": "healthcheck",
-        "tags": [
-          "service"
-        ],
+        "tags": ["service"],
         "description": "Check if the system is up and running",
         "responses": {
           "200": {
@@ -25,14 +44,10 @@
                   "properties": {
                     "message": {
                       "type": "string",
-                      "enum": [
-                        "ok"
-                      ]
+                      "enum": ["ok"]
                     }
                   },
-                  "required": [
-                    "message"
-                  ],
+                  "required": ["message"],
                   "additionalProperties": false
                 }
               }
@@ -43,9 +58,7 @@
     },
     "/bookmarks": {
       "post": {
-        "tags": [
-          "bookmarks"
-        ],
+        "tags": ["bookmarks"],
         "description": "Create a bookmark",
         "requestBody": {
           "content": {
@@ -59,11 +72,7 @@
                   },
                   "platform": {
                     "type": "string",
-                    "enum": [
-                      "discord",
-                      "slack",
-                      "telegram"
-                    ]
+                    "enum": ["discord", "slack", "telegram"]
                   },
                   "discordId": {
                     "type": "string",
@@ -78,11 +87,7 @@
                     "format": "uri"
                   }
                 },
-                "required": [
-                  "platformId",
-                  "platform",
-                  "url"
-                ]
+                "required": ["platformId", "platform", "url"]
               }
             }
           },
@@ -100,9 +105,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "message"
-                  ],
+                  "required": ["message"],
                   "additionalProperties": false,
                   "description": "Bookmark created successfully"
                 }
@@ -120,9 +123,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "message"
-                  ],
+                  "required": ["message"],
                   "additionalProperties": false,
                   "description": "Failed to create bookmark"
                 }
@@ -140,9 +141,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "message"
-                  ],
+                  "required": ["message"],
                   "additionalProperties": false,
                   "description": "Failed to create bookmark"
                 }
@@ -152,9 +151,7 @@
         }
       },
       "get": {
-        "tags": [
-          "bookmarks"
-        ],
+        "tags": ["bookmarks"],
         "description": "Get all bookmarks",
         "parameters": [
           {
@@ -169,11 +166,7 @@
           {
             "schema": {
               "type": "string",
-              "enum": [
-                "discord",
-                "slack",
-                "telegram"
-              ]
+              "enum": ["discord", "slack", "telegram"]
             },
             "in": "query",
             "name": "platform",
@@ -290,9 +283,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "message"
-                  ],
+                  "required": ["message"],
                   "additionalProperties": false,
                   "description": "Failed to get bookmarks"
                 }
@@ -310,9 +301,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "message"
-                  ],
+                  "required": ["message"],
                   "additionalProperties": false,
                   "description": "Failed to get bookmarks"
                 }
@@ -324,9 +313,7 @@
     },
     "/workspaces/create": {
       "post": {
-        "tags": [
-          "workspaces"
-        ],
+        "tags": ["workspaces"],
         "description": "Create a workspace",
         "requestBody": {
           "content": {
@@ -342,22 +329,13 @@
                   },
                   "platform": {
                     "type": "string",
-                    "enum": [
-                      "discord",
-                      "slack",
-                      "telegram"
-                    ]
+                    "enum": ["discord", "slack", "telegram"]
                   },
                   "platformId": {
                     "type": "string"
                   }
                 },
-                "required": [
-                  "name",
-                  "description",
-                  "platform",
-                  "platformId"
-                ]
+                "required": ["name", "description", "platform", "platformId"]
               }
             }
           },
@@ -414,9 +392,7 @@
                       "additionalProperties": false
                     }
                   },
-                  "required": [
-                    "workspace"
-                  ],
+                  "required": ["workspace"],
                   "additionalProperties": false,
                   "description": "Workspace created."
                 }
@@ -434,9 +410,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "message"
-                  ],
+                  "required": ["message"],
                   "additionalProperties": false,
                   "description": "Failed to create workspace"
                 }
@@ -454,9 +428,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "message"
-                  ],
+                  "required": ["message"],
                   "additionalProperties": false,
                   "description": "Cannot create workspace due constraint"
                 }
@@ -474,9 +446,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "message"
-                  ],
+                  "required": ["message"],
                   "additionalProperties": false,
                   "description": "Failed to create workspace"
                 }
@@ -486,11 +456,147 @@
         }
       }
     },
+    "/workspaces": {
+      "get": {
+        "tags": ["workspaces"],
+        "description": "Get a workspace by platform ID",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "platformId",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": ["discord", "slack", "telegram"]
+            },
+            "in": "query",
+            "name": "platform",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Workspace found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "workspace": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "platform": {
+                          "type": "string"
+                        },
+                        "platformId": {
+                          "type": "string"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "active": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "description",
+                        "platform",
+                        "platformId",
+                        "createdAt",
+                        "updatedAt",
+                        "active"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["workspace"],
+                  "additionalProperties": false,
+                  "description": "Workspace found."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Failed to get workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["message"],
+                  "additionalProperties": false,
+                  "description": "Failed to get workspace"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Workspace not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["message"],
+                  "additionalProperties": false,
+                  "description": "Workspace not found"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to get workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["message"],
+                  "additionalProperties": false,
+                  "description": "Failed to get workspace"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/members/create": {
       "post": {
-        "tags": [
-          "members"
-        ],
+        "tags": ["members"],
         "description": "Create a member",
         "requestBody": {
           "content": {
@@ -581,9 +687,7 @@
                       "additionalProperties": false
                     }
                   },
-                  "required": [
-                    "member"
-                  ],
+                  "required": ["member"],
                   "additionalProperties": false,
                   "description": "Member saved."
                 }
@@ -601,9 +705,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "message"
-                  ],
+                  "required": ["message"],
                   "additionalProperties": false,
                   "description": "Failed to create member"
                 }
@@ -621,9 +723,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "message"
-                  ],
+                  "required": ["message"],
                   "additionalProperties": false,
                   "description": "Failed to create member"
                 }
@@ -635,9 +735,7 @@
     },
     "/members/add": {
       "put": {
-        "tags": [
-          "members"
-        ],
+        "tags": ["members"],
         "description": "Add a member to a workspace",
         "requestBody": {
           "content": {
@@ -645,29 +743,14 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "name": {
+                  "workspaceId": {
                     "type": "string"
                   },
-                  "username": {
-                    "type": "string"
-                  },
-                  "email": {
-                    "type": "string"
-                  },
-                  "discordUserId": {
-                    "type": "string"
-                  },
-                  "password": {
+                  "memberId": {
                     "type": "string"
                   }
                 },
-                "required": [
-                  "name",
-                  "username",
-                  "email",
-                  "discordUserId",
-                  "password"
-                ]
+                "required": ["workspaceId", "memberId"]
               }
             }
           },
@@ -675,70 +758,25 @@
         },
         "responses": {
           "201": {
-            "description": "Member saved.",
+            "description": "Member invited to workspace.",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "member": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string"
-                        },
-                        "name": {
-                          "nullable": true,
-                          "type": "string"
-                        },
-                        "username": {
-                          "nullable": true,
-                          "type": "string"
-                        },
-                        "email": {
-                          "nullable": true,
-                          "type": "string"
-                        },
-                        "discordUserId": {
-                          "nullable": true,
-                          "type": "string"
-                        },
-                        "createdAt": {
-                          "type": "string",
-                          "format": "date-time"
-                        },
-                        "updatedAt": {
-                          "type": "string",
-                          "format": "date-time"
-                        },
-                        "active": {
-                          "type": "boolean"
-                        }
-                      },
-                      "required": [
-                        "id",
-                        "name",
-                        "username",
-                        "email",
-                        "discordUserId",
-                        "createdAt",
-                        "updatedAt",
-                        "active"
-                      ],
-                      "additionalProperties": false
+                    "message": {
+                      "type": "string"
                     }
                   },
-                  "required": [
-                    "member"
-                  ],
+                  "required": ["message"],
                   "additionalProperties": false,
-                  "description": "Member saved."
+                  "description": "Member invited to workspace."
                 }
               }
             }
           },
           "400": {
-            "description": "Failed to create member",
+            "description": "Failed to add member to workspace",
             "content": {
               "application/json": {
                 "schema": {
@@ -748,17 +786,51 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "message"
-                  ],
+                  "required": ["message"],
                   "additionalProperties": false,
-                  "description": "Failed to create member"
+                  "description": "Failed to add member to workspace"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Workspace or member not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["message"],
+                  "additionalProperties": false,
+                  "description": "Workspace or member not found"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Membership already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["message"],
+                  "additionalProperties": false,
+                  "description": "Membership already exists"
                 }
               }
             }
           },
           "500": {
-            "description": "Failed to create member",
+            "description": "Failed to add member to workspace",
             "content": {
               "application/json": {
                 "schema": {
@@ -768,11 +840,9 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "message"
-                  ],
+                  "required": ["message"],
                   "additionalProperties": false,
-                  "description": "Failed to create member"
+                  "description": "Failed to add member to workspace"
                 }
               }
             }
@@ -780,5 +850,16 @@
         }
       }
     }
-  }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    },
+    {
+      "apiKeyHeader": []
+    },
+    {
+      "apiKeyQuery": []
+    }
+  ]
 }

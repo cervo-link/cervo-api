@@ -51,6 +51,16 @@ export const addMemberToWorkspaceBodySchemaResponse = {
       message: z.string(),
     })
     .describe('Failed to add member to workspace'),
+  404: z
+    .object({
+      message: z.string(),
+    })
+    .describe('Workspace or member not found'),
+  422: z
+    .object({
+      message: z.string(),
+    })
+    .describe('Membership already exists'),
   201: z
     .object({
       message: z.string(),

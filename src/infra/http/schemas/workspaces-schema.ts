@@ -38,3 +38,40 @@ export const createWorkspaceBodySchemaResponse = {
     })
     .describe('Workspace created.'),
 }
+
+export const getWorkspaceQuerySchemaRequest = z.object({
+  platformId: z.string('Platform ID must be a valid string'),
+  platform: z.enum(['discord', 'slack', 'telegram']),
+})
+
+export const getWorkspaceQuerySchemaResponse = {
+  500: z
+    .object({
+      message: z.string(),
+    })
+    .describe('Failed to get workspace'),
+  400: z
+    .object({
+      message: z.string(),
+    })
+    .describe('Failed to get workspace'),
+  404: z
+    .object({
+      message: z.string(),
+    })
+    .describe('Workspace not found'),
+  200: z
+    .object({
+      workspace: z.object({
+        id: z.string(),
+        name: z.string(),
+        description: z.string(),
+        platform: z.string(),
+        platformId: z.string(),
+        createdAt: z.date(),
+        updatedAt: z.date(),
+        active: z.boolean(),
+      }),
+    })
+    .describe('Workspace found.'),
+}
