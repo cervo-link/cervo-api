@@ -5,6 +5,8 @@ import {
   createMemberController,
 } from '../controllers/members-controller'
 import {
+  addMemberToWorkspaceBodySchemaRequest,
+  addMemberToWorkspaceBodySchemaResponse,
   createMemberBodySchemaRequest,
   createMemberBodySchemaResponse,
 } from '../schemas/members-schema'
@@ -31,8 +33,8 @@ export async function memberRoutes(app: FastifyInstance) {
     schema: {
       description: 'Add a member to a workspace',
       tags: ['members'],
-      response: createMemberBodySchemaResponse,
-      body: createMemberBodySchemaRequest,
+      response: addMemberToWorkspaceBodySchemaResponse,
+      body: addMemberToWorkspaceBodySchemaRequest,
     },
     handler: addMemberToWorkspaceController,
   })

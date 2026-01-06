@@ -818,28 +818,16 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "name": {
+                  "workspaceId": {
                     "type": "string"
                   },
-                  "username": {
-                    "type": "string"
-                  },
-                  "email": {
-                    "type": "string"
-                  },
-                  "discordUserId": {
-                    "type": "string"
-                  },
-                  "password": {
+                  "memberId": {
                     "type": "string"
                   }
                 },
                 "required": [
-                  "name",
-                  "username",
-                  "email",
-                  "discordUserId",
-                  "password"
+                  "workspaceId",
+                  "memberId"
                 ]
               }
             }
@@ -848,70 +836,27 @@
         },
         "responses": {
           "201": {
-            "description": "Member saved.",
+            "description": "Member invited to workspace.",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "member": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string"
-                        },
-                        "name": {
-                          "nullable": true,
-                          "type": "string"
-                        },
-                        "username": {
-                          "nullable": true,
-                          "type": "string"
-                        },
-                        "email": {
-                          "nullable": true,
-                          "type": "string"
-                        },
-                        "discordUserId": {
-                          "nullable": true,
-                          "type": "string"
-                        },
-                        "createdAt": {
-                          "type": "string",
-                          "format": "date-time"
-                        },
-                        "updatedAt": {
-                          "type": "string",
-                          "format": "date-time"
-                        },
-                        "active": {
-                          "type": "boolean"
-                        }
-                      },
-                      "required": [
-                        "id",
-                        "name",
-                        "username",
-                        "email",
-                        "discordUserId",
-                        "createdAt",
-                        "updatedAt",
-                        "active"
-                      ],
-                      "additionalProperties": false
+                    "message": {
+                      "type": "string"
                     }
                   },
                   "required": [
-                    "member"
+                    "message"
                   ],
                   "additionalProperties": false,
-                  "description": "Member saved."
+                  "description": "Member invited to workspace."
                 }
               }
             }
           },
           "400": {
-            "description": "Failed to create member",
+            "description": "Failed to add member to workspace",
             "content": {
               "application/json": {
                 "schema": {
@@ -925,13 +870,53 @@
                     "message"
                   ],
                   "additionalProperties": false,
-                  "description": "Failed to create member"
+                  "description": "Failed to add member to workspace"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Workspace or member not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Workspace or member not found"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Membership already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Membership already exists"
                 }
               }
             }
           },
           "500": {
-            "description": "Failed to create member",
+            "description": "Failed to add member to workspace",
             "content": {
               "application/json": {
                 "schema": {
@@ -945,7 +930,7 @@
                     "message"
                   ],
                   "additionalProperties": false,
-                  "description": "Failed to create member"
+                  "description": "Failed to add member to workspace"
                 }
               }
             }
