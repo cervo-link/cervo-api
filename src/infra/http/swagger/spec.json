@@ -54,7 +54,8 @@
                 "type": "object",
                 "properties": {
                   "platformId": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 1
                   },
                   "platform": {
                     "type": "string",
@@ -65,10 +66,12 @@
                     ]
                   },
                   "discordId": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 1
                   },
                   "userId": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 1
                   },
                   "url": {
                     "type": "string",
@@ -156,7 +159,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "minLength": 1
             },
             "in": "query",
             "name": "platformId",
@@ -177,7 +181,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "minLength": 1
             },
             "in": "query",
             "name": "discordId",
@@ -185,7 +190,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "minLength": 1
             },
             "in": "query",
             "name": "userId",
@@ -193,7 +199,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "minLength": 1
             },
             "in": "query",
             "name": "text",
