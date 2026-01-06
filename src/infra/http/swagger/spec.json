@@ -53,15 +53,22 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "workspaceId": {
-                    "type": "string",
-                    "format": "uuid",
-                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  "platformId": {
+                    "type": "string"
                   },
-                  "memberId": {
+                  "platform": {
                     "type": "string",
-                    "format": "uuid",
-                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    "enum": [
+                      "discord",
+                      "slack",
+                      "telegram"
+                    ]
+                  },
+                  "discordId": {
+                    "type": "string"
+                  },
+                  "userId": {
+                    "type": "string"
                   },
                   "url": {
                     "type": "string",
@@ -69,8 +76,8 @@
                   }
                 },
                 "required": [
-                  "workspaceId",
-                  "memberId",
+                  "platformId",
+                  "platform",
                   "url"
                 ]
               }
@@ -149,23 +156,40 @@
         "parameters": [
           {
             "schema": {
-              "type": "string",
-              "format": "uuid",
-              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              "type": "string"
             },
             "in": "query",
-            "name": "workspaceId",
+            "name": "platformId",
             "required": true
           },
           {
             "schema": {
               "type": "string",
-              "format": "uuid",
-              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              "enum": [
+                "discord",
+                "slack",
+                "telegram"
+              ]
             },
             "in": "query",
-            "name": "memberId",
+            "name": "platform",
             "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "discordId",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "userId",
+            "required": false
           },
           {
             "schema": {

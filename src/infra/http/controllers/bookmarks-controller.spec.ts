@@ -1,5 +1,8 @@
 import { randomUUID } from 'node:crypto'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+const uniqueId = () => randomUUID()
+
 import { FailedToGenerateEmbedding } from '@/domain/errors/failed-to-generate-embedding'
 import { FailedToScrap } from '@/domain/errors/failed-to-scrap'
 import { FailedToSummarize } from '@/domain/errors/failed-to-summarize'
@@ -42,14 +45,18 @@ describe('createBookmarkController', () => {
     mockSummarizeService.summarize.mockResolvedValue('test summary')
   })
 
-  it('should be able to create a bookmark', async () => {
-    const member = await makeMember()
-    const workspace = await makeWorkspace()
+  it('should be able to create a bookmark with discord platform', async () => {
+    const member = await makeMember({ discordUserId: uniqueId() })
+    const workspace = await makeWorkspace({
+      platform: 'discord',
+      platformId: uniqueId(),
+    })
     await makeMembership(workspace.id, member.id)
 
     const payload = {
-      workspaceId: workspace.id,
-      memberId: member.id,
+      platformId: workspace.platformId,
+      platform: workspace.platform,
+      discordId: member.discordUserId,
       url: 'https://www.google.com',
     }
 
@@ -65,16 +72,90 @@ describe('createBookmarkController', () => {
     })
   })
 
-  it('should be able to return error when membership does not exist', async () => {
+  it('should be able to create a bookmark with non-discord platform using userId', async () => {
     const member = await makeMember()
-    const workspaceId = randomUUID()
+    const workspace = await makeWorkspace({
+      platform: 'slack',
+      platformId: uniqueId(),
+    })
+    await makeMembership(workspace.id, member.id)
+
+    const payload = {
+      platformId: workspace.platformId,
+      platform: workspace.platform,
+      userId: member.id,
+      url: 'https://www.google.com',
+    }
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/bookmarks',
+      payload,
+    })
+
+    expect(response.statusCode).toBe(201)
+    expect(JSON.parse(response.body)).toEqual({
+      message: 'Bookmark created successfully',
+    })
+  })
+
+  it('should be able to return error when workspace does not exist', async () => {
+    const member = await makeMember({ discordUserId: uniqueId() })
 
     const response = await app.inject({
       method: 'POST',
       url: '/bookmarks',
       payload: {
-        workspaceId,
-        memberId: member.id,
+        platformId: 'non-existent-platform-id',
+        platform: 'discord',
+        discordId: member.discordUserId,
+        url: 'https://www.google.com',
+      },
+    })
+
+    expect(response.statusCode).toBe(404)
+    expect(JSON.parse(response.body)).toEqual({
+      message: 'Workspace not found',
+    })
+  })
+
+  it('should be able to return error when member does not exist', async () => {
+    const workspace = await makeWorkspace({
+      platform: 'discord',
+      platformId: uniqueId(),
+    })
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/bookmarks',
+      payload: {
+        platformId: workspace.platformId,
+        platform: workspace.platform,
+        discordId: uniqueId(),
+        url: 'https://www.google.com',
+      },
+    })
+
+    expect(response.statusCode).toBe(404)
+    expect(JSON.parse(response.body)).toEqual({
+      message: 'Member not found',
+    })
+  })
+
+  it('should be able to return error when membership does not exist', async () => {
+    const member = await makeMember({ discordUserId: uniqueId() })
+    const workspace = await makeWorkspace({
+      platform: 'discord',
+      platformId: uniqueId(),
+    })
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/bookmarks',
+      payload: {
+        platformId: workspace.platformId,
+        platform: workspace.platform,
+        discordId: member.discordUserId,
         url: 'https://www.google.com',
       },
     })
@@ -86,16 +167,20 @@ describe('createBookmarkController', () => {
   })
 
   it('should be able to return error when url is not valid', async () => {
-    const member = await makeMember()
-    const workspace = await makeWorkspace()
+    const member = await makeMember({ discordUserId: uniqueId() })
+    const workspace = await makeWorkspace({
+      platform: 'discord',
+      platformId: uniqueId(),
+    })
     await makeMembership(workspace.id, member.id)
 
     const response = await app.inject({
       method: 'POST',
       url: '/bookmarks',
       payload: {
-        workspaceId: workspace.id,
-        memberId: member.id,
+        platformId: workspace.platformId,
+        platform: workspace.platform,
+        discordId: member.discordUserId,
         url: 'invalid-url-',
       },
     })
@@ -109,16 +194,20 @@ describe('createBookmarkController', () => {
   it('should be able to return error when scrapping fails', async () => {
     mockScrappingService.scrapping.mockResolvedValue(new FailedToScrap())
 
-    const member = await makeMember()
-    const workspace = await makeWorkspace()
+    const member = await makeMember({ discordUserId: uniqueId() })
+    const workspace = await makeWorkspace({
+      platform: 'discord',
+      platformId: uniqueId(),
+    })
     await makeMembership(workspace.id, member.id)
 
     const response = await app.inject({
       method: 'POST',
       url: '/bookmarks',
       payload: {
-        workspaceId: workspace.id,
-        memberId: member.id,
+        platformId: workspace.platformId,
+        platform: workspace.platform,
+        discordId: member.discordUserId,
         url: 'https://www.google.com',
       },
     })
@@ -132,16 +221,20 @@ describe('createBookmarkController', () => {
   it('should be able to return error when summarize fails', async () => {
     mockSummarizeService.summarize.mockResolvedValue(new FailedToSummarize())
 
-    const member = await makeMember()
-    const workspace = await makeWorkspace()
+    const member = await makeMember({ discordUserId: uniqueId() })
+    const workspace = await makeWorkspace({
+      platform: 'discord',
+      platformId: uniqueId(),
+    })
     await makeMembership(workspace.id, member.id)
 
     const response = await app.inject({
       method: 'POST',
       url: '/bookmarks',
       payload: {
-        workspaceId: workspace.id,
-        memberId: member.id,
+        platformId: workspace.platformId,
+        platform: workspace.platform,
+        discordId: member.discordUserId,
         url: 'https://www.google.com',
       },
     })
@@ -157,16 +250,20 @@ describe('createBookmarkController', () => {
       new FailedToGenerateEmbedding()
     )
 
-    const member = await makeMember()
-    const workspace = await makeWorkspace()
+    const member = await makeMember({ discordUserId: uniqueId() })
+    const workspace = await makeWorkspace({
+      platform: 'discord',
+      platformId: uniqueId(),
+    })
     await makeMembership(workspace.id, member.id)
 
     const response = await app.inject({
       method: 'POST',
       url: '/bookmarks',
       payload: {
-        workspaceId: workspace.id,
-        memberId: member.id,
+        platformId: workspace.platformId,
+        platform: workspace.platform,
+        discordId: member.discordUserId,
         url: 'https://www.google.com',
       },
     })
@@ -184,9 +281,12 @@ describe('getBookmarksController', () => {
     mockEmbeddingService.generateEmbedding.mockResolvedValue(makeRawEmbedding())
   })
 
-  it('should be able to get bookmarks', async () => {
-    const member = await makeMember()
-    const workspace = await makeWorkspace()
+  it('should be able to get bookmarks with discord platform', async () => {
+    const member = await makeMember({ discordUserId: uniqueId() })
+    const workspace = await makeWorkspace({
+      platform: 'discord',
+      platformId: uniqueId(),
+    })
     await makeMembership(workspace.id, member.id)
 
     const bookmark = await makeBookmark({
@@ -195,8 +295,51 @@ describe('getBookmarksController', () => {
     })
 
     const payload = {
+      platformId: workspace.platformId,
+      platform: workspace.platform,
+      discordId: member.discordUserId || '',
+      text: 'test',
+    }
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/bookmarks',
+      query: payload,
+    })
+
+    expect(response.statusCode).toBe(200)
+    const responseBody = JSON.parse(response.body)[0]
+    expect(responseBody).toEqual({
+      id: bookmark.id,
       workspaceId: workspace.id,
       memberId: member.id,
+      url: bookmark.url,
+      urlHashId: bookmark.urlHashId,
+      title: bookmark.title,
+      description: bookmark.description,
+      createdAt: bookmark.createdAt.toISOString(),
+      updatedAt: bookmark.updatedAt.toISOString(),
+      visible: bookmark.visible,
+    })
+  })
+
+  it('should be able to get bookmarks with non-discord platform using userId', async () => {
+    const member = await makeMember()
+    const workspace = await makeWorkspace({
+      platform: 'slack',
+      platformId: uniqueId(),
+    })
+    await makeMembership(workspace.id, member.id)
+
+    const bookmark = await makeBookmark({
+      workspaceId: workspace.id,
+      memberId: member.id,
+    })
+
+    const payload = {
+      platformId: workspace.platformId,
+      platform: workspace.platform,
+      userId: member.id,
       text: 'test',
     }
 
@@ -223,13 +366,17 @@ describe('getBookmarksController', () => {
   })
 
   it('should be able to return empty array when no bookmarks are found', async () => {
-    const member = await makeMember()
-    const workspace = await makeWorkspace()
+    const member = await makeMember({ discordUserId: uniqueId() })
+    const workspace = await makeWorkspace({
+      platform: 'discord',
+      platformId: uniqueId(),
+    })
     await makeMembership(workspace.id, member.id)
 
     const payload = {
-      workspaceId: workspace.id,
-      memberId: member.id,
+      platformId: workspace.platformId,
+      platform: workspace.platform,
+      discordId: member.discordUserId || '',
       text: 'invalid text',
     }
 
