@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const uniqueId = () => randomUUID()
+const API_KEY = 'test-api-key-for-testing'
 
 import { FailedToGenerateEmbedding } from '@/domain/errors/failed-to-generate-embedding'
 import { FailedToScrap } from '@/domain/errors/failed-to-scrap'
@@ -63,6 +64,9 @@ describe('createBookmarkController', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/bookmarks',
+      headers: {
+        authorization: `Bearer ${API_KEY}`,
+      },
       payload,
     })
 
@@ -90,6 +94,9 @@ describe('createBookmarkController', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/bookmarks',
+      headers: {
+        authorization: `Bearer ${API_KEY}`,
+      },
       payload,
     })
 
@@ -105,6 +112,9 @@ describe('createBookmarkController', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/bookmarks',
+      headers: {
+        authorization: `Bearer ${API_KEY}`,
+      },
       payload: {
         platformId: 'non-existent-platform-id',
         platform: 'discord',
@@ -128,6 +138,9 @@ describe('createBookmarkController', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/bookmarks',
+      headers: {
+        authorization: `Bearer ${API_KEY}`,
+      },
       payload: {
         platformId: workspace.platformId,
         platform: workspace.platform,
@@ -152,6 +165,9 @@ describe('createBookmarkController', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/bookmarks',
+      headers: {
+        authorization: `Bearer ${API_KEY}`,
+      },
       payload: {
         platformId: workspace.platformId,
         platform: workspace.platform,
@@ -177,6 +193,9 @@ describe('createBookmarkController', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/bookmarks',
+      headers: {
+        authorization: `Bearer ${API_KEY}`,
+      },
       payload: {
         platformId: workspace.platformId,
         platform: workspace.platform,
@@ -204,6 +223,9 @@ describe('createBookmarkController', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/bookmarks',
+      headers: {
+        authorization: `Bearer ${API_KEY}`,
+      },
       payload: {
         platformId: workspace.platformId,
         platform: workspace.platform,
@@ -231,6 +253,9 @@ describe('createBookmarkController', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/bookmarks',
+      headers: {
+        authorization: `Bearer ${API_KEY}`,
+      },
       payload: {
         platformId: workspace.platformId,
         platform: workspace.platform,
@@ -260,6 +285,9 @@ describe('createBookmarkController', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/bookmarks',
+      headers: {
+        authorization: `Bearer ${API_KEY}`,
+      },
       payload: {
         platformId: workspace.platformId,
         platform: workspace.platform,
@@ -304,6 +332,9 @@ describe('getBookmarksController', () => {
     const response = await app.inject({
       method: 'GET',
       url: '/bookmarks',
+      headers: {
+        authorization: `Bearer ${API_KEY}`,
+      },
       query: payload,
     })
 
@@ -346,6 +377,9 @@ describe('getBookmarksController', () => {
     const response = await app.inject({
       method: 'GET',
       url: '/bookmarks',
+      headers: {
+        authorization: `Bearer ${API_KEY}`,
+      },
       query: payload,
     })
 
@@ -383,6 +417,9 @@ describe('getBookmarksController', () => {
     const response = await app.inject({
       method: 'GET',
       url: '/bookmarks',
+      headers: {
+        authorization: `Bearer ${API_KEY}`,
+      },
       query: payload,
     })
 

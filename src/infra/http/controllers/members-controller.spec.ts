@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import app from '@/infra/http/app'
 import { makeMember, makeRawMember } from '@/tests/factories/make-member'
 
+const API_KEY = 'test-api-key-for-testing'
+
 describe('MembersController', () => {
   it('should be able to create a member', async () => {
     const member = makeRawMember()
@@ -17,6 +19,9 @@ describe('MembersController', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/members/create',
+      headers: {
+        authorization: `Bearer ${API_KEY}`,
+      },
       payload,
     })
 
@@ -48,6 +53,9 @@ describe('MembersController', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/members/create',
+      headers: {
+        authorization: `Bearer ${API_KEY}`,
+      },
       payload,
     })
 
@@ -73,6 +81,9 @@ describe('MembersController', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/members/create',
+      headers: {
+        authorization: `Bearer ${API_KEY}`,
+      },
       payload,
     })
 
@@ -98,6 +109,9 @@ describe('MembersController', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/members/create',
+      headers: {
+        authorization: `Bearer ${API_KEY}`,
+      },
       payload,
     })
 

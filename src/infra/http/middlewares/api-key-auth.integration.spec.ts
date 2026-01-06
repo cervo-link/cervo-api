@@ -3,14 +3,15 @@ import { fastify } from 'fastify'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { apiKeyAuth } from './api-key-auth'
 
-const mockApiKey = 'test-integration-api-key'
 vi.mock('@/config', () => ({
   config: {
     auth: {
-      API_KEY: mockApiKey,
+      API_KEY: 'test-integration-api-key',
     },
   },
 }))
+
+const mockApiKey = 'test-integration-api-key'
 
 describe('API Key Authentication Middleware - Integration', () => {
   let app: FastifyInstance

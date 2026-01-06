@@ -18,6 +18,7 @@ declare global {
 }
 
 export async function setup() {
+  process.env.API_KEY = 'test-api-key-for-testing'
   await setupDatabase()
 
   return async () => {
