@@ -49,6 +49,38 @@ export async function summarize(
   return summary
 }
 
+export async function generateTitle(
+  text: string
+): Promise<string | FailedToSummarize> {
+  const url = config.gemma.GEMMA_URL
+
+  const prompt = `Generate a short title (max 10 words) for the following content. Reply with ONLY the title, no quotes or explanation:`
+
+  const response = await request(`${url}/api/generate`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'gemma:2b',
+      prompt: `${prompt} ${text.slice(0, 2000)}`,
+      stream: false,
+    }),
+  })
+
+  if (response.statusCode !== 200) {
+    const body = (await response.body.json()) as { message: string }
+    return new FailedToSummarize(
+      `HTTP ${response.statusCode}: ${body.message || 'Request failed'}`
+    )
+  }
+
+  const data = (await response.body.json()) as { response: string }
+  const title = data.response.split('\n')[0].trim()
+
+  return title || new FailedToSummarize('Empty title response')
+}
+
 export const GemmaAdapter: SummarizeService = {
   summarize: async (
     text: string,
@@ -58,6 +90,16 @@ export const GemmaAdapter: SummarizeService = {
       const summary = await summarize(text)
       span.end()
       return summary
+    })
+  },
+  generateTitle: async (
+    text: string,
+    tracer: Tracer
+  ): Promise<string | FailedToSummarize> => {
+    return tracer.startActiveSpan('generate-title-gemma-service', async span => {
+      const title = await generateTitle(text)
+      span.end()
+      return title
     })
   },
 }

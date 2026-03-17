@@ -44,12 +44,16 @@ export async function createBookmark(
       return embedding
     }
 
+    const title = await summarizeService.generateTitle(summarized, tracer)
+    const titleValue = title instanceof DomainError ? undefined : title
+
     const urlHashId = await generateUrlHashId(params)
 
     const result = await insertBookmark({
       ...params,
       urlHashId,
-      rawText: response,
+      title: titleValue,
+      description: response,
       embedding,
     })
 

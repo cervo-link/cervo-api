@@ -30,6 +30,9 @@ describe('getBookmark', () => {
       summarize: async () => {
         return 'test'
       },
+      generateTitle: async () => {
+        return 'Test Title'
+      },
     }
 
     const url = 'https://www.google.com'

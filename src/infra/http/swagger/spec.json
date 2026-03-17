@@ -261,10 +261,6 @@
                         "minLength": 64,
                         "maxLength": 64
                       },
-                      "rawText": {
-                        "nullable": true,
-                        "type": "string"
-                      },
                       "title": {
                         "nullable": true,
                         "type": "string"
@@ -291,7 +287,6 @@
                       "memberId",
                       "url",
                       "urlHashId",
-                      "rawText",
                       "title",
                       "description",
                       "createdAt",

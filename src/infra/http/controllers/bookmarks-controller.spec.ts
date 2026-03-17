@@ -24,6 +24,7 @@ const mockEmbeddingService = {
 
 const mockSummarizeService = {
   summarize: vi.fn(),
+  generateTitle: vi.fn(),
 }
 
 vi.mock('@/infra/factories/scrapping-service-factory', () => ({
@@ -44,6 +45,7 @@ describe('createBookmarkController', () => {
     mockScrappingService.scrapping.mockResolvedValue('test content')
     mockEmbeddingService.generateEmbedding.mockResolvedValue(makeRawEmbedding())
     mockSummarizeService.summarize.mockResolvedValue('test summary')
+    mockSummarizeService.generateTitle.mockResolvedValue('Test Title')
   })
 
   it('should be able to create a bookmark with discord platform', async () => {
