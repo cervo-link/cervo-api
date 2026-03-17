@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
+import { apiKeyAuth } from '@/infra/http/middlewares/api-key-auth'
 import {
   addMemberToWorkspaceController,
   createMemberController,
@@ -10,7 +11,6 @@ import {
   createMemberBodySchemaRequest,
   createMemberBodySchemaResponse,
 } from '../schemas/members-schema'
-import { apiKeyAuth } from '@/infra/http/middlewares/api-key-auth'
 
 export async function memberRoutes(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().route({
