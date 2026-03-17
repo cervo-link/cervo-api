@@ -43,6 +43,13 @@
       "when": 1759890234978,
       "tag": "20251008022354_alter_membership_table_add_constraint",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1773713443447,
+      "tag": "20260317021043_alter_table_links",
+      "breakpoints": true
     }
   ]
 }

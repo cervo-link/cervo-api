@@ -89,6 +89,7 @@ export const bookmarks = pgTable(
     memberId: uuid().notNull(),
     url: text().notNull(),
     urlHashId: char('url_hash_id', { length: 64 }).notNull(),
+    rawText: text(),
     title: text(),
     description: text(),
     embedding: vector('embedding', { dimensions: 768 }),

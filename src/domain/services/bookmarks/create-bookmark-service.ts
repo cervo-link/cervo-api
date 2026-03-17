@@ -49,6 +49,7 @@ export async function createBookmark(
     const result = await insertBookmark({
       ...params,
       urlHashId,
+      rawText: response,
       embedding,
     })
 

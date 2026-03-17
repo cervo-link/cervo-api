@@ -1,0 +1,1 @@
+ALTER TABLE "bookmarks" ADD COLUMN "raw_text" text;
