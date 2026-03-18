@@ -1,0 +1,3 @@
+[submodule "cervo-discord-bot"]
+	path = cervo-discord-bot
+	url = git@github.com:thejuniors/cervo-discord-bot.git

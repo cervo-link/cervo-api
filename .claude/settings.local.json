@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls /Users/elixir/Apps/cervo/cervo-api/.env*)",
+      "Bash(ls /Users/elixir/Apps/cervo/cervo-api/env*)",
+      "Bash(bun:*)"
+    ]
+  }
+}

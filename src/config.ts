@@ -39,6 +39,14 @@ function getEmbeddingGemmaConfig() {
   return schema.parse(process.env)
 }
 
+function getXConfig() {
+  const schema = z.object({
+    X_OEMBED_URL: z.url().default('https://publish.twitter.com/oembed'),
+  })
+
+  return schema.parse(process.env)
+}
+
 function getAuthConfig() {
   const schema = z.object({
     API_KEY: z.string().min(1, 'API_KEY is required for authentication'),
@@ -53,5 +61,6 @@ export const config = {
   gemma: getGemmaConfig(),
   scrappingBee: getScrappingBeeConfig(),
   embeddingGemma: getEmbeddingGemmaConfig(),
+  x: getXConfig(),
   auth: getAuthConfig(),
 }
