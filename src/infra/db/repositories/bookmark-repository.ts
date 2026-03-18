@@ -1,5 +1,5 @@
 import { trace } from '@opentelemetry/api'
-import { and, eq, sql } from 'drizzle-orm'
+import { and, asc, eq, getTableColumns, sql } from 'drizzle-orm'
 import type { Bookmark, InsertBookmark } from '@/domain/entities/bookmark'
 import type { DomainError } from '@/domain/errors/domain-error'
 import { FailedToCreateBookmark } from '@/domain/errors/failed-to-create-bookmark'
@@ -32,23 +32,29 @@ export async function insertBookmark(
 
 export async function findBookmarks(
   workspaceId: string,
-  embedded: number[]
-): Promise<Bookmark[]> {
+  embedded: number[],
+  limit: number
+): Promise<Omit<Bookmark, 'embedding'>[]> {
   const tracer = trace.getTracer('get-bookmarks')
 
   return tracer.startActiveSpan('find-bookmarks-repository', async span => {
+    const { embedding: _embedding, ...columns } = getTableColumns(
+      schema.bookmarks
+    )
+
     const bookmarks = await db
-      .select()
+      .select(columns)
       .from(schema.bookmarks)
       .where(
         and(
           eq(schema.bookmarks.workspaceId, workspaceId),
-          eq(schema.bookmarks.visible, true),
-          sql`embedding <-> ${JSON.stringify(embedded)}::vector < 0.9`
+          eq(schema.bookmarks.visible, true)
         )
       )
+      .orderBy(asc(sql`embedding <-> ${JSON.stringify(embedded)}::vector`))
+      .limit(limit)
 
-    span.end()
+span.end()
     return bookmarks
   })
 }

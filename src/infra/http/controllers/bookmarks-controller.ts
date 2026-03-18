@@ -91,7 +91,7 @@ export async function getBookmarksController(
   const tracer = trace.getTracer('get-bookmarks')
 
   return tracer.startActiveSpan('get-bookmarks-controller', async span => {
-    const { platformId, platform, discordId, userId, text } =
+    const { platformId, platform, discordId, userId, text, limit } =
       getBookmarksQuerySchemaRequest.parse(request.query)
 
     const workspace = await findByPlatformId(platformId, platform)
@@ -118,7 +118,7 @@ export async function getBookmarksController(
     const embeddingAdapter = createEmbeddingProvider('embeddinggemma')
 
     const bookmarks = await getBookmarks(
-      { workspaceId: workspace.id, memberId: member.id, text },
+      { workspaceId: workspace.id, memberId: member.id, text, limit },
       embeddingAdapter
     )
 
