@@ -51,6 +51,7 @@ export const getBookmarksQuerySchemaRequest = z
     discordId: z.string().min(1).optional(),
     userId: z.string().min(1).optional(),
     text: z.string().min(1, 'Text must not be empty'),
+    limit: z.coerce.number().int().min(1).max(50).default(5),
   })
   .refine(
     data => (data.platform === 'discord' ? !!data.discordId : !!data.userId),

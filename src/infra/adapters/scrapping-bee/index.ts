@@ -2,9 +2,14 @@ import type { Tracer } from '@opentelemetry/api'
 import scrapingbee from 'scrapingbee'
 import { config } from '@/config'
 import { FailedToScrap } from '@/domain/errors/failed-to-scrap'
+import { isXUrl, scrapeXPost } from '@/infra/adapters/x'
 import type { ScrappingService } from '@/infra/ports/scrapping'
 
 export async function scrapping(url: string) {
+  if (isXUrl(url)) {
+    return scrapeXPost(url)
+  }
+
   const apiKey = config.scrappingBee.SCRAPPING_BEE_API_KEY
 
   const client = new scrapingbee.ScrapingBeeClient(apiKey ?? '')

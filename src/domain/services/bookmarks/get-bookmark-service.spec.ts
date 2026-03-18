@@ -54,6 +54,7 @@ describe('getBookmark', () => {
         workspaceId,
         memberId,
         text: 'test',
+        limit: 5,
       },
       embeddingService
     )
@@ -65,11 +66,10 @@ describe('getBookmark', () => {
         memberId,
         url,
         urlHashId: expect.any(String),
-        title: null,
-        description: null,
+        title: 'Test Title',
+        description: 'test',
         createdAt: expect.any(Date),
         updatedAt: expect.any(Date),
-        embedding: expect.any(Array),
         visible: true,
       },
     ])

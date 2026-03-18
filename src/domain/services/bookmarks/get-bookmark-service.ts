@@ -8,12 +8,15 @@ export type GetBookmarksInput = {
   workspaceId: string
   memberId: string
   text: string
+  limit: number
 }
+
+export type BookmarkWithoutEmbedding = Omit<Bookmark, 'embedding'>
 
 export async function getBookmarks(
   input: GetBookmarksInput,
   embeddingService: EmbeddingService
-): Promise<Bookmark[] | DomainError> {
+): Promise<BookmarkWithoutEmbedding[] | DomainError> {
   const tracer = trace.getTracer('get-bookmarks-service')
 
   return tracer.startActiveSpan('get-bookmarks-service', async span => {
@@ -26,7 +29,7 @@ export async function getBookmarks(
       return embedded
     }
 
-    const bookmarks = await findBookmarks(input.workspaceId, embedded)
+    const bookmarks = await findBookmarks(input.workspaceId, embedded, input.limit)
 
     if (bookmarks instanceof DomainError) {
       span.end()
