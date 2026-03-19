@@ -201,6 +201,65 @@ describe('getBookmarksController', () => {
     expect(response.statusCode).toBe(200)
     expect(JSON.parse(response.body)).toEqual([])
   })
+
+  it('should return 404 when workspace does not exist', async () => {
+    const member = await makeMember()
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/bookmarks',
+      headers: { authorization: `Bearer ${API_KEY}` },
+      query: {
+        workspaceId: '00000000-0000-0000-0000-000000000000',
+        memberId: member.id,
+        text: 'test',
+      },
+    })
+
+    expect(response.statusCode).toBe(404)
+    expect(JSON.parse(response.body)).toEqual({ message: 'Workspace not found' })
+  })
+
+  it('should return 404 when member does not exist', async () => {
+    const workspace = await makeWorkspace()
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/bookmarks',
+      headers: { authorization: `Bearer ${API_KEY}` },
+      query: {
+        workspaceId: workspace.id,
+        memberId: '00000000-0000-0000-0000-000000000000',
+        text: 'test',
+      },
+    })
+
+    expect(response.statusCode).toBe(404)
+    expect(JSON.parse(response.body)).toEqual({ message: 'Member not found' })
+  })
+
+  it('should return error when embedding service fails', async () => {
+    const member = await makeMember()
+    const workspace = await makeWorkspace()
+    await makeMembership(workspace.id, member.id)
+
+    mockEmbeddingService.generateEmbedding.mockResolvedValue(
+      new (await import('@/domain/errors/failed-to-generate-embedding')).FailedToGenerateEmbedding()
+    )
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/bookmarks',
+      headers: { authorization: `Bearer ${API_KEY}` },
+      query: {
+        workspaceId: workspace.id,
+        memberId: member.id,
+        text: 'test',
+      },
+    })
+
+    expect(response.statusCode).toBe(400)
+  })
 })
 
 describe('retryBookmarkController', () => {

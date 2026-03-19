@@ -86,7 +86,7 @@ export async function findBookmarks(
       .orderBy(asc(sql`embedding <-> ${JSON.stringify(embedded)}::vector`))
       .limit(limit)
 
-span.end()
+    span.end()
     return bookmarks
   })
 }
