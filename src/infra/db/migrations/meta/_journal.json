@@ -43,6 +43,20 @@
       "when": 1759890234978,
       "tag": "20251008022354_alter_membership_table_add_constraint",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1773878723359,
+      "tag": "20260319000523_add_workspace_integrations_and_member_platform_identities",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1773881040291,
+      "tag": "20260319004400_add_auth_tables_and_bookmark_status_tags",
+      "breakpoints": true
     }
   ]
 }

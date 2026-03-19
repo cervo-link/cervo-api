@@ -15,33 +15,19 @@ export async function createWorkspaceController(
   const tracer = trace.getTracer('create-workspace')
 
   return tracer.startActiveSpan('create-workspace-controller', async span => {
-    const { name, description, platform, platformId } =
+    const { name, description, ownerId } =
       createWorkspaceBodySchemaRequest.parse(request.body)
 
-    const workspace = await createWorkspace({
-      name,
-      description,
-      platform,
-      platformId,
-    })
+    const workspace = await createWorkspace({ name, description, ownerId })
 
     if (workspace instanceof DomainError) {
-      span.setStatus({
-        code: SpanStatusCode.ERROR,
-        message: workspace.message,
-      })
+      span.setStatus({ code: SpanStatusCode.ERROR, message: workspace.message })
       span.end()
-      return reply.status(workspace.status).send({
-        message: workspace.message,
-      })
+      return reply.status(workspace.status).send({ message: workspace.message })
     }
 
-    span.setStatus({
-      code: SpanStatusCode.OK,
-      message: 'Workspace created successfully',
-    })
+    span.setStatus({ code: SpanStatusCode.OK })
     span.end()
-
     return reply.status(201).send({ workspace })
   })
 }
@@ -53,29 +39,18 @@ export async function getWorkspaceController(
   const tracer = trace.getTracer('get-workspace')
 
   return tracer.startActiveSpan('get-workspace-controller', async span => {
-    const { platformId, platform } = getWorkspaceQuerySchemaRequest.parse(
-      request.query
-    )
+    const { id } = getWorkspaceQuerySchemaRequest.parse(request.query)
 
-    const workspace = await getWorkspace(platformId, platform)
+    const workspace = await getWorkspace(id)
 
     if (workspace instanceof DomainError) {
-      span.setStatus({
-        code: SpanStatusCode.ERROR,
-        message: workspace.message,
-      })
+      span.setStatus({ code: SpanStatusCode.ERROR, message: workspace.message })
       span.end()
-      return reply.status(workspace.status).send({
-        message: workspace.message,
-      })
+      return reply.status(workspace.status).send({ message: workspace.message })
     }
 
-    span.setStatus({
-      code: SpanStatusCode.OK,
-      message: 'Workspace found successfully',
-    })
+    span.setStatus({ code: SpanStatusCode.OK })
     span.end()
-
     return reply.status(200).send({ workspace })
   })
 }

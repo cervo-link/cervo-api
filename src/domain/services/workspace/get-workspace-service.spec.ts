@@ -1,39 +1,21 @@
-import { faker } from '@faker-js/faker'
+import { randomUUID } from 'node:crypto'
 import { describe, expect, it } from 'vitest'
 import { WorkspaceNotFound } from '@/domain/errors/workspace-not-found'
 import { makeWorkspace } from '@/tests/factories/make-workspace'
 import { getWorkspace } from './get-workspace-service'
 
 describe('getWorkspace', () => {
-  it('should get a workspace by platformId and platform', async () => {
-    const workspace = await makeWorkspace({
-      platform: 'discord',
-      platformId: faker.string.uuid(),
-    })
+  it('should get a workspace by id', async () => {
+    const workspace = await makeWorkspace()
 
-    const result = await getWorkspace(workspace.platformId, 'discord')
+    const result = await getWorkspace(workspace.id)
 
     expect(result).toBeDefined()
     expect(result).toHaveProperty('id', workspace.id)
-    expect(result).toHaveProperty('platformId', workspace.platformId)
-    expect(result).toHaveProperty('platform', workspace.platform)
   })
 
   it('should return WorkspaceNotFound when workspace does not exist', async () => {
-    const nonExistentPlatformId = faker.string.uuid()
-
-    const result = await getWorkspace(nonExistentPlatformId, 'discord')
-
-    expect(result).toBeInstanceOf(WorkspaceNotFound)
-  })
-
-  it('should return WorkspaceNotFound when platformId exists but platform is different', async () => {
-    const workspace = await makeWorkspace({
-      platform: 'discord',
-      platformId: faker.string.uuid(),
-    })
-
-    const result = await getWorkspace(workspace.platformId, 'slack')
+    const result = await getWorkspace(randomUUID())
 
     expect(result).toBeInstanceOf(WorkspaceNotFound)
   })

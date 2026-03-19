@@ -57,20 +57,18 @@ export async function findById(id: string): Promise<Member | null> {
   })
 }
 
-export async function findByDiscordUserId(
-  discordUserId: string
-): Promise<Member | null> {
-  const tracer = trace.getTracer('find-member-by-discord-user-id')
+export async function findByEmail(email: string): Promise<Member | null> {
+  const tracer = trace.getTracer('find-member-by-email')
 
   return tracer.startActiveSpan(
-    'find-member-by-discord-user-id-repository',
+    'find-member-by-email-repository',
     async span => {
       const [result] = await db
         .select()
         .from(members)
-        .where(eq(members.discordUserId, discordUserId))
+        .where(eq(members.email, email))
       span.end()
-      return result
+      return result || null
     }
   )
 }
