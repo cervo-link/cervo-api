@@ -6,90 +6,174 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 # Development
-bun run dev           # Start with hot-reload
-bun run build         # TypeScript compilation
+bun run dev              # Start with hot-reload
+bun run build            # TypeScript compilation
 
 # Database
-bun run db:generate   # Generate Drizzle migrations
-bun run db:migrate    # Apply migrations
-bun run db:migrate:test  # Apply migrations to test DB
+bun run db:generate      # Generate Drizzle migrations from schema changes
+bun run db:migrate       # Apply migrations to DATABASE_URL
+bun run db:migrate:test  # Apply migrations to test database
 
 # Testing
-bun run test          # Run all tests (requires Docker for Testcontainers)
-bun run test:watch    # Watch mode
+bun run test             # Run all tests (requires Docker for Testcontainers)
+bun run test:watch       # Watch mode
+bun run test:coverage    # Coverage report
 
-# Code quality
-bun run lint          # Check with Biome
-bun run format        # Auto-format with Biome
+# Code quality (run in this order at the end of every phase)
+bun run test
+bun run typecheck        # tsc --noEmit
+bun run lint:fix         # Biome auto-fix
+bun run lint             # Biome lint check
 ```
 
-To run a single test file: `bun --env-file=.env.test run vitest path/to/file.spec.ts`
+Run a single test file: `bun --env-file=.env.test run vitest path/to/file.spec.ts`
 
 ## Architecture
 
-This is a bookmark management API with vector search, built for integration with chat platforms (Discord, Slack). It follows **Clean Architecture**:
+Bookmark management API with vector search, built for Discord/Slack bot integration. Follows **Clean Architecture** — domain logic has zero framework or database dependencies.
 
 ```
 src/
 ├── domain/           # Business logic (no framework dependencies)
-│   ├── entities/    # Core models: Bookmark, Workspace, Member, Membership
-│   ├── services/    # Business operations (create, find, get)
-│   └── errors/      # Domain-specific error classes
+│   ├── entities/    # TypeScript types inferred from Drizzle schema
+│   ├── services/    # Business operations grouped by domain area
+│   └── errors/      # Domain error classes (each has an HTTP status code)
 │
 ├── infra/           # All implementation details
-│   ├── adapters/    # External service integrations
-│   │   ├── scrapping-bee/     # Web scraping (ScrapingBee API)
-│   │   ├── gemma/             # Text summarization (Ollama/Gemma)
-│   │   └── embeddinggemma/    # Vector embeddings (Ollama/Gemma)
+│   ├── adapters/
+│   │   ├── gemma/             # Ollama/Gemma: summarize, title, tags, explain
+│   │   ├── embeddinggemma/    # Ollama/Gemma: vector embeddings (768 dims)
+│   │   ├── scrapping-bee/     # ScrapingBee web scraper
+│   │   ├── email/             # Nodemailer (prod) or console logger (dev)
+│   │   └── x/                 # X/Twitter oEmbed content extraction
 │   ├── db/
-│   │   ├── schema/            # Drizzle ORM table definitions
-│   │   ├── repositories/      # Data access layer
+│   │   ├── schema/            # Drizzle ORM table definitions (source of truth)
+│   │   ├── repositories/      # Data access layer — one file per table
 │   │   └── migrations/        # SQL migration files
 │   ├── http/
 │   │   ├── controllers/       # Request handlers
 │   │   ├── routes/            # Route definitions with auth middleware
 │   │   ├── schemas/           # Zod request/response schemas
-│   │   └── app.ts             # Fastify app setup
-│   ├── factories/   # Wire up services with their dependencies
-│   └── ports/       # Interfaces for external adapters
+│   │   ├── middlewares/       # apiKeyAuth, jwtAuth
+│   │   └── app.ts             # Fastify setup, Swagger UI, error handler
+│   ├── factories/             # Resolve provider name → concrete adapter
+│   └── ports/                 # TypeScript interfaces for all adapters
 │
 ├── tests/
 │   ├── global-setup.ts        # Spins up PostgreSQL Testcontainer, runs migrations
-│   └── factories/             # Test data generators
+│   └── factories/             # Test data generators (makeMember, makeBookmark, etc.)
 │
-├── config.ts        # Env vars validated with Zod
+├── config.ts        # All env vars validated with Zod
 └── main.ts          # Entry point
 ```
 
-### Key Patterns
+### Dependency flow
 
-**Dependency flow**: `routes → controllers → factories → services → repositories/adapters`
+```
+routes → controllers → factories → services → repositories / adapters
+```
 
-- Services receive adapters via constructor (dependency injection)
-- Factories instantiate services with concrete implementations
-- Services return domain errors or success values (no exceptions for domain errors)
+- Services receive adapters via function parameters (dependency injection)
+- Factories instantiate the correct adapter from a provider name string
+- Domain errors are **return values**, never thrown — callers check `instanceof DomainError`
 - `@/*` path alias maps to `src/*`
 
-### Database
+## Key Patterns
 
-PostgreSQL with the `pgvector` extension (required). Bookmarks store 768-dimension embeddings for vector similarity search.
+### Error handling
+
+Services return `T | DomainError`. Command functions that succeed silently return `DomainError | null`.
+
+```typescript
+// Query service
+async function getBookmarks(...): Promise<Bookmark[] | DomainError>
+
+// Command service
+async function retryBookmark(...): Promise<DomainError | null>
+```
+
+Never use `Promise<void | DomainError>` or `Promise<undefined | DomainError>` — always `null` for the success case.
+
+### Fire-and-forget processing
+
+`createBookmark` inserts with `status: submitted` and returns immediately. Processing happens via `setImmediate`:
+
+```typescript
+setImmediate(() => processBookmark(id, scrappingService, embeddingService, summarizeService))
+```
+
+Non-critical steps (title, tags) never block `ready` status — their failures are silently ignored.
+
+### Platform identity decoupling
+
+`workspace_integrations` and `member_platform_identities` decouple core domain entities from platform-specific IDs. Adding a new platform (Slack, Teams) requires no schema changes to `members` or `workspaces`.
+
+## Domain Services
+
+| Service | Location | Returns |
+|---|---|---|
+| `createBookmark` | `bookmarks/create-bookmark-service` | `Bookmark \| DomainError` |
+| `processBookmark` | `bookmarks/process-bookmark-service` | `void` |
+| `getBookmarks` | `bookmarks/get-bookmark-service` | `BookmarkWithExplanation[] \| DomainError` |
+| `retryBookmark` | `bookmarks/retry-bookmark-service` | `DomainError \| null` |
+| `createWorkspace` | `workspace/create-workspace-service` | `Workspace \| DomainError` |
+| `getWorkspace` | `workspace/get-workspace-service` | `Workspace \| DomainError` |
+| `createMember` | `members/create-member-service` | `Member \| DomainError` |
+| `addMemberToWorkspace` | `members/add-member-service` | `Membership \| DomainError` |
+| `findMemberByPlatform` | `members/find-member-by-platform-service` | `Member \| DomainError` |
+| `createMemberPlatformIdentity` | `members/create-member-platform-identity-service` | `MemberPlatformIdentity \| DomainError` |
+| `getMembership` | `membership/get-membership` | `Membership \| DomainError` |
+| `requestMagicLink` | `auth/request-magic-link-service` | `void` |
+| `verifyMagicLink` | `auth/verify-magic-link-service` | `{accessToken, refreshToken, member} \| DomainError` |
+| `refreshAccessToken` | `auth/refresh-token-service` | `{accessToken} \| DomainError` |
+| `revokeToken` | `auth/revoke-token-service` | `DomainError \| null` |
+| `createWorkspaceIntegration` | `workspace-integrations/create-workspace-integration-service` | `WorkspaceIntegration \| DomainError` |
+| `getWorkspaceByIntegration` | `workspace-integrations/get-workspace-by-integration-service` | `Workspace \| DomainError` |
+
+## HTTP Routes
+
+All routes require API key auth (`Authorization: Bearer`, `X-API-Key`, or `?api_key`).
+
+| Method | URL | Description |
+|---|---|---|
+| GET | `/health` | Health check (no auth) |
+| POST | `/auth/magic-link` | Request magic link email (no auth) |
+| POST | `/auth/verify` | Verify token → JWT tokens (no auth) |
+| POST | `/auth/refresh` | Refresh access token (no auth) |
+| POST | `/auth/logout` | Revoke refresh token (no auth) |
+| POST | `/bookmarks` | Submit URL for processing |
+| GET | `/bookmarks` | Vector similarity search |
+| POST | `/bookmarks/:id/retry` | Retry failed bookmark |
+| POST | `/members/create` | Create member |
+| PUT | `/members/add` | Add member to workspace |
+| POST | `/members/:memberId/identities` | Link platform identity to member |
+| GET | `/members/by-identity` | Find member by platform identity |
+| POST | `/workspaces/create` | Create workspace |
+| GET | `/workspaces` | Get workspace by ID |
+| POST | `/workspaces/:workspaceId/integrations` | Add platform integration |
+| GET | `/workspaces/by-integration` | Find workspace by platform ID |
+
+## Database
+
+PostgreSQL with the `pgvector` extension (required). Bookmarks store 768-dimension embeddings.
 
 Docker Compose runs PostgreSQL + Grafana OTEL LGTM for local development:
 ```bash
 docker compose up -d
 ```
 
-### Testing
+After any schema change: `bun run db:generate` then `bun run db:migrate`.
 
-Tests use Testcontainers to spin up a real PostgreSQL instance — no mocking the database. External adapters (scraping, embedding, summarization) are mocked in unit tests.
+## Testing
 
-### API Authentication
+Tests use Testcontainers to spin up a real PostgreSQL instance — **no mocking the database**. External adapters (scraping, embedding, summarization) are mocked with `vi.fn()`.
 
-All routes require an API key via:
-- `Authorization: Bearer <api-key>`
-- `X-API-Key: <api-key>` header
-- `?api_key=<api-key>` query param
+Test factories in `src/tests/factories/` create real DB records. Use them instead of calling repositories directly in tests.
 
-### Code Style
+## Code Style
 
 Biome enforces: single quotes, no semicolons, 2-space indent, 80-char line width.
+
+`noNonNullAssertion` is enabled — avoid `!` assertions; cast with `as Type` where unavoidable.
+
+`useImportType` is enabled — use `import type` for type-only imports.
