@@ -16,7 +16,7 @@ export async function createMemberController(
   const tracer = trace.getTracer('create-member')
 
   return tracer.startActiveSpan('create-member-controller', async span => {
-    const { name, username, email, discordUserId, password } =
+    const { name, username, email, password } =
       createMemberBodySchemaRequest.parse(request.body)
 
     const hashedPassword = await hashPassword(password)
@@ -25,15 +25,12 @@ export async function createMemberController(
       name,
       username,
       email,
-      discordUserId,
       passwordHash: hashedPassword,
     })
 
     if (member instanceof DomainError) {
       span.end()
-      return reply.status(member.status).send({
-        message: member.message,
-      })
+      return reply.status(member.status).send({ message: member.message })
     }
 
     span.end()
@@ -57,9 +54,7 @@ export async function addMemberToWorkspaceController(
 
       if (result instanceof DomainError) {
         span.end()
-        return reply.status(result.status).send({
-          message: result.message,
-        })
+        return reply.status(result.status).send({ message: result.message })
       }
 
       span.end()

@@ -11,7 +11,6 @@ export function makeRawMember(overrides: Overrides = {}): InsertMember {
     name: faker.person.fullName(),
     email: faker.internet.email(),
     active: true,
-    discordUserId: faker.string.uuid(),
     username: faker.internet.username(),
     passwordHash: faker.internet.password(),
     ...overrides,

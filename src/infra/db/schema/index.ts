@@ -21,7 +21,6 @@ export const members = pgTable(
     name: text(),
     username: text(),
     email: text(),
-    discordUserId: text(),
     passwordHash: text(),
     createdAt: timestamp().defaultNow().notNull(),
     updatedAt: timestamp().defaultNow().notNull(),
@@ -30,28 +29,66 @@ export const members = pgTable(
   t => [
     uniqueIndex('email_member_idx').on(t.email),
     uniqueIndex('username_member_idx').on(t.username),
-    uniqueIndex('discord_user_id_member_idx').on(t.discordUserId),
   ]
 )
 
-export const workspaces = pgTable(
-  'workspaces',
+export const workspaces = pgTable('workspaces', {
+  id: uuid()
+    .primaryKey()
+    .$defaultFn(() => uuidv7()),
+  ownerId: uuid().notNull(),
+  name: text().notNull(),
+  description: text(),
+  isPublic: boolean('is_public').default(false).notNull(),
+  createdAt: timestamp().defaultNow().notNull(),
+  updatedAt: timestamp().defaultNow().notNull(),
+  active: boolean().default(true).notNull(),
+})
+
+export const workspaceIntegrations = pgTable(
+  'workspace_integrations',
   {
     id: uuid()
       .primaryKey()
       .$defaultFn(() => uuidv7()),
-    name: text().notNull(),
-    description: text(),
-    platform: text().notNull(),
-    platformId: text().notNull(),
+    workspaceId: uuid().notNull(),
+    provider: text().notNull(),
+    providerId: text().notNull(),
     createdAt: timestamp().defaultNow().notNull(),
     updatedAt: timestamp().defaultNow().notNull(),
     active: boolean().default(true).notNull(),
   },
   t => [
-    uniqueIndex('platform_id_platform_workspace_idx').on(
-      t.platformId,
-      t.platform
+    foreignKey({
+      columns: [t.workspaceId],
+      foreignColumns: [workspaces.id],
+    }),
+    uniqueIndex('provider_provider_id_integration_idx').on(
+      t.provider,
+      t.providerId
+    ),
+  ]
+)
+
+export const memberPlatformIdentities = pgTable(
+  'member_platform_identities',
+  {
+    id: uuid()
+      .primaryKey()
+      .$defaultFn(() => uuidv7()),
+    memberId: uuid().notNull(),
+    provider: text().notNull(),
+    providerUserId: text().notNull(),
+    createdAt: timestamp().defaultNow().notNull(),
+  },
+  t => [
+    foreignKey({
+      columns: [t.memberId],
+      foreignColumns: [members.id],
+    }),
+    uniqueIndex('provider_provider_user_id_identity_idx').on(
+      t.provider,
+      t.providerUserId
     ),
   ]
 )
@@ -89,8 +126,11 @@ export const bookmarks = pgTable(
     memberId: uuid().notNull(),
     url: text().notNull(),
     urlHashId: char('url_hash_id', { length: 64 }).notNull(),
+    status: text('status').default('submitted').notNull(),
     title: text(),
     description: text(),
+    tags: text('tags').array(),
+    failureReason: text('failure_reason'),
     embedding: vector('embedding', { dimensions: 768 }),
     createdAt: timestamp().defaultNow().notNull(),
     updatedAt: timestamp().defaultNow().notNull(),
@@ -108,9 +148,55 @@ export const bookmarks = pgTable(
   ]
 )
 
+export const magicLinkTokens = pgTable(
+  'magic_link_tokens',
+  {
+    id: uuid()
+      .primaryKey()
+      .$defaultFn(() => uuidv7()),
+    memberId: uuid().notNull(),
+    token: text().notNull(),
+    expiresAt: timestamp().notNull(),
+    usedAt: timestamp(),
+    createdAt: timestamp().defaultNow().notNull(),
+  },
+  t => [
+    foreignKey({
+      columns: [t.memberId],
+      foreignColumns: [members.id],
+    }),
+    uniqueIndex('magic_link_token_idx').on(t.token),
+  ]
+)
+
+export const refreshTokens = pgTable(
+  'refresh_tokens',
+  {
+    id: uuid()
+      .primaryKey()
+      .$defaultFn(() => uuidv7()),
+    memberId: uuid().notNull(),
+    token: text().notNull(),
+    expiresAt: timestamp().notNull(),
+    revokedAt: timestamp(),
+    createdAt: timestamp().defaultNow().notNull(),
+  },
+  t => [
+    foreignKey({
+      columns: [t.memberId],
+      foreignColumns: [members.id],
+    }),
+    uniqueIndex('refresh_token_idx').on(t.token),
+  ]
+)
+
 export const schema = {
   members,
   workspaces,
+  workspaceIntegrations,
+  memberPlatformIdentities,
   memberships,
   bookmarks,
+  magicLinkTokens,
+  refreshTokens,
 }

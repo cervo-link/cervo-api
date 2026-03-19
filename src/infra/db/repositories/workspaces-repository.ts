@@ -1,5 +1,5 @@
 import { SpanStatusCode, trace } from '@opentelemetry/api'
-import { and, eq } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import type { InsertWorkspace, Workspace } from '@/domain/entities/workspace'
 import { CannotCreateWorkspaceAlreadyExists } from '@/domain/errors/cannot-create-workspace-already-exists'
 import { DomainError } from '@/domain/errors/domain-error'
@@ -68,26 +68,20 @@ export async function findById(id: string): Promise<Workspace | null> {
   )
 }
 
-export async function findByPlatformId(
-  platformId: string,
-  platform: string
+export async function findByOwnerId(
+  ownerId: string
 ): Promise<Workspace | null> {
-  const tracer = trace.getTracer('find-workspace-by-platform-id')
+  const tracer = trace.getTracer('find-workspace-by-owner-id')
 
   return tracer.startActiveSpan(
-    'find-workspace-by-platform-id-repository',
+    'find-workspace-by-owner-id-repository',
     async span => {
       const [result] = await db
         .select()
         .from(schema.workspaces)
-        .where(
-          and(
-            eq(schema.workspaces.platformId, platformId),
-            eq(schema.workspaces.platform, platform)
-          )
-        )
+        .where(eq(schema.workspaces.ownerId, ownerId))
       span.end()
-      return result
+      return result || null
     }
   )
 }

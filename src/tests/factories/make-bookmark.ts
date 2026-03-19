@@ -20,10 +20,13 @@ export function makeRawBookmark(overrides: Overrides): InsertBookmark {
     memberId: overrides.memberId,
     url,
     urlHashId,
+    status: overrides.status || 'ready',
     title: overrides.title || faker.lorem.sentence(),
     description: overrides.description || faker.lorem.paragraph(),
     embedding: overrides.embedding || makeRawEmbedding(),
     visible: overrides.visible ?? true,
+    tags: overrides.tags ?? null,
+    failureReason: overrides.failureReason ?? null,
   }
 }
 

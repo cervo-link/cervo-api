@@ -2,65 +2,43 @@ import { randomUUID } from 'node:crypto'
 import { describe, expect, it } from 'vitest'
 import { MemberNotFound } from '@/domain/errors/member-not-found'
 import { makeMember } from '@/tests/factories/make-member'
+import { makeMemberPlatformIdentity } from '@/tests/factories/make-member-platform-identity'
 import { findMemberByPlatform } from './find-member-by-platform-service'
 
-const uniqueId = () => randomUUID()
-
-describe('findMemberByPlatform', () => {
-  it('should find a member by discordId when platform is discord', async () => {
-    const discordUserId = uniqueId()
-    const createdMember = await makeMember({ discordUserId })
-
-    const result = await findMemberByPlatform({
-      platform: 'discord',
-      discordId: discordUserId,
-    })
-
-    expect(result).toEqual(createdMember)
+describe('findMemberByPlatform — memberId lookup', () => {
+  it('should find a member by memberId', async () => {
+    const member = await makeMember()
+    const result = await findMemberByPlatform({ memberId: member.id })
+    expect(result).toEqual(member)
   })
 
-  it('should find a member by userId when platform is not discord', async () => {
-    const createdMember = await makeMember()
-
-    const result = await findMemberByPlatform({
-      platform: 'slack',
-      userId: createdMember.id,
-    })
-
-    expect(result).toEqual(createdMember)
-  })
-
-  it('should return MemberNotFound when discordId is not provided for discord platform', async () => {
-    const result = await findMemberByPlatform({
-      platform: 'discord',
-    })
-
+  it('should return MemberNotFound when member does not exist', async () => {
+    const result = await findMemberByPlatform({ memberId: randomUUID() })
     expect(result).toBeInstanceOf(MemberNotFound)
   })
+})
 
-  it('should return MemberNotFound when userId is not provided for non-discord platform', async () => {
+describe('findMemberByPlatform — provider identity lookup', () => {
+  it('should find a member via provider identity', async () => {
+    const member = await makeMember()
+    const identity = await makeMemberPlatformIdentity({ memberId: member.id })
+
     const result = await findMemberByPlatform({
-      platform: 'slack',
+      provider: identity.provider,
+      providerUserId: identity.providerUserId,
     })
 
-    expect(result).toBeInstanceOf(MemberNotFound)
+    expect(result).not.toBeInstanceOf(MemberNotFound)
+    if (!('message' in result)) {
+      expect(result.id).toBe(member.id)
+    }
   })
 
-  it('should return MemberNotFound when member does not exist with discordId', async () => {
+  it('should return MemberNotFound for unknown provider identity', async () => {
     const result = await findMemberByPlatform({
-      platform: 'discord',
-      discordId: uniqueId(),
+      provider: 'discord',
+      providerUserId: 'unknown-user',
     })
-
-    expect(result).toBeInstanceOf(MemberNotFound)
-  })
-
-  it('should return MemberNotFound when member does not exist with userId', async () => {
-    const result = await findMemberByPlatform({
-      platform: 'telegram',
-      userId: uniqueId(),
-    })
-
     expect(result).toBeInstanceOf(MemberNotFound)
   })
 })

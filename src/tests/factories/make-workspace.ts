@@ -1,29 +1,26 @@
-import { randomBytes } from 'node:crypto'
 import { faker } from '@faker-js/faker'
 
 import type { InsertWorkspace } from '@/domain/entities/workspace'
 import { DomainError } from '@/domain/errors/domain-error'
 import { insertWorkspace } from '@/infra/db/repositories/workspaces-repository'
+import { makeMember } from './make-member'
 
-type Overrides = Partial<InsertWorkspace>
+type Overrides = Partial<InsertWorkspace> & { ownerId?: string }
 
 export function makeRawWorkspace(overrides: Overrides = {}): InsertWorkspace {
-  const randomId = randomBytes(16).toString('hex')
-  const timestamp = Date.now()
-  const randomSuffix = Math.random().toString(36).substring(2, 15)
-
   return {
     name: faker.company.name(),
-    platform: 'discord',
     active: true,
-    platformId: `${randomId}-${timestamp}-${randomSuffix}`,
+    isPublic: false,
     description: faker.lorem.sentence(),
+    ownerId: overrides.ownerId ?? '',
     ...overrides,
   }
 }
 
 export async function makeWorkspace(overrides: Overrides = {}) {
-  const workspace = await insertWorkspace(makeRawWorkspace(overrides))
+  const ownerId = overrides.ownerId ?? (await makeMember()).id
+  const workspace = await insertWorkspace(makeRawWorkspace({ ...overrides, ownerId }))
   if (workspace instanceof DomainError) {
     throw workspace
   }

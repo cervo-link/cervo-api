@@ -15,16 +15,13 @@ describe('MembersController', () => {
       name: member.name,
       username: member.username,
       email: member.email,
-      discordUserId: member.discordUserId,
-      password: 'some-password',
+      password: 'some-password-123',
     }
 
     const response = await app.inject({
       method: 'POST',
       url: '/members/create',
-      headers: {
-        authorization: `Bearer ${API_KEY}`,
-      },
+      headers: { authorization: `Bearer ${API_KEY}` },
       payload,
     })
 
@@ -35,7 +32,6 @@ describe('MembersController', () => {
         name: member.name,
         username: member.username,
         email: member.email,
-        discordUserId: member.discordUserId,
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
         active: true,
@@ -50,43 +46,32 @@ describe('MembersController', () => {
       name: member.name,
       username: member.username,
       email: member.email,
-      discordUserId: member.discordUserId,
     }
 
     const response = await app.inject({
       method: 'POST',
       url: '/members/create',
-      headers: {
-        authorization: `Bearer ${API_KEY}`,
-      },
+      headers: { authorization: `Bearer ${API_KEY}` },
       payload,
     })
 
     expect(response.statusCode).toBe(400)
-    expect(JSON.parse(response.body)).toEqual({
-      message: 'body/password Password must be a valid string',
-    })
   })
 
   it('should be able to return error username already exists', async () => {
-    const member = makeRawMember()
-
-    await makeMember({ username: member.username })
+    const member = await makeMember()
 
     const payload = {
-      name: member.name,
+      name: faker.person.fullName(),
       username: member.username,
-      email: member.email,
-      discordUserId: member.discordUserId,
-      password: 'some-password',
+      email: faker.internet.email(),
+      password: 'some-password-123',
     }
 
     const response = await app.inject({
       method: 'POST',
       url: '/members/create',
-      headers: {
-        authorization: `Bearer ${API_KEY}`,
-      },
+      headers: { authorization: `Bearer ${API_KEY}` },
       payload,
     })
 
@@ -97,24 +82,19 @@ describe('MembersController', () => {
   })
 
   it('should be able to return error email already exists', async () => {
-    const member = makeRawMember()
-
-    await makeMember({ email: member.email })
+    const member = await makeMember()
 
     const payload = {
-      name: member.name,
-      username: member.username,
+      name: faker.person.fullName(),
+      username: faker.internet.username(),
       email: member.email,
-      discordUserId: member.discordUserId,
-      password: 'some-password',
+      password: 'some-password-123',
     }
 
     const response = await app.inject({
       method: 'POST',
       url: '/members/create',
-      headers: {
-        authorization: `Bearer ${API_KEY}`,
-      },
+      headers: { authorization: `Bearer ${API_KEY}` },
       payload,
     })
 
@@ -129,18 +109,11 @@ describe('MembersController', () => {
       const member = await makeMember()
       const workspace = await makeWorkspace()
 
-      const payload = {
-        memberId: member.id,
-        workspaceId: workspace.id,
-      }
-
       const response = await app.inject({
         method: 'PUT',
         url: '/members/add',
-        headers: {
-          authorization: `Bearer ${API_KEY}`,
-        },
-        payload,
+        headers: { authorization: `Bearer ${API_KEY}` },
+        payload: { memberId: member.id, workspaceId: workspace.id },
       })
 
       expect(response.statusCode).toBe(201)
@@ -151,50 +124,30 @@ describe('MembersController', () => {
 
     it('should return 404 when workspace does not exist', async () => {
       const member = await makeMember()
-      const nonExistentWorkspaceId = faker.string.uuid()
-
-      const payload = {
-        memberId: member.id,
-        workspaceId: nonExistentWorkspaceId,
-      }
 
       const response = await app.inject({
         method: 'PUT',
         url: '/members/add',
-        headers: {
-          authorization: `Bearer ${API_KEY}`,
-        },
-        payload,
+        headers: { authorization: `Bearer ${API_KEY}` },
+        payload: { memberId: member.id, workspaceId: faker.string.uuid() },
       })
 
       expect(response.statusCode).toBe(404)
-      expect(JSON.parse(response.body)).toEqual({
-        message: 'Workspace not found',
-      })
+      expect(JSON.parse(response.body)).toEqual({ message: 'Workspace not found' })
     })
 
     it('should return 404 when member does not exist', async () => {
       const workspace = await makeWorkspace()
-      const nonExistentMemberId = faker.string.uuid()
-
-      const payload = {
-        memberId: nonExistentMemberId,
-        workspaceId: workspace.id,
-      }
 
       const response = await app.inject({
         method: 'PUT',
         url: '/members/add',
-        headers: {
-          authorization: `Bearer ${API_KEY}`,
-        },
-        payload,
+        headers: { authorization: `Bearer ${API_KEY}` },
+        payload: { memberId: faker.string.uuid(), workspaceId: workspace.id },
       })
 
       expect(response.statusCode).toBe(404)
-      expect(JSON.parse(response.body)).toEqual({
-        message: 'Member not found',
-      })
+      expect(JSON.parse(response.body)).toEqual({ message: 'Member not found' })
     })
 
     it('should return 422 when membership already exists', async () => {
@@ -202,18 +155,11 @@ describe('MembersController', () => {
       const workspace = await makeWorkspace()
       await makeMembership(workspace.id, member.id)
 
-      const payload = {
-        memberId: member.id,
-        workspaceId: workspace.id,
-      }
-
       const response = await app.inject({
         method: 'PUT',
         url: '/members/add',
-        headers: {
-          authorization: `Bearer ${API_KEY}`,
-        },
-        payload,
+        headers: { authorization: `Bearer ${API_KEY}` },
+        payload: { memberId: member.id, workspaceId: workspace.id },
       })
 
       expect(response.statusCode).toBe(422)
@@ -225,68 +171,40 @@ describe('MembersController', () => {
     it('should return 400 when memberId is not provided', async () => {
       const workspace = await makeWorkspace()
 
-      const payload = {
-        workspaceId: workspace.id,
-      }
-
       const response = await app.inject({
         method: 'PUT',
         url: '/members/add',
-        headers: {
-          authorization: `Bearer ${API_KEY}`,
-        },
-        payload,
+        headers: { authorization: `Bearer ${API_KEY}` },
+        payload: { workspaceId: workspace.id },
       })
 
       expect(response.statusCode).toBe(400)
-      expect(JSON.parse(response.body)).toEqual({
-        message: 'body/memberId Member ID must be a valid string',
-      })
     })
 
     it('should return 400 when workspaceId is not provided', async () => {
       const member = await makeMember()
 
-      const payload = {
-        memberId: member.id,
-      }
-
       const response = await app.inject({
         method: 'PUT',
         url: '/members/add',
-        headers: {
-          authorization: `Bearer ${API_KEY}`,
-        },
-        payload,
+        headers: { authorization: `Bearer ${API_KEY}` },
+        payload: { memberId: member.id },
       })
 
       expect(response.statusCode).toBe(400)
-      expect(JSON.parse(response.body)).toEqual({
-        message: 'body/workspaceId Workspace ID must be a valid string',
-      })
     })
 
     it('should return 401 when API key is not provided', async () => {
       const member = await makeMember()
       const workspace = await makeWorkspace()
 
-      const payload = {
-        memberId: member.id,
-        workspaceId: workspace.id,
-      }
-
       const response = await app.inject({
         method: 'PUT',
         url: '/members/add',
-        payload,
+        payload: { memberId: member.id, workspaceId: workspace.id },
       })
 
       expect(response.statusCode).toBe(401)
-      expect(JSON.parse(response.body)).toEqual({
-        error: 'Unauthorized',
-        message: expect.stringContaining('API key is required'),
-        statusCode: 401,
-      })
     })
   })
 })

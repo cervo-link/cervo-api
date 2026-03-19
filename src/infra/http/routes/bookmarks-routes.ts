@@ -3,12 +3,15 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import {
   createBookmarkController,
   getBookmarksController,
+  retryBookmarkController,
 } from '@/infra/http/controllers/bookmarks-controller'
 import {
   createBookmarkBodySchemaRequest,
   createBookmarkBodySchemaResponse,
   getBookmarksBodySchemaResponse,
   getBookmarksQuerySchemaRequest,
+  retryBookmarkParamsSchema,
+  retryBookmarkResponseSchema,
 } from '@/infra/http/schemas/bookmarks-schema'
 import { apiKeyAuth } from '@/infra/http/middlewares/api-key-auth'
 
@@ -37,5 +40,18 @@ export async function bookmarksRoutes(app: FastifyInstance) {
       query: getBookmarksQuerySchemaRequest,
     },
     handler: getBookmarksController,
+  })
+
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: 'POST',
+    url: '/bookmarks/:id/retry',
+    onRequest: [apiKeyAuth],
+    schema: {
+      description: 'Retry processing a failed bookmark',
+      tags: ['bookmarks'],
+      params: retryBookmarkParamsSchema,
+      response: retryBookmarkResponseSchema,
+    },
+    handler: retryBookmarkController,
   })
 }

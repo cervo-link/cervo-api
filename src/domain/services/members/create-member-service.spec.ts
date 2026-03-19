@@ -14,7 +14,6 @@ describe('CreateMemberService', () => {
       name: member.name,
       username: member.username,
       email: member.email,
-      discordUserId: member.discordUserId,
       passwordHash: member.passwordHash,
       createdAt: expect.any(Date),
       updatedAt: expect.any(Date),
@@ -25,9 +24,7 @@ describe('CreateMemberService', () => {
   it('should be able to return error when username already exists', async () => {
     const member = await makeMember()
 
-    const rawMember = makeRawMember({ username: member.username })
-
-    const result = await createMember(rawMember)
+    const result = await createMember(makeRawMember({ username: member.username }))
 
     expect(result).toBeInstanceOf(CannotCreateDuplicatedMember)
   })
@@ -35,19 +32,7 @@ describe('CreateMemberService', () => {
   it('should be able to return error when email already exists', async () => {
     const member = await makeMember()
 
-    const rawMember = makeRawMember({ email: member.email })
-
-    const result = await createMember(rawMember)
-
-    expect(result).toBeInstanceOf(CannotCreateDuplicatedMember)
-  })
-
-  it('should be able to return error when discordUserId already exists', async () => {
-    const member = await makeMember()
-
-    const rawMember = makeRawMember({ discordUserId: member.discordUserId })
-
-    const result = await createMember(rawMember)
+    const result = await createMember(makeRawMember({ email: member.email }))
 
     expect(result).toBeInstanceOf(CannotCreateDuplicatedMember)
   })

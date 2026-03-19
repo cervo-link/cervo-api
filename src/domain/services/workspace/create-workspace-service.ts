@@ -1,6 +1,7 @@
 import { SpanStatusCode, trace } from '@opentelemetry/api'
 import type { InsertWorkspace, Workspace } from '@/domain/entities/workspace'
 import { DomainError } from '@/domain/errors/domain-error'
+import { insertMembership } from '@/infra/db/repositories/membership-repository'
 import { insertWorkspace } from '@/infra/db/repositories/workspaces-repository'
 
 export async function createWorkspace(
@@ -11,13 +12,12 @@ export async function createWorkspace(
   return tracer.startActiveSpan('create-workspace-service', async span => {
     const result = await insertWorkspace(workspace)
     if (result instanceof DomainError) {
-      span.setStatus({
-        code: SpanStatusCode.ERROR,
-        message: result.message,
-      })
+      span.setStatus({ code: SpanStatusCode.ERROR, message: result.message })
       span.end()
       return result
     }
+
+    await insertMembership({ memberId: workspace.ownerId, workspaceId: result.id })
 
     span.end()
     return result

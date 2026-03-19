@@ -6,71 +6,48 @@ export const bookmarkSchema = createSelectSchema(schema.bookmarks).omit({
   embedding: true,
 })
 
-export const createBookmarkBodySchemaRequest = z
-  .object({
-    platformId: z.string().min(1, 'Platform ID must not be empty'),
-    platform: z.enum(['discord', 'slack', 'telegram'], {
-      message: 'Platform must be discord, slack, or telegram',
-    }),
-    discordId: z.string().min(1).optional(),
-    userId: z.string().min(1).optional(),
-    url: z.string().url('URL must be a valid URL'),
-  })
-  .refine(
-    data => (data.platform === 'discord' ? !!data.discordId : !!data.userId),
-    {
-      message:
-        'discordId is required when platform is discord, userId is required otherwise',
-    }
-  )
+export const createBookmarkBodySchemaRequest = z.object({
+  workspaceId: z.string().uuid('Workspace ID must be a valid UUID'),
+  memberId: z.string().uuid('Member ID must be a valid UUID'),
+  url: z.string().url('URL must be a valid URL'),
+})
 
 export const createBookmarkBodySchemaResponse = {
-  500: z
-    .object({
-      message: z.string(),
-    })
-    .describe('Failed to create bookmark'),
-  400: z
-    .object({
-      message: z.string(),
-    })
-    .describe('Failed to create bookmark'),
+  500: z.object({ message: z.string() }).describe('Failed to create bookmark'),
+  400: z.object({ message: z.string() }).describe('Failed to create bookmark'),
+  404: z.object({ message: z.string() }).describe('Workspace or member not found'),
   201: z
-    .object({
-      message: z.string(),
-    })
-    .describe('Bookmark created successfully'),
+    .object({ id: z.string(), status: z.string() })
+    .describe('Bookmark submitted for processing'),
 }
 
-export const getBookmarksQuerySchemaRequest = z
-  .object({
-    platformId: z.string().min(1, 'Platform ID must not be empty'),
-    platform: z.enum(['discord', 'slack', 'telegram'], {
-      message: 'Platform must be discord, slack, or telegram',
-    }),
-    discordId: z.string().min(1).optional(),
-    userId: z.string().min(1).optional(),
-    text: z.string().min(1, 'Text must not be empty'),
-    limit: z.coerce.number().int().min(1).max(50).default(5),
-  })
-  .refine(
-    data => (data.platform === 'discord' ? !!data.discordId : !!data.userId),
-    {
-      message:
-        'discordId is required when platform is discord, userId is required otherwise',
-    }
-  )
+export const retryBookmarkParamsSchema = z.object({
+  id: z.string().uuid('Bookmark ID must be a valid UUID'),
+})
+
+export const retryBookmarkResponseSchema = {
+  200: z.object({ message: z.string() }).describe('Retry triggered'),
+  404: z.object({ message: z.string() }).describe('Bookmark not found'),
+  409: z.object({ message: z.string() }).describe('Bookmark not in failed state'),
+}
+
+export const getBookmarksQuerySchemaRequest = z.object({
+  workspaceId: z.string().uuid('Workspace ID must be a valid UUID'),
+  memberId: z.string().uuid('Member ID must be a valid UUID'),
+  text: z.string().min(1, 'Text must not be empty'),
+  limit: z.coerce.number().int().min(1).max(50).default(5),
+})
+
+export const bookmarkWithExplanationSchema = bookmarkSchema.extend({
+  matchedBecause: z.string().optional(),
+})
 
 export const getBookmarksBodySchemaResponse = {
   500: z
-    .object({
-      message: z.string(),
-    })
+    .object({ message: z.string() })
     .describe('Failed to get bookmarks'),
   400: z
-    .object({
-      message: z.string(),
-    })
+    .object({ message: z.string() })
     .describe('Failed to get bookmarks'),
-  200: z.array(bookmarkSchema).describe('Bookmarks retrieved successfully'),
+  200: z.array(bookmarkWithExplanationSchema).describe('Bookmarks retrieved successfully'),
 }

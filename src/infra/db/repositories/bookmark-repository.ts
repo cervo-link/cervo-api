@@ -7,6 +7,10 @@ import { db } from '..'
 import { schema } from '../schema'
 import { getPgError } from '../utils/get-pg-error'
 
+type BookmarkUpdates = Partial<
+  Pick<Bookmark, 'status' | 'title' | 'description' | 'tags' | 'embedding' | 'failureReason'>
+>
+
 export async function insertBookmark(
   params: InsertBookmark
 ): Promise<Bookmark | DomainError> {
@@ -27,6 +31,34 @@ export async function insertBookmark(
       span.end()
       return new FailedToCreateBookmark(pgError?.message)
     }
+  })
+}
+
+export async function findBookmarkById(id: string): Promise<Bookmark | null> {
+  const tracer = trace.getTracer('find-bookmark-by-id')
+
+  return tracer.startActiveSpan('find-bookmark-by-id-repository', async span => {
+    const [result] = await db
+      .select()
+      .from(schema.bookmarks)
+      .where(eq(schema.bookmarks.id, id))
+    span.end()
+    return result || null
+  })
+}
+
+export async function updateBookmark(
+  id: string,
+  updates: BookmarkUpdates
+): Promise<void> {
+  const tracer = trace.getTracer('update-bookmark')
+
+  return tracer.startActiveSpan('update-bookmark-repository', async span => {
+    await db
+      .update(schema.bookmarks)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(schema.bookmarks.id, id))
+    span.end()
   })
 }
 
@@ -54,7 +86,7 @@ export async function findBookmarks(
       .orderBy(asc(sql`embedding <-> ${JSON.stringify(embedded)}::vector`))
       .limit(limit)
 
-span.end()
+    span.end()
     return bookmarks
   })
 }
