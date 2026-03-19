@@ -1,7 +1,8 @@
 import { randomBytes } from 'node:crypto'
 import { SpanStatusCode, trace } from '@opentelemetry/api'
+import { config } from '@/config'
 import type { Member } from '@/domain/entities/member'
-import { DomainError } from '@/domain/errors/domain-error'
+import type { DomainError } from '@/domain/errors/domain-error'
 import { InvalidToken } from '@/domain/errors/invalid-token'
 import { TokenExpired } from '@/domain/errors/token-expired'
 import { createWorkspace } from '@/domain/services/workspace/create-workspace-service'
@@ -12,9 +13,8 @@ import {
 import { findById } from '@/infra/db/repositories/members-repository'
 import { insertRefreshToken } from '@/infra/db/repositories/refresh-tokens-repository'
 import { findByOwnerId } from '@/infra/db/repositories/workspaces-repository'
-import { parseDurationMs } from '@/infra/utils/parse-duration'
 import { signAccessToken } from '@/infra/utils/jwt'
-import { config } from '@/config'
+import { parseDurationMs } from '@/infra/utils/parse-duration'
 
 export type VerifyMagicLinkResult = {
   accessToken: string
@@ -37,7 +37,10 @@ export async function verifyMagicLink(
     }
 
     if (tokenRecord.usedAt) {
-      span.setStatus({ code: SpanStatusCode.ERROR, message: 'Token already used' })
+      span.setStatus({
+        code: SpanStatusCode.ERROR,
+        message: 'Token already used',
+      })
       span.end()
       return new InvalidToken()
     }
@@ -52,7 +55,10 @@ export async function verifyMagicLink(
 
     const member = await findById(tokenRecord.memberId)
     if (!member) {
-      span.setStatus({ code: SpanStatusCode.ERROR, message: 'Member not found' })
+      span.setStatus({
+        code: SpanStatusCode.ERROR,
+        message: 'Member not found',
+      })
       span.end()
       return new InvalidToken()
     }
@@ -68,7 +74,11 @@ export async function verifyMagicLink(
     const accessToken = await signAccessToken(member.id)
     const refreshTokenValue = randomBytes(32).toString('hex')
     const expiresAt = new Date(
-      Date.now() + parseDurationMs(config.jwt.JWT_REFRESH_EXPIRES_IN, 7 * 24 * 60 * 60 * 1000)
+      Date.now() +
+        parseDurationMs(
+          config.jwt.JWT_REFRESH_EXPIRES_IN,
+          7 * 24 * 60 * 60 * 1000
+        )
     )
 
     await insertRefreshToken({
