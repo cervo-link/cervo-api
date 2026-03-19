@@ -50,9 +50,9 @@ describe('createBookmarkController', () => {
     })
 
     expect(response.statusCode).toBe(201)
-    expect(JSON.parse(response.body)).toEqual({
-      message: 'Bookmark created successfully',
-    })
+    const body = JSON.parse(response.body)
+    expect(body.id).toBeDefined()
+    expect(body.status).toBe('submitted')
   })
 
   it('should be able to return error when workspace does not exist', async () => {

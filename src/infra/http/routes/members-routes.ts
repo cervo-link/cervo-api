@@ -2,6 +2,10 @@ import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import { apiKeyAuth } from '@/infra/http/middlewares/api-key-auth'
 import {
+  createMemberIdentityController,
+  findMemberByIdentityController,
+} from '../controllers/member-identities-controller'
+import {
   addMemberToWorkspaceController,
   createMemberController,
 } from '../controllers/members-controller'
@@ -10,6 +14,11 @@ import {
   addMemberToWorkspaceBodySchemaResponse,
   createMemberBodySchemaRequest,
   createMemberBodySchemaResponse,
+  createMemberIdentityBodySchema,
+  createMemberIdentityParamsSchema,
+  createMemberIdentityResponseSchema,
+  findMemberByIdentityQuerySchema,
+  findMemberByIdentityResponseSchema,
 } from '../schemas/members-schema'
 
 export async function memberRoutes(app: FastifyInstance) {
@@ -37,5 +46,32 @@ export async function memberRoutes(app: FastifyInstance) {
       body: addMemberToWorkspaceBodySchemaRequest,
     },
     handler: addMemberToWorkspaceController,
+  })
+
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: 'POST',
+    url: '/members/:memberId/identities',
+    onRequest: [apiKeyAuth],
+    schema: {
+      description: 'Link a platform identity to a member',
+      tags: ['members'],
+      params: createMemberIdentityParamsSchema,
+      body: createMemberIdentityBodySchema,
+      response: createMemberIdentityResponseSchema,
+    },
+    handler: createMemberIdentityController,
+  })
+
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: 'GET',
+    url: '/members/by-identity',
+    onRequest: [apiKeyAuth],
+    schema: {
+      description: 'Find a member by platform identity (bot-facing)',
+      tags: ['members'],
+      querystring: findMemberByIdentityQuerySchema,
+      response: findMemberByIdentityResponseSchema,
+    },
+    handler: findMemberByIdentityController,
   })
 }

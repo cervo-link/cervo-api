@@ -13,15 +13,12 @@ export const createBookmarkBodySchemaRequest = z.object({
 })
 
 export const createBookmarkBodySchemaResponse = {
-  500: z
-    .object({ message: z.string() })
-    .describe('Failed to create bookmark'),
-  400: z
-    .object({ message: z.string() })
-    .describe('Failed to create bookmark'),
+  500: z.object({ message: z.string() }).describe('Failed to create bookmark'),
+  400: z.object({ message: z.string() }).describe('Failed to create bookmark'),
+  404: z.object({ message: z.string() }).describe('Workspace or member not found'),
   201: z
-    .object({ message: z.string() })
-    .describe('Bookmark created successfully'),
+    .object({ id: z.string(), status: z.string() })
+    .describe('Bookmark submitted for processing'),
 }
 
 export const retryBookmarkParamsSchema = z.object({

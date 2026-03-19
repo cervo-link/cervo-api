@@ -340,21 +340,25 @@
         },
         "responses": {
           "201": {
-            "description": "Bookmark created successfully",
+            "description": "Bookmark submitted for processing",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "message": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "status": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "message"
+                    "id",
+                    "status"
                   ],
                   "additionalProperties": false,
-                  "description": "Bookmark created successfully"
+                  "description": "Bookmark submitted for processing"
                 }
               }
             }
@@ -375,6 +379,26 @@
                   ],
                   "additionalProperties": false,
                   "description": "Failed to create bookmark"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Workspace or member not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Workspace or member not found"
                 }
               }
             }
@@ -1488,6 +1512,246 @@
                   ],
                   "additionalProperties": false,
                   "description": "Failed to add member to workspace"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/members/{memberId}/identities": {
+      "post": {
+        "tags": [
+          "members"
+        ],
+        "description": "Link a platform identity to a member",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "provider": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "providerUserId": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "provider",
+                  "providerUserId"
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "memberId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Identity linked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "identity": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "memberId": {
+                          "type": "string"
+                        },
+                        "provider": {
+                          "type": "string"
+                        },
+                        "providerUserId": {
+                          "type": "string"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "memberId",
+                        "provider",
+                        "providerUserId",
+                        "createdAt"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "identity"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Identity linked"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Member not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Member not found"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Identity already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Identity already exists"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/members/by-identity": {
+      "get": {
+        "tags": [
+          "members"
+        ],
+        "description": "Find a member by platform identity (bot-facing)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "in": "query",
+            "name": "provider",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "in": "query",
+            "name": "providerUserId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Member found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "member": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "username": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "email": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "active": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "username",
+                        "email",
+                        "createdAt",
+                        "updatedAt",
+                        "active"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "member"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Member found"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Member not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Member not found"
                 }
               }
             }

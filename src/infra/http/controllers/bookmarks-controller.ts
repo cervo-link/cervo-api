@@ -63,7 +63,7 @@ export async function createBookmarkController(
     }
 
     span.end()
-    return reply.status(201).send({ message: 'Bookmark created successfully' })
+    return reply.status(201).send({ id: result.id, status: result.status })
   })
 }
 
