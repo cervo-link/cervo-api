@@ -5,6 +5,7 @@ import { MemberNotFound } from '@/domain/errors/member-not-found'
 import { WorkspaceNotFound } from '@/domain/errors/workspace-not-found'
 import { createBookmark } from '@/domain/services/bookmarks/create-bookmark-service'
 import { getBookmarks } from '@/domain/services/bookmarks/get-bookmark-service'
+import { retryBookmark } from '@/domain/services/bookmarks/retry-bookmark-service'
 import { getMembership } from '@/domain/services/membership/get-membership'
 import { findById as findMemberById } from '@/infra/db/repositories/members-repository'
 import { findById as findWorkspaceById } from '@/infra/db/repositories/workspaces-repository'
@@ -14,6 +15,7 @@ import { createSummarizeService } from '@/infra/factories/summarize-service-fact
 import {
   createBookmarkBodySchemaRequest,
   getBookmarksQuerySchemaRequest,
+  retryBookmarkParamsSchema,
 } from '../schemas/bookmarks-schema'
 
 export async function createBookmarkController(
@@ -101,5 +103,35 @@ export async function getBookmarksController(
 
     span.end()
     return reply.status(200).send(bookmarks)
+  })
+}
+
+export async function retryBookmarkController(
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
+  const tracer = trace.getTracer('retry-bookmark')
+
+  return tracer.startActiveSpan('retry-bookmark-controller', async span => {
+    const { id } = retryBookmarkParamsSchema.parse(request.params)
+
+    const scrappingAdapter = createScrappingService('scrapping-bee')
+    const embeddingAdapter = createEmbeddingProvider('embeddinggemma')
+    const summarizeAdapter = createSummarizeService('gemma')
+
+    const result = await retryBookmark(
+      id,
+      scrappingAdapter,
+      embeddingAdapter,
+      summarizeAdapter
+    )
+
+    if (result instanceof DomainError) {
+      span.end()
+      return reply.status(result.status).send({ message: result.message })
+    }
+
+    span.end()
+    return reply.status(200).send({ message: 'Retry triggered' })
   })
 }

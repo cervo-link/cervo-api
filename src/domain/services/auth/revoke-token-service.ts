@@ -6,7 +6,7 @@ import {
   revokeRefreshToken,
 } from '@/infra/db/repositories/refresh-tokens-repository'
 
-export async function revokeToken(token: string): Promise<undefined | DomainError> {
+export async function revokeToken(token: string): Promise<DomainError | null> {
   const tracer = trace.getTracer('revoke-token')
 
   return tracer.startActiveSpan('revoke-token-service', async span => {
@@ -20,5 +20,6 @@ export async function revokeToken(token: string): Promise<undefined | DomainErro
 
     await revokeRefreshToken(tokenRecord.id)
     span.end()
+    return null
   })
 }

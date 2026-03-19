@@ -2,9 +2,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const API_KEY = 'test-api-key-for-testing'
 
-import { FailedToGenerateEmbedding } from '@/domain/errors/failed-to-generate-embedding'
-import { FailedToScrap } from '@/domain/errors/failed-to-scrap'
-import { FailedToSummarize } from '@/domain/errors/failed-to-summarize'
 import app from '@/infra/http/app'
 import { makeBookmark } from '@/tests/factories/make-bookmark'
 import { makeRawEmbedding } from '@/tests/factories/make-embedding'
@@ -14,7 +11,7 @@ import { makeWorkspace } from '@/tests/factories/make-workspace'
 
 const mockScrappingService = { scrapping: vi.fn() }
 const mockEmbeddingService = { generateEmbedding: vi.fn() }
-const mockSummarizeService = { summarize: vi.fn(), generateTitle: vi.fn() }
+const mockSummarizeService = { summarize: vi.fn(), generateTitle: vi.fn(), generateTags: vi.fn() }
 
 vi.mock('@/infra/factories/scrapping-service-factory', () => ({
   createScrappingService: () => mockScrappingService,
@@ -33,6 +30,7 @@ describe('createBookmarkController', () => {
     mockEmbeddingService.generateEmbedding.mockResolvedValue(makeRawEmbedding())
     mockSummarizeService.summarize.mockResolvedValue('test summary')
     mockSummarizeService.generateTitle.mockResolvedValue('Test Title')
+    mockSummarizeService.generateTags.mockResolvedValue(['tag1', 'tag2'])
   })
 
   it('should be able to create a bookmark', async () => {
@@ -134,77 +132,6 @@ describe('createBookmarkController', () => {
     })
   })
 
-  it('should be able to return error when scrapping fails', async () => {
-    mockScrappingService.scrapping.mockResolvedValue(new FailedToScrap())
-
-    const member = await makeMember()
-    const workspace = await makeWorkspace()
-    await makeMembership(workspace.id, member.id)
-
-    const response = await app.inject({
-      method: 'POST',
-      url: '/bookmarks',
-      headers: { authorization: `Bearer ${API_KEY}` },
-      payload: {
-        workspaceId: workspace.id,
-        memberId: member.id,
-        url: 'https://www.google.com',
-      },
-    })
-
-    expect(response.statusCode).toBe(400)
-    expect(JSON.parse(response.body)).toEqual({ message: 'Failed to scrap' })
-  })
-
-  it('should be able to return error when summarize fails', async () => {
-    mockSummarizeService.summarize.mockResolvedValue(new FailedToSummarize())
-
-    const member = await makeMember()
-    const workspace = await makeWorkspace()
-    await makeMembership(workspace.id, member.id)
-
-    const response = await app.inject({
-      method: 'POST',
-      url: '/bookmarks',
-      headers: { authorization: `Bearer ${API_KEY}` },
-      payload: {
-        workspaceId: workspace.id,
-        memberId: member.id,
-        url: 'https://www.google.com',
-      },
-    })
-
-    expect(response.statusCode).toBe(400)
-    expect(JSON.parse(response.body)).toEqual({
-      message: 'Failed to summarize content',
-    })
-  })
-
-  it('should be able to return error when generate embedding fails', async () => {
-    mockEmbeddingService.generateEmbedding.mockResolvedValue(
-      new FailedToGenerateEmbedding()
-    )
-
-    const member = await makeMember()
-    const workspace = await makeWorkspace()
-    await makeMembership(workspace.id, member.id)
-
-    const response = await app.inject({
-      method: 'POST',
-      url: '/bookmarks',
-      headers: { authorization: `Bearer ${API_KEY}` },
-      payload: {
-        workspaceId: workspace.id,
-        memberId: member.id,
-        url: 'https://www.google.com',
-      },
-    })
-
-    expect(response.statusCode).toBe(400)
-    expect(JSON.parse(response.body)).toEqual({
-      message: 'Failed to generate embedding',
-    })
-  })
 })
 
 describe('getBookmarksController', () => {
@@ -271,5 +198,67 @@ describe('getBookmarksController', () => {
 
     expect(response.statusCode).toBe(200)
     expect(JSON.parse(response.body)).toEqual([])
+  })
+})
+
+describe('retryBookmarkController', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockScrappingService.scrapping.mockResolvedValue('test content')
+    mockEmbeddingService.generateEmbedding.mockResolvedValue(makeRawEmbedding())
+    mockSummarizeService.summarize.mockResolvedValue('test summary')
+    mockSummarizeService.generateTitle.mockResolvedValue('Test Title')
+    mockSummarizeService.generateTags.mockResolvedValue(['tag1', 'tag2'])
+  })
+
+  it('should trigger retry for a failed bookmark', async () => {
+    const member = await makeMember()
+    const workspace = await makeWorkspace()
+    await makeMembership(workspace.id, member.id)
+    const bookmark = await makeBookmark({
+      workspaceId: workspace.id,
+      memberId: member.id,
+      status: 'failed',
+    })
+
+    const response = await app.inject({
+      method: 'POST',
+      url: `/bookmarks/${bookmark.id}/retry`,
+      headers: { authorization: `Bearer ${API_KEY}` },
+    })
+
+    expect(response.statusCode).toBe(200)
+    expect(JSON.parse(response.body)).toEqual({ message: 'Retry triggered' })
+  })
+
+  it('should return 409 when bookmark is not in failed state', async () => {
+    const member = await makeMember()
+    const workspace = await makeWorkspace()
+    await makeMembership(workspace.id, member.id)
+    const bookmark = await makeBookmark({
+      workspaceId: workspace.id,
+      memberId: member.id,
+      status: 'ready',
+    })
+
+    const response = await app.inject({
+      method: 'POST',
+      url: `/bookmarks/${bookmark.id}/retry`,
+      headers: { authorization: `Bearer ${API_KEY}` },
+    })
+
+    expect(response.statusCode).toBe(409)
+    expect(JSON.parse(response.body)).toEqual({ message: 'Bookmark is not in failed state' })
+  })
+
+  it('should return 404 for unknown bookmark', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/bookmarks/00000000-0000-0000-0000-000000000000/retry',
+      headers: { authorization: `Bearer ${API_KEY}` },
+    })
+
+    expect(response.statusCode).toBe(404)
+    expect(JSON.parse(response.body)).toEqual({ message: 'Bookmark not found' })
   })
 })

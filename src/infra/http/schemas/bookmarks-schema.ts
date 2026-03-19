@@ -24,6 +24,16 @@ export const createBookmarkBodySchemaResponse = {
     .describe('Bookmark created successfully'),
 }
 
+export const retryBookmarkParamsSchema = z.object({
+  id: z.string().uuid('Bookmark ID must be a valid UUID'),
+})
+
+export const retryBookmarkResponseSchema = {
+  200: z.object({ message: z.string() }).describe('Retry triggered'),
+  404: z.object({ message: z.string() }).describe('Bookmark not found'),
+  409: z.object({ message: z.string() }).describe('Bookmark not in failed state'),
+}
+
 export const getBookmarksQuerySchemaRequest = z.object({
   workspaceId: z.string().uuid('Workspace ID must be a valid UUID'),
   memberId: z.string().uuid('Member ID must be a valid UUID'),
