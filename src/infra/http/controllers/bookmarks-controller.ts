@@ -90,10 +90,12 @@ export async function getBookmarksController(
     }
 
     const embeddingAdapter = createEmbeddingProvider('embeddinggemma')
+    const summarizeAdapter = createSummarizeService('gemma')
 
     const bookmarks = await getBookmarks(
       { workspaceId, memberId, text, limit },
-      embeddingAdapter
+      embeddingAdapter,
+      summarizeAdapter
     )
 
     if (bookmarks instanceof DomainError) {

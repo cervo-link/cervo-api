@@ -11,7 +11,7 @@ import { makeWorkspace } from '@/tests/factories/make-workspace'
 
 const mockScrappingService = { scrapping: vi.fn() }
 const mockEmbeddingService = { generateEmbedding: vi.fn() }
-const mockSummarizeService = { summarize: vi.fn(), generateTitle: vi.fn(), generateTags: vi.fn() }
+const mockSummarizeService = { summarize: vi.fn(), generateTitle: vi.fn(), generateTags: vi.fn(), explain: vi.fn() }
 
 vi.mock('@/infra/factories/scrapping-service-factory', () => ({
   createScrappingService: () => mockScrappingService,
@@ -138,6 +138,7 @@ describe('getBookmarksController', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockEmbeddingService.generateEmbedding.mockResolvedValue(makeRawEmbedding())
+    mockSummarizeService.explain.mockResolvedValue(['Because it matches the test query'])
   })
 
   it('should be able to get bookmarks', async () => {
@@ -177,6 +178,7 @@ describe('getBookmarksController', () => {
       createdAt: bookmark.createdAt.toISOString(),
       updatedAt: bookmark.updatedAt.toISOString(),
       visible: bookmark.visible,
+      matchedBecause: 'Because it matches the test query',
     })
   })
 

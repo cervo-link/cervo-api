@@ -11,6 +11,7 @@ const summarizeService = {
   summarize: vi.fn().mockResolvedValue('summary'),
   generateTitle: vi.fn().mockResolvedValue('Title'),
   generateTags: vi.fn().mockResolvedValue(['tag1']),
+  explain: vi.fn(),
 }
 
 describe('createBookmark', () => {

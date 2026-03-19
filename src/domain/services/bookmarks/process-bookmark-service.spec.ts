@@ -36,6 +36,7 @@ describe('processBookmark', () => {
       summarize: vi.fn().mockResolvedValue('summary'),
       generateTitle: vi.fn().mockResolvedValue('Title'),
       generateTags: vi.fn().mockResolvedValue(['tag1', 'tag2']),
+      explain: vi.fn(),
     }
 
     await processBookmark(bookmark.id, scrappingService, embeddingService, summarizeService)
@@ -59,6 +60,7 @@ describe('processBookmark', () => {
       summarize: vi.fn(),
       generateTitle: vi.fn(),
       generateTags: vi.fn(),
+      explain: vi.fn(),
     }
 
     await processBookmark(bookmark.id, scrappingService, embeddingService, summarizeService)
@@ -80,6 +82,7 @@ describe('processBookmark', () => {
       summarize: vi.fn().mockResolvedValue(new FailedToSummarize()),
       generateTitle: vi.fn(),
       generateTags: vi.fn(),
+      explain: vi.fn(),
     }
 
     await processBookmark(bookmark.id, scrappingService, embeddingService, summarizeService)
@@ -102,6 +105,7 @@ describe('processBookmark', () => {
       summarize: vi.fn().mockResolvedValue('summary'),
       generateTitle: vi.fn().mockResolvedValue('Title'),
       generateTags: vi.fn().mockResolvedValue(['tag1']),
+      explain: vi.fn(),
     }
 
     await processBookmark(bookmark.id, scrappingService, embeddingService, summarizeService)
@@ -122,6 +126,7 @@ describe('processBookmark', () => {
       summarize: vi.fn().mockResolvedValue('summary'),
       generateTitle: vi.fn().mockResolvedValue('Title'),
       generateTags: vi.fn().mockResolvedValue(new FailedToSummarize()),
+      explain: vi.fn(),
     }
 
     await processBookmark(bookmark.id, scrappingService, embeddingService, summarizeService)
@@ -134,7 +139,7 @@ describe('processBookmark', () => {
   it('should do nothing when bookmark does not exist', async () => {
     const scrappingService = { scrapping: vi.fn() }
     const embeddingService = { generateEmbedding: vi.fn() }
-    const summarizeService = { summarize: vi.fn(), generateTitle: vi.fn(), generateTags: vi.fn() }
+    const summarizeService = { summarize: vi.fn(), generateTitle: vi.fn(), generateTags: vi.fn(), explain: vi.fn() }
 
     await expect(
       processBookmark('00000000-0000-0000-0000-000000000000', scrappingService, embeddingService, summarizeService)

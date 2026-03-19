@@ -513,6 +513,9 @@
                       },
                       "visible": {
                         "type": "boolean"
+                      },
+                      "matchedBecause": {
+                        "type": "string"
                       }
                     },
                     "required": [

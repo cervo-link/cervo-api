@@ -41,6 +41,10 @@ export const getBookmarksQuerySchemaRequest = z.object({
   limit: z.coerce.number().int().min(1).max(50).default(5),
 })
 
+export const bookmarkWithExplanationSchema = bookmarkSchema.extend({
+  matchedBecause: z.string().optional(),
+})
+
 export const getBookmarksBodySchemaResponse = {
   500: z
     .object({ message: z.string() })
@@ -48,5 +52,5 @@ export const getBookmarksBodySchemaResponse = {
   400: z
     .object({ message: z.string() })
     .describe('Failed to get bookmarks'),
-  200: z.array(bookmarkSchema).describe('Bookmarks retrieved successfully'),
+  200: z.array(bookmarkWithExplanationSchema).describe('Bookmarks retrieved successfully'),
 }

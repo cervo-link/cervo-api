@@ -114,6 +114,41 @@ export async function generateTags(
   return tags.length > 0 ? tags : new FailedToSummarize('Empty tags response')
 }
 
+export async function explain(
+  query: string,
+  summaries: string[]
+): Promise<string[] | FailedToSummarize> {
+  const url = config.gemma.GEMMA_URL
+
+  const numbered = summaries
+    .map((s, i) => `${i + 1}. ${s}`)
+    .join('\n')
+
+  const prompt = `Given the search query "${query}", explain in one sentence why each of the following summaries is relevant. Reply with ONLY a numbered list matching the input order, no extra text:\n${numbered}`
+
+  const response = await request(`${url}/api/generate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'gemma:2b',
+      prompt,
+      stream: false,
+    }),
+  })
+
+  if (response.statusCode !== 200) {
+    return new FailedToSummarize('Failed to generate explanations')
+  }
+
+  const data = (await response.body.json()) as { response: string }
+  const lines = data.response
+    .split('\n')
+    .map(l => l.replace(/^\d+\.\s*/, '').trim())
+    .filter(l => l.length > 0)
+
+  return lines.length > 0 ? lines : new FailedToSummarize('Empty explanation response')
+}
+
 export const GemmaAdapter: SummarizeService = {
   summarize: async (text: string, tracer: Tracer) => {
     return tracer.startActiveSpan('summarize-gemma-service', async span => {
@@ -134,6 +169,13 @@ export const GemmaAdapter: SummarizeService = {
       const tags = await generateTags(text)
       span.end()
       return tags
+    })
+  },
+  explain: async (query: string, summaries: string[], tracer: Tracer) => {
+    return tracer.startActiveSpan('explain-gemma-service', async span => {
+      const explanations = await explain(query, summaries)
+      span.end()
+      return explanations
     })
   },
 }
