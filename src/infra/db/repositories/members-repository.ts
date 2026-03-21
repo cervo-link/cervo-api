@@ -1,8 +1,8 @@
-import { trace } from '@opentelemetry/api'
 import { eq } from 'drizzle-orm'
 import type { InsertMember, Member } from '@/domain/entities/member'
 import { CannotCreateDuplicatedMember } from '@/domain/errors/cannot-create-duplicated-member'
 import { DomainError } from '@/domain/errors/domain-error'
+import { withSpan } from '@/infra/utils/with-span'
 import { db } from '@/infra/db/'
 import { members } from '@/infra/db/schema'
 import { getPgError } from '@/infra/db/utils/get-pg-error'
@@ -12,15 +12,11 @@ import type { Transaction } from '@/infra/db/utils/transactions'
 export async function insertMember(
   member: InsertMember
 ): Promise<Member | DomainError> {
-  const tracer = trace.getTracer('insert-member')
-
-  return tracer.startActiveSpan('insert-member-repository', async span => {
+  return withSpan('insert-member', async () => {
     try {
       const [result] = await db.insert(members).values(member).returning()
-      span.end()
       return result
     } catch (error) {
-      span.end()
       return handleError(error)
     }
   })
@@ -30,47 +26,31 @@ export async function insertMemberWithTransaction(
   tx: Transaction,
   member: InsertMember
 ): Promise<Member | DomainError> {
-  const tracer = trace.getTracer('insert-member-with-transaction')
-
-  return tracer.startActiveSpan(
-    'insert-member-with-transaction-repository',
-    async span => {
-      try {
-        const [result] = await tx.insert(members).values(member).returning()
-        span.end()
-        return result
-      } catch (error) {
-        span.end()
-        return handleError(error)
-      }
+  return withSpan('insert-member-with-transaction', async () => {
+    try {
+      const [result] = await tx.insert(members).values(member).returning()
+      return result
+    } catch (error) {
+      return handleError(error)
     }
-  )
+  })
 }
 
 export async function findById(id: string): Promise<Member | null> {
-  const tracer = trace.getTracer('find-member')
-
-  return tracer.startActiveSpan('find-member-repository', async span => {
+  return withSpan('find-member', async () => {
     const [result] = await db.select().from(members).where(eq(members.id, id))
-    span.end()
     return result || null
   })
 }
 
 export async function findByUserId(userId: string): Promise<Member | null> {
-  const tracer = trace.getTracer('find-member-by-user-id')
-
-  return tracer.startActiveSpan(
-    'find-member-by-user-id-repository',
-    async span => {
-      const [result] = await db
-        .select()
-        .from(members)
-        .where(eq(members.userId, userId))
-      span.end()
-      return result || null
-    }
-  )
+  return withSpan('find-member-by-user-id', async () => {
+    const [result] = await db
+      .select()
+      .from(members)
+      .where(eq(members.userId, userId))
+    return result || null
+  })
 }
 
 export async function updateUserId(
@@ -81,19 +61,13 @@ export async function updateUserId(
 }
 
 export async function findByEmail(email: string): Promise<Member | null> {
-  const tracer = trace.getTracer('find-member-by-email')
-
-  return tracer.startActiveSpan(
-    'find-member-by-email-repository',
-    async span => {
-      const [result] = await db
-        .select()
-        .from(members)
-        .where(eq(members.email, email))
-      span.end()
-      return result || null
-    }
-  )
+  return withSpan('find-member-by-email', async () => {
+    const [result] = await db
+      .select()
+      .from(members)
+      .where(eq(members.email, email))
+    return result || null
+  })
 }
 
 function handleError(error: unknown): DomainError {

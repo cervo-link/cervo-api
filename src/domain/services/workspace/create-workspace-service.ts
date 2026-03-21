@@ -1,30 +1,21 @@
-import { SpanStatusCode, trace } from '@opentelemetry/api'
 import type { InsertWorkspace, Workspace } from '@/domain/entities/workspace'
 import { DomainError } from '@/domain/errors/domain-error'
-import { insertMembership } from '@/infra/db/repositories/membership-repository'
 import { insertWorkspace } from '@/infra/db/repositories/workspaces-repository'
+import { withSpan } from '@/infra/utils/with-span'
 
 export async function createWorkspace(
   workspace: InsertWorkspace
 ): Promise<Workspace | DomainError> {
-  const tracer = trace.getTracer('create-workspace')
-
-  return tracer.startActiveSpan('create-workspace-service', async span => {
-    if (!workspace.ownerId) {
-      span.end()
-      return new DomainError('Workspace must have an owner', 400)
-    }
-
+  return withSpan('create-workspace', async () => {
     const result = await insertWorkspace(workspace)
     if (result instanceof DomainError) {
-      span.setStatus({ code: SpanStatusCode.ERROR, message: result.message })
-      span.end()
       return result
     }
 
-    await insertMembership({ memberId: workspace.ownerId, workspaceId: result.id })
+    if (!workspace.ownerId) {
+      return new DomainError('Owner ID is required', 400)
+    }
 
-    span.end()
     return result
   })
 }

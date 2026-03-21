@@ -1,4 +1,3 @@
-import { trace } from '@opentelemetry/api'
 import { DomainError } from '@/domain/errors/domain-error'
 import {
   findBookmarkById,
@@ -7,6 +6,7 @@ import {
 import type { EmbeddingService } from '@/infra/ports/embedding'
 import type { ScrappingService } from '@/infra/ports/scrapping'
 import type { SummarizeService } from '@/infra/ports/summarize'
+import { withSpan } from '@/infra/utils/with-span'
 
 export async function processBookmark(
   bookmarkId: string,
@@ -14,12 +14,9 @@ export async function processBookmark(
   embeddingService: EmbeddingService,
   summarizeService: SummarizeService
 ): Promise<void> {
-  const tracer = trace.getTracer('process-bookmark')
-
-  return tracer.startActiveSpan('process-bookmark-service', async span => {
+  return withSpan('process-bookmark', async (_span, tracer) => {
     const bookmark = await findBookmarkById(bookmarkId)
     if (!bookmark) {
-      span.end()
       return
     }
 
@@ -31,7 +28,6 @@ export async function processBookmark(
         status: 'failed',
         failureReason: rawText.message,
       })
-      span.end()
       return
     }
 
@@ -41,7 +37,6 @@ export async function processBookmark(
         status: 'failed',
         failureReason: description.message,
       })
-      span.end()
       return
     }
 
@@ -57,7 +52,6 @@ export async function processBookmark(
         status: 'failed',
         failureReason: embedding.message,
       })
-      span.end()
       return
     }
 
@@ -68,7 +62,5 @@ export async function processBookmark(
       tags,
       embedding,
     })
-
-    span.end()
   })
 }

@@ -2,9 +2,9 @@ import { createHash } from 'node:crypto'
 import { faker } from '@faker-js/faker'
 
 import type { InsertBookmark } from '@/domain/entities/bookmark'
-import { DomainError } from '@/domain/errors/domain-error'
 import { insertBookmark } from '@/infra/db/repositories/bookmark-repository'
 import { makeRawEmbedding } from './make-embedding'
+import { unwrapOrThrow } from './unwrap'
 
 type Overrides = Partial<Omit<InsertBookmark, 'workspaceId' | 'memberId'>> & {
   workspaceId: string
@@ -31,10 +31,5 @@ export function makeRawBookmark(overrides: Overrides): InsertBookmark {
 }
 
 export async function makeBookmark(overrides: Overrides) {
-  const bookmark = await insertBookmark(makeRawBookmark(overrides))
-  if (bookmark instanceof DomainError) {
-    throw bookmark
-  }
-
-  return bookmark
+  return unwrapOrThrow(await insertBookmark(makeRawBookmark(overrides)))
 }

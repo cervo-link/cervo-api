@@ -1,4 +1,3 @@
-import { SpanStatusCode, trace } from '@opentelemetry/api'
 import { and, eq } from 'drizzle-orm'
 import type {
   InsertWorkspaceIntegration,
@@ -7,6 +6,7 @@ import type {
 import type { Workspace } from '@/domain/entities/workspace'
 import { IntegrationAlreadyExists } from '@/domain/errors/integration-already-exists'
 import { DomainError } from '@/domain/errors/domain-error'
+import { withSpan } from '@/infra/utils/with-span'
 import { db } from '@/infra/db'
 import { schema } from '@/infra/db/schema'
 import { getPgError } from '@/infra/db/utils/get-pg-error'
@@ -15,68 +15,53 @@ import { PgIntegrityConstraintViolation } from '@/infra/db/utils/postgres-error-
 export async function insertWorkspaceIntegration(
   params: InsertWorkspaceIntegration
 ): Promise<WorkspaceIntegration | DomainError> {
-  const tracer = trace.getTracer('insert-workspace-integration')
-
-  return tracer.startActiveSpan(
-    'insert-workspace-integration-repository',
-    async span => {
-      try {
-        const [result] = await db
-          .insert(schema.workspaceIntegrations)
-          .values(params)
-          .returning()
-        span.end()
-        return result
-      } catch (error) {
-        const pgError = getPgError(error)
-        if (pgError?.code === PgIntegrityConstraintViolation.UniqueViolation) {
-          span.setStatus({ code: SpanStatusCode.ERROR, message: 'Integration already exists' })
-          span.end()
-          return new IntegrationAlreadyExists()
-        }
-        span.end()
-        return new DomainError(
-          `Failed to insert workspace integration: ${error as string}`,
-          500
-        )
+  return withSpan('insert-workspace-integration', async () => {
+    try {
+      const [result] = await db
+        .insert(schema.workspaceIntegrations)
+        .values(params)
+        .returning()
+      return result
+    } catch (error) {
+      const pgError = getPgError(error)
+      if (pgError?.code === PgIntegrityConstraintViolation.UniqueViolation) {
+        return new IntegrationAlreadyExists()
       }
+      return new DomainError(
+        `Failed to insert workspace integration: ${error as string}`,
+        500
+      )
     }
-  )
+  })
 }
 
 export async function findWorkspaceByIntegration(
   provider: string,
   providerId: string
 ): Promise<Workspace | null> {
-  const tracer = trace.getTracer('find-workspace-by-integration')
-
-  return tracer.startActiveSpan(
-    'find-workspace-by-integration-repository',
-    async span => {
-      const [result] = await db
-        .select({
-          id: schema.workspaces.id,
-          ownerId: schema.workspaces.ownerId,
-          name: schema.workspaces.name,
-          description: schema.workspaces.description,
-          isPublic: schema.workspaces.isPublic,
-          createdAt: schema.workspaces.createdAt,
-          updatedAt: schema.workspaces.updatedAt,
-          active: schema.workspaces.active,
-        })
-        .from(schema.workspaceIntegrations)
-        .innerJoin(
-          schema.workspaces,
-          eq(schema.workspaceIntegrations.workspaceId, schema.workspaces.id)
+  return withSpan('find-workspace-by-integration', async () => {
+    const [result] = await db
+      .select({
+        id: schema.workspaces.id,
+        ownerId: schema.workspaces.ownerId,
+        name: schema.workspaces.name,
+        description: schema.workspaces.description,
+        isPublic: schema.workspaces.isPublic,
+        createdAt: schema.workspaces.createdAt,
+        updatedAt: schema.workspaces.updatedAt,
+        active: schema.workspaces.active,
+      })
+      .from(schema.workspaceIntegrations)
+      .innerJoin(
+        schema.workspaces,
+        eq(schema.workspaceIntegrations.workspaceId, schema.workspaces.id)
+      )
+      .where(
+        and(
+          eq(schema.workspaceIntegrations.provider, provider),
+          eq(schema.workspaceIntegrations.providerId, providerId)
         )
-        .where(
-          and(
-            eq(schema.workspaceIntegrations.provider, provider),
-            eq(schema.workspaceIntegrations.providerId, providerId)
-          )
-        )
-      span.end()
-      return result || null
-    }
-  )
+      )
+    return result || null
+  })
 }

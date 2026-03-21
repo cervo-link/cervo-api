@@ -1,9 +1,9 @@
-import { trace } from '@opentelemetry/api'
 import type { Member } from '@/domain/entities/member'
 import type { DomainError } from '@/domain/errors/domain-error'
 import { MemberNotFound } from '@/domain/errors/member-not-found'
 import { findMemberByProviderIdentity } from '@/infra/db/repositories/member-platform-identities-repository'
 import { findById } from '@/infra/db/repositories/members-repository'
+import { withSpan } from '@/infra/utils/with-span'
 
 type FindByMemberId = { memberId: string; provider?: never; providerUserId?: never }
 type FindByProviderIdentity = { provider: string; providerUserId: string; memberId?: never }
@@ -12,9 +12,7 @@ type FindMemberByPlatformInput = FindByMemberId | FindByProviderIdentity
 export async function findMemberByPlatform(
   params: FindMemberByPlatformInput
 ): Promise<Member | DomainError> {
-  const tracer = trace.getTracer('find-member-by-platform')
-
-  return tracer.startActiveSpan('find-member-by-platform-service', async span => {
+  return withSpan('find-member-by-platform', async () => {
     let member: Member | null = null
 
     if (params.provider && params.providerUserId) {
@@ -24,11 +22,9 @@ export async function findMemberByPlatform(
     }
 
     if (!member) {
-      span.end()
       return new MemberNotFound()
     }
 
-    span.end()
     return member
   })
 }

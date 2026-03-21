@@ -2,8 +2,8 @@ import type {
   InsertMemberPlatformIdentity,
   MemberPlatformIdentity,
 } from '@/domain/entities/member-platform-identity'
-import { DomainError } from '@/domain/errors/domain-error'
 import { insertMemberPlatformIdentity } from '@/infra/db/repositories/member-platform-identities-repository'
+import { unwrapOrThrow } from './unwrap'
 
 type Overrides = Partial<Omit<InsertMemberPlatformIdentity, 'memberId'>> & {
   memberId: string
@@ -22,9 +22,7 @@ export function makeRawMemberPlatformIdentity(
 export async function makeMemberPlatformIdentity(
   overrides: Overrides
 ): Promise<MemberPlatformIdentity> {
-  const result = await insertMemberPlatformIdentity(
-    makeRawMemberPlatformIdentity(overrides)
+  return unwrapOrThrow(
+    await insertMemberPlatformIdentity(makeRawMemberPlatformIdentity(overrides))
   )
-  if (result instanceof DomainError) throw result
-  return result
 }

@@ -69,7 +69,7 @@ export async function memberRoutes(app: FastifyInstance) {
     schema: {
       description: 'Find a member by platform identity (bot-facing)',
       tags: ['members'],
-      querystring: findMemberByIdentityQuerySchema,
+      query: findMemberByIdentityQuerySchema,
       response: findMemberByIdentityResponseSchema,
     },
     handler: findMemberByIdentityController,

@@ -35,7 +35,7 @@ export async function workspaceIntegrationsRoutes(app: FastifyInstance) {
     schema: {
       description: 'Find a workspace by its platform integration (bot-facing)',
       tags: ['workspace-integrations'],
-      querystring: getWorkspaceByIntegrationQuerySchema,
+      query: getWorkspaceByIntegrationQuerySchema,
       response: getWorkspaceByIntegrationResponseSchema,
     },
     handler: getWorkspaceByIntegrationController,

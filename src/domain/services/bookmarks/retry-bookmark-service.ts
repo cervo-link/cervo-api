@@ -1,4 +1,3 @@
-import { trace } from '@opentelemetry/api'
 import { BookmarkNotFound } from '@/domain/errors/bookmark-not-found'
 import { BookmarkNotInFailedState } from '@/domain/errors/bookmark-not-in-failed-state'
 import type { DomainError } from '@/domain/errors/domain-error'
@@ -9,6 +8,7 @@ import {
 import type { EmbeddingService } from '@/infra/ports/embedding'
 import type { ScrappingService } from '@/infra/ports/scrapping'
 import type { SummarizeService } from '@/infra/ports/summarize'
+import { withSpan } from '@/infra/utils/with-span'
 import { processBookmark } from './process-bookmark-service'
 
 export async function retryBookmark(
@@ -17,17 +17,13 @@ export async function retryBookmark(
   embeddingService: EmbeddingService,
   summarizeService: SummarizeService
 ): Promise<DomainError | null> {
-  const tracer = trace.getTracer('retry-bookmark')
-
-  return tracer.startActiveSpan('retry-bookmark-service', async span => {
+  return withSpan('retry-bookmark', async () => {
     const bookmark = await findBookmarkById(bookmarkId)
     if (!bookmark) {
-      span.end()
       return new BookmarkNotFound()
     }
 
     if (bookmark.status !== 'failed') {
-      span.end()
       return new BookmarkNotInFailedState()
     }
 
@@ -37,7 +33,6 @@ export async function retryBookmark(
       processBookmark(bookmarkId, scrappingService, embeddingService, summarizeService)
     })
 
-    span.end()
     return null
   })
 }

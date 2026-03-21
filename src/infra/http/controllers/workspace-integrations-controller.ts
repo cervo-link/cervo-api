@@ -1,9 +1,9 @@
-import { SpanStatusCode, trace } from '@opentelemetry/api'
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import type { z } from 'zod'
 import { DomainError } from '@/domain/errors/domain-error'
 import { createWorkspaceIntegration } from '@/domain/services/workspace-integrations/create-workspace-integration-service'
 import { getWorkspaceByIntegration } from '@/domain/services/workspace-integrations/get-workspace-by-integration-service'
+import { withSpan } from '@/infra/utils/with-span'
 import type {
   addWorkspaceIntegrationBodySchema,
   addWorkspaceIntegrationParamsSchema,
@@ -17,21 +17,16 @@ export async function addWorkspaceIntegrationController(
   }>,
   reply: FastifyReply
 ) {
-  const tracer = trace.getTracer('add-workspace-integration')
-
-  return tracer.startActiveSpan('add-workspace-integration-controller', async span => {
+  return withSpan('add-workspace-integration', async () => {
     const { workspaceId } = request.params
     const { provider, providerId } = request.body
 
     const result = await createWorkspaceIntegration({ workspaceId, provider, providerId })
 
     if (result instanceof DomainError) {
-      span.setStatus({ code: SpanStatusCode.ERROR, message: result.message })
-      span.end()
       return reply.status(result.status).send({ message: result.message })
     }
 
-    span.end()
     return reply.status(201).send({ integration: result })
   })
 }
@@ -42,23 +37,15 @@ export async function getWorkspaceByIntegrationController(
   }>,
   reply: FastifyReply
 ) {
-  const tracer = trace.getTracer('get-workspace-by-integration')
+  return withSpan('get-workspace-by-integration', async () => {
+    const { provider, providerId } = request.query
 
-  return tracer.startActiveSpan(
-    'get-workspace-by-integration-controller',
-    async span => {
-      const { provider, providerId } = request.query
+    const workspace = await getWorkspaceByIntegration(provider, providerId)
 
-      const workspace = await getWorkspaceByIntegration(provider, providerId)
-
-      if (workspace instanceof DomainError) {
-        span.setStatus({ code: SpanStatusCode.ERROR, message: workspace.message })
-        span.end()
-        return reply.status(workspace.status).send({ message: workspace.message })
-      }
-
-      span.end()
-      return reply.status(200).send({ workspace })
+    if (workspace instanceof DomainError) {
+      return reply.status(workspace.status).send({ message: workspace.message })
     }
-  )
+
+    return reply.status(200).send({ workspace })
+  })
 }
