@@ -56,6 +56,7 @@ export async function findMemberByProviderIdentity(
       const [result] = await db
         .select({
           id: schema.members.id,
+          userId: schema.members.userId,
           name: schema.members.name,
           username: schema.members.username,
           email: schema.members.email,

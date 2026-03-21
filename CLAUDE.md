@@ -44,8 +44,8 @@ src/
 │   │   ├── gemma/             # Ollama/Gemma: summarize, title, tags, explain
 │   │   ├── embeddinggemma/    # Ollama/Gemma: vector embeddings (768 dims)
 │   │   ├── scrapping-bee/     # ScrapingBee web scraper
-│   │   ├── email/             # Nodemailer (prod) or console logger (dev)
 │   │   └── x/                 # X/Twitter oEmbed content extraction
+│   ├── auth.ts                # Better Auth instance (OAuth, session management)
 │   ├── db/
 │   │   ├── schema/            # Drizzle ORM table definitions (source of truth)
 │   │   ├── repositories/      # Data access layer — one file per table
@@ -54,7 +54,7 @@ src/
 │   │   ├── controllers/       # Request handlers
 │   │   ├── routes/            # Route definitions with auth middleware
 │   │   ├── schemas/           # Zod request/response schemas
-│   │   ├── middlewares/       # apiKeyAuth, jwtAuth
+│   │   ├── middlewares/       # apiKeyAuth
 │   │   └── app.ts             # Fastify setup, Swagger UI, error handler
 │   ├── factories/             # Resolve provider name → concrete adapter
 │   └── ports/                 # TypeScript interfaces for all adapters
@@ -108,6 +108,35 @@ Non-critical steps (title, tags) never block `ready` status — their failures a
 
 `workspace_integrations` and `member_platform_identities` decouple core domain entities from platform-specific IDs. Adding a new platform (Slack, Teams) requires no schema changes to `members` or `workspaces`.
 
+## Authentication
+
+Authentication is handled by **Better Auth** (`src/infra/auth.ts`) with OAuth providers (Google, Discord).
+
+- All `/api/auth/*` routes are handled by the Better Auth Fastify handler
+- On first OAuth sign-in, a `member` record is automatically created via `databaseHooks.user.create.after`
+- If a member with the same email already exists, their `userId` is linked to the Better Auth user
+- Sessions use cookies — `FRONTEND_URL` must be set correctly for CORS to work
+
+### OAuth callback URLs
+
+Register these redirect URIs in your OAuth provider consoles:
+
+| Provider | Callback URL |
+|---|---|
+| Google | `{BETTER_AUTH_URL}/api/auth/callback/google` |
+| Discord | `{BETTER_AUTH_URL}/api/auth/callback/discord` |
+
+### Session retrieval in routes
+
+```typescript
+import { fromNodeHeaders } from 'better-auth/node'
+import { auth } from '@/infra/auth'
+
+const session = await auth.api.getSession({
+  headers: fromNodeHeaders(request.headers),
+})
+```
+
 ## Domain Services
 
 | Service | Location | Returns |
@@ -123,24 +152,17 @@ Non-critical steps (title, tags) never block `ready` status — their failures a
 | `findMemberByPlatform` | `members/find-member-by-platform-service` | `Member \| DomainError` |
 | `createMemberPlatformIdentity` | `members/create-member-platform-identity-service` | `MemberPlatformIdentity \| DomainError` |
 | `getMembership` | `membership/get-membership` | `Membership \| DomainError` |
-| `requestMagicLink` | `auth/request-magic-link-service` | `void` |
-| `verifyMagicLink` | `auth/verify-magic-link-service` | `{accessToken, refreshToken, member} \| DomainError` |
-| `refreshAccessToken` | `auth/refresh-token-service` | `{accessToken} \| DomainError` |
-| `revokeToken` | `auth/revoke-token-service` | `DomainError \| null` |
 | `createWorkspaceIntegration` | `workspace-integrations/create-workspace-integration-service` | `WorkspaceIntegration \| DomainError` |
 | `getWorkspaceByIntegration` | `workspace-integrations/get-workspace-by-integration-service` | `Workspace \| DomainError` |
 
 ## HTTP Routes
 
-All routes require API key auth (`Authorization: Bearer`, `X-API-Key`, or `?api_key`).
+Domain routes require API key auth (`Authorization: Bearer`, `X-API-Key`, or `?api_key`). Auth routes are handled by Better Auth with no API key required.
 
 | Method | URL | Description |
 |---|---|---|
 | GET | `/health` | Health check (no auth) |
-| POST | `/auth/magic-link` | Request magic link email (no auth) |
-| POST | `/auth/verify` | Verify token → JWT tokens (no auth) |
-| POST | `/auth/refresh` | Refresh access token (no auth) |
-| POST | `/auth/logout` | Revoke refresh token (no auth) |
+| GET/POST | `/api/auth/*` | Better Auth handler (OAuth sign-in, session, logout) |
 | POST | `/bookmarks` | Submit URL for processing |
 | GET | `/bookmarks` | Vector similarity search |
 | POST | `/bookmarks/:id/retry` | Retry failed bookmark |
@@ -156,6 +178,8 @@ All routes require API key auth (`Authorization: Bearer`, `X-API-Key`, or `?api_
 ## Database
 
 PostgreSQL with the `pgvector` extension (required). Bookmarks store 768-dimension embeddings.
+
+Better Auth manages its own tables (`user`, `session`, `account`, `verification`) alongside the domain tables.
 
 Docker Compose runs PostgreSQL + Grafana OTEL LGTM for local development:
 ```bash

@@ -11,6 +11,7 @@ describe('CreateMemberService', () => {
 
     expect(result).toEqual({
       id: expect.any(String),
+      userId: null,
       name: member.name,
       username: member.username,
       email: member.email,

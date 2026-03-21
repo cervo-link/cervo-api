@@ -19,6 +19,7 @@ export const members = pgTable(
     id: uuid()
       .primaryKey()
       .$defaultFn(() => uuidv7()),
+    userId: text(),
     name: text(),
     username: text(),
     email: text(),
