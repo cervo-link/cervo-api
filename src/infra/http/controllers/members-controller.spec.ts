@@ -15,7 +15,6 @@ describe('MembersController', () => {
       name: member.name,
       username: member.username,
       email: member.email,
-      password: 'some-password-123',
     }
 
     const response = await app.inject({
@@ -39,25 +38,6 @@ describe('MembersController', () => {
     })
   })
 
-  it('should be able to return error when password is not provided', async () => {
-    const member = makeRawMember()
-
-    const payload = {
-      name: member.name,
-      username: member.username,
-      email: member.email,
-    }
-
-    const response = await app.inject({
-      method: 'POST',
-      url: '/members/create',
-      headers: { authorization: `Bearer ${API_KEY}` },
-      payload,
-    })
-
-    expect(response.statusCode).toBe(400)
-  })
-
   it('should be able to return error username already exists', async () => {
     const member = await makeMember()
 
@@ -65,7 +45,6 @@ describe('MembersController', () => {
       name: faker.person.fullName(),
       username: member.username,
       email: faker.internet.email(),
-      password: 'some-password-123',
     }
 
     const response = await app.inject({
@@ -88,7 +67,6 @@ describe('MembersController', () => {
       name: faker.person.fullName(),
       username: faker.internet.username(),
       email: member.email,
-      password: 'some-password-123',
     }
 
     const response = await app.inject({
