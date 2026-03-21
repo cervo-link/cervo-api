@@ -21,7 +21,6 @@ export const members = pgTable(
     name: text(),
     username: text(),
     email: text(),
-    passwordHash: text(),
     createdAt: timestamp().defaultNow().notNull(),
     updatedAt: timestamp().defaultNow().notNull(),
     active: boolean().default(true).notNull(),

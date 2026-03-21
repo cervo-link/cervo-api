@@ -44,7 +44,6 @@
     "@opentelemetry/sdk-metrics": "^2.1.0",
     "@opentelemetry/sdk-trace-web": "^2.1.0",
     "@opentelemetry/semantic-conventions": "^1.37.0",
-    "argon2": "^0.44.0",
     "drizzle-orm": "^0.44.5",
     "drizzle-zod": "^0.8.3",
     "fastify": "^5.6.1",

@@ -57,6 +57,13 @@
       "when": 1774130839962,
       "tag": "20260321220719_add_auth_tables_bookmark_status_and_workspace_owner",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1774131480519,
+      "tag": "20260321221800_remove_password_hash_from_members",
+      "breakpoints": true
     }
   ]
 }

@@ -59,7 +59,6 @@ export async function findMemberByProviderIdentity(
           name: schema.members.name,
           username: schema.members.username,
           email: schema.members.email,
-          passwordHash: schema.members.passwordHash,
           createdAt: schema.members.createdAt,
           updatedAt: schema.members.updatedAt,
           active: schema.members.active,

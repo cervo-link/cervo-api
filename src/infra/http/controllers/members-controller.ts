@@ -3,7 +3,6 @@ import type { FastifyReply, FastifyRequest } from 'fastify'
 import { DomainError } from '@/domain/errors/domain-error'
 import { addMemberToWorkspace } from '@/domain/services/members/add-member-service'
 import { createMember } from '@/domain/services/members/create-member-service'
-import { hashPassword } from '@/infra/utils/password-hash'
 import {
   addMemberToWorkspaceBodySchemaRequest,
   createMemberBodySchemaRequest,
@@ -16,17 +15,10 @@ export async function createMemberController(
   const tracer = trace.getTracer('create-member')
 
   return tracer.startActiveSpan('create-member-controller', async span => {
-    const { name, username, email, password } =
+    const { name, username, email } =
       createMemberBodySchemaRequest.parse(request.body)
 
-    const hashedPassword = await hashPassword(password)
-
-    const member = await createMember({
-      name,
-      username,
-      email,
-      passwordHash: hashedPassword,
-    })
+    const member = await createMember({ name, username, email })
 
     if (member instanceof DomainError) {
       span.end()
