@@ -147,48 +147,6 @@ export const bookmarks = pgTable(
   ]
 )
 
-export const magicLinkTokens = pgTable(
-  'magic_link_tokens',
-  {
-    id: uuid()
-      .primaryKey()
-      .$defaultFn(() => uuidv7()),
-    memberId: uuid().notNull(),
-    token: text().notNull(),
-    expiresAt: timestamp().notNull(),
-    usedAt: timestamp(),
-    createdAt: timestamp().defaultNow().notNull(),
-  },
-  t => [
-    foreignKey({
-      columns: [t.memberId],
-      foreignColumns: [members.id],
-    }),
-    uniqueIndex('magic_link_token_idx').on(t.token),
-  ]
-)
-
-export const refreshTokens = pgTable(
-  'refresh_tokens',
-  {
-    id: uuid()
-      .primaryKey()
-      .$defaultFn(() => uuidv7()),
-    memberId: uuid().notNull(),
-    token: text().notNull(),
-    expiresAt: timestamp().notNull(),
-    revokedAt: timestamp(),
-    createdAt: timestamp().defaultNow().notNull(),
-  },
-  t => [
-    foreignKey({
-      columns: [t.memberId],
-      foreignColumns: [members.id],
-    }),
-    uniqueIndex('refresh_token_idx').on(t.token),
-  ]
-)
-
 export const schema = {
   members,
   workspaces,
@@ -196,6 +154,4 @@ export const schema = {
   memberPlatformIdentities,
   memberships,
   bookmarks,
-  magicLinkTokens,
-  refreshTokens,
 }

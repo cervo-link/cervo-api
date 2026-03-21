@@ -64,6 +64,13 @@
       "when": 1774131480519,
       "tag": "20260321221800_remove_password_hash_from_members",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1774131726917,
+      "tag": "20260321222206_drop_magic_link_and_refresh_token_tables",
+      "breakpoints": true
     }
   ]
 }
