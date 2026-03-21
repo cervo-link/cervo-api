@@ -36,7 +36,7 @@ export const workspaces = pgTable('workspaces', {
   id: uuid()
     .primaryKey()
     .$defaultFn(() => uuidv7()),
-  ownerId: uuid().notNull(),
+  ownerId: uuid(),
   name: text().notNull(),
   description: text(),
   isPublic: boolean('is_public').default(false).notNull(),
