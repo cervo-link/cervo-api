@@ -3,7 +3,10 @@
     "allow": [
       "Bash(ls /Users/elixir/Apps/cervo/cervo-api/.env*)",
       "Bash(ls /Users/elixir/Apps/cervo/cervo-api/env*)",
-      "Bash(bun:*)"
+      "Bash(bun:*)",
+      "WebFetch(domain:better-auth.com)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__query-docs"
     ]
   }
 }

@@ -71,6 +71,13 @@
       "when": 1774131726917,
       "tag": "20260321222206_drop_magic_link_and_refresh_token_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1774132450915,
+      "tag": "20260321223410_add_better_auth_tables",
+      "breakpoints": true
     }
   ]
 }

@@ -11,6 +11,7 @@ import {
   vector,
 } from 'drizzle-orm/pg-core'
 import { v7 as uuidv7 } from 'uuid'
+import { account, session, user, verification } from './auth-schema'
 
 export const members = pgTable(
   'members',
@@ -154,4 +155,8 @@ export const schema = {
   memberPlatformIdentities,
   memberships,
   bookmarks,
+  user,
+  session,
+  account,
+  verification,
 }
