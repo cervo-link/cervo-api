@@ -10,6 +10,11 @@ export async function createWorkspace(
   const tracer = trace.getTracer('create-workspace')
 
   return tracer.startActiveSpan('create-workspace-service', async span => {
+    if (!workspace.ownerId) {
+      span.end()
+      return new DomainError('Workspace must have an owner', 400)
+    }
+
     const result = await insertWorkspace(workspace)
     if (result instanceof DomainError) {
       span.setStatus({ code: SpanStatusCode.ERROR, message: result.message })

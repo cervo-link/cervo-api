@@ -11,6 +11,7 @@ import {
   vector,
 } from 'drizzle-orm/pg-core'
 import { v7 as uuidv7 } from 'uuid'
+import { account, session, user, verification } from './auth-schema'
 
 export const members = pgTable(
   'members',
@@ -18,10 +19,10 @@ export const members = pgTable(
     id: uuid()
       .primaryKey()
       .$defaultFn(() => uuidv7()),
+    userId: text(),
     name: text(),
     username: text(),
     email: text(),
-    passwordHash: text(),
     createdAt: timestamp().defaultNow().notNull(),
     updatedAt: timestamp().defaultNow().notNull(),
     active: boolean().default(true).notNull(),
@@ -36,7 +37,7 @@ export const workspaces = pgTable('workspaces', {
   id: uuid()
     .primaryKey()
     .$defaultFn(() => uuidv7()),
-  ownerId: uuid().notNull(),
+  ownerId: uuid(),
   name: text().notNull(),
   description: text(),
   isPublic: boolean('is_public').default(false).notNull(),
@@ -148,48 +149,6 @@ export const bookmarks = pgTable(
   ]
 )
 
-export const magicLinkTokens = pgTable(
-  'magic_link_tokens',
-  {
-    id: uuid()
-      .primaryKey()
-      .$defaultFn(() => uuidv7()),
-    memberId: uuid().notNull(),
-    token: text().notNull(),
-    expiresAt: timestamp().notNull(),
-    usedAt: timestamp(),
-    createdAt: timestamp().defaultNow().notNull(),
-  },
-  t => [
-    foreignKey({
-      columns: [t.memberId],
-      foreignColumns: [members.id],
-    }),
-    uniqueIndex('magic_link_token_idx').on(t.token),
-  ]
-)
-
-export const refreshTokens = pgTable(
-  'refresh_tokens',
-  {
-    id: uuid()
-      .primaryKey()
-      .$defaultFn(() => uuidv7()),
-    memberId: uuid().notNull(),
-    token: text().notNull(),
-    expiresAt: timestamp().notNull(),
-    revokedAt: timestamp(),
-    createdAt: timestamp().defaultNow().notNull(),
-  },
-  t => [
-    foreignKey({
-      columns: [t.memberId],
-      foreignColumns: [members.id],
-    }),
-    uniqueIndex('refresh_token_idx').on(t.token),
-  ]
-)
-
 export const schema = {
   members,
   workspaces,
@@ -197,6 +156,8 @@ export const schema = {
   memberPlatformIdentities,
   memberships,
   bookmarks,
-  magicLinkTokens,
-  refreshTokens,
+  user,
+  session,
+  account,
+  verification,
 }

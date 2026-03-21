@@ -19,7 +19,10 @@ const app = fastify()
 setErrorHandler(app)
 app.setValidatorCompiler(validatorCompiler)
 app.setSerializerCompiler(serializerCompiler)
-app.register(fastifyCors, { origin: '*' })
+app.register(fastifyCors, {
+  origin: config.betterAuth.FRONTEND_URL,
+  credentials: true,
+})
 
 app.register(fastifyCookie)
 

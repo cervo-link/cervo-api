@@ -12,7 +12,6 @@ export function makeRawMember(overrides: Overrides = {}): InsertMember {
     email: faker.internet.email(),
     active: true,
     username: faker.internet.username(),
-    passwordHash: faker.internet.password(),
     ...overrides,
   }
 }

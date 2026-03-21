@@ -19,7 +19,7 @@ CREATE TABLE "refresh_tokens" (
 ALTER TABLE "bookmarks" ADD COLUMN "status" text DEFAULT 'submitted' NOT NULL;--> statement-breakpoint
 ALTER TABLE "bookmarks" ADD COLUMN "tags" text[];--> statement-breakpoint
 ALTER TABLE "bookmarks" ADD COLUMN "failure_reason" text;--> statement-breakpoint
-ALTER TABLE "workspaces" ADD COLUMN "owner_id" uuid NOT NULL;--> statement-breakpoint
+ALTER TABLE "workspaces" ADD COLUMN "owner_id" uuid;--> statement-breakpoint
 ALTER TABLE "workspaces" ADD COLUMN "is_public" boolean DEFAULT false NOT NULL;--> statement-breakpoint
 ALTER TABLE "magic_link_tokens" ADD CONSTRAINT "magic_link_tokens_member_id_members_id_fk" FOREIGN KEY ("member_id") REFERENCES "public"."members"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "refresh_tokens" ADD CONSTRAINT "refresh_tokens_member_id_members_id_fk" FOREIGN KEY ("member_id") REFERENCES "public"."members"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint

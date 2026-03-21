@@ -54,8 +54,36 @@
     {
       "idx": 7,
       "version": "7",
-      "when": 1773881040291,
-      "tag": "20260319004400_add_auth_tables_and_bookmark_status_tags",
+      "when": 1774130839962,
+      "tag": "20260321220719_add_auth_tables_bookmark_status_and_workspace_owner",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1774131480519,
+      "tag": "20260321221800_remove_password_hash_from_members",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1774131726917,
+      "tag": "20260321222206_drop_magic_link_and_refresh_token_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1774132450915,
+      "tag": "20260321223410_add_better_auth_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1774132992625,
+      "tag": "20260321224312_add_user_id_to_members",
       "breakpoints": true
     }
   ]

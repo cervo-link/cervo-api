@@ -57,6 +57,29 @@ export async function findById(id: string): Promise<Member | null> {
   })
 }
 
+export async function findByUserId(userId: string): Promise<Member | null> {
+  const tracer = trace.getTracer('find-member-by-user-id')
+
+  return tracer.startActiveSpan(
+    'find-member-by-user-id-repository',
+    async span => {
+      const [result] = await db
+        .select()
+        .from(members)
+        .where(eq(members.userId, userId))
+      span.end()
+      return result || null
+    }
+  )
+}
+
+export async function updateUserId(
+  memberId: string,
+  userId: string
+): Promise<void> {
+  await db.update(members).set({ userId }).where(eq(members.id, memberId))
+}
+
 export async function findByEmail(email: string): Promise<Member | null> {
   const tracer = trace.getTracer('find-member-by-email')
 

@@ -22,7 +22,6 @@ export const createMemberBodySchemaRequest = z.object({
   name: z.string().min(1, 'Name must not be empty'),
   username: z.string().min(1, 'Username must not be empty'),
   email: z.string().email('Email must be a valid email'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
 })
 
 export const createMemberBodySchemaResponse = {

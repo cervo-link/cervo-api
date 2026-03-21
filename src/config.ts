@@ -55,25 +55,15 @@ function getAuthConfig() {
   return schema.parse(process.env)
 }
 
-function getJwtConfig() {
+function getBetterAuthConfig() {
   const schema = z.object({
-    JWT_SECRET: z.string().min(1, 'JWT_SECRET is required'),
-    JWT_ACCESS_EXPIRES_IN: z.string().default('15m'),
-    JWT_REFRESH_EXPIRES_IN: z.string().default('7d'),
-    MAGIC_LINK_EXPIRES_IN: z.string().default('15m'),
-    APP_URL: z.string().default('http://localhost:3000'),
-  })
-
-  return schema.parse(process.env)
-}
-
-function getSmtpConfig() {
-  const schema = z.object({
-    SMTP_HOST: z.string().optional(),
-    SMTP_PORT: z.coerce.number().default(587),
-    SMTP_USER: z.string().optional(),
-    SMTP_PASS: z.string().optional(),
-    SMTP_FROM: z.string().default('noreply@cervo.app'),
+    BETTER_AUTH_SECRET: z.string().min(1, 'BETTER_AUTH_SECRET is required'),
+    BETTER_AUTH_URL: z.string().default('http://localhost:8080'),
+    FRONTEND_URL: z.string().default('http://localhost:3000'),
+    GOOGLE_CLIENT_ID: z.string().default(''),
+    GOOGLE_CLIENT_SECRET: z.string().default(''),
+    DISCORD_CLIENT_ID: z.string().default(''),
+    DISCORD_CLIENT_SECRET: z.string().default(''),
   })
 
   return schema.parse(process.env)
@@ -87,6 +77,5 @@ export const config = {
   embeddingGemma: getEmbeddingGemmaConfig(),
   x: getXConfig(),
   auth: getAuthConfig(),
-  jwt: getJwtConfig(),
-  smtp: getSmtpConfig(),
+  betterAuth: getBetterAuthConfig(),
 }
