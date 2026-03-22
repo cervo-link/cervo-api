@@ -114,12 +114,21 @@ function enableSagger(server: FastifyInstance) {
     routePrefix: '/swagger',
   })
 
-  server.ready(async () => {
-    const apiSpec = JSON.stringify(server.swagger() || {}, null, 2)
+  if (config.app.NODE_ENV === 'dev') {
+    server.ready(async () => {
+      await writeSwaggerSpec(server, specFile)
+    })
+  }
+}
 
-    await Bun.write(specFile, apiSpec)
-    console.info(`Swagger specification file write to ${spec}`)
-  })
+export async function writeSwaggerSpec(
+  server: FastifyInstance,
+  specFile: string
+) {
+  const apiSpec = JSON.stringify(server.swagger() || {}, null, 2)
+
+  await Bun.write(specFile, apiSpec)
+  console.info(`Swagger specification file write to ${specFile}`)
 }
 
 export function transformSwaggerSchema(
