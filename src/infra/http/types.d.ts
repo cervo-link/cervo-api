@@ -1,4 +1,4 @@
-export {}
+
 
 import type { Member } from '@/domain/entities/member'
 

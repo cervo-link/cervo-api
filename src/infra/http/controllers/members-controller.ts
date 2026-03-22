@@ -2,6 +2,7 @@ import type { FastifyReply, FastifyRequest } from 'fastify'
 import { DomainError } from '@/domain/errors/domain-error'
 import { addMemberToWorkspace } from '@/domain/services/members/add-member-service'
 import { createMember } from '@/domain/services/members/create-member-service'
+import { findByOwnerId } from '@/infra/db/repositories/workspaces-repository'
 import { withSpan } from '@/infra/utils/with-span'
 import {
   addMemberToWorkspaceBodySchemaRequest,
@@ -13,8 +14,9 @@ export async function createMemberController(
   reply: FastifyReply
 ) {
   return withSpan('create-member', async () => {
-    const { name, username, email } =
-      createMemberBodySchemaRequest.parse(request.body)
+    const { name, username, email } = createMemberBodySchemaRequest.parse(
+      request.body
+    )
 
     const member = await createMember({ name, username, email })
 
@@ -30,7 +32,10 @@ export async function getMeController(
   request: FastifyRequest,
   reply: FastifyReply
 ) {
-  return reply.status(200).send({ member: request.member })
+  const workspace = await findByOwnerId(request.member.id)
+  return reply
+    .status(200)
+    .send({ member: request.member, workspace: workspace ?? null })
 }
 
 export async function addMemberToWorkspaceController(
