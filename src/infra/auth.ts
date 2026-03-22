@@ -8,46 +8,38 @@ import {
   updateUserId,
 } from '@/infra/db/repositories/members-repository'
 
-function buildSocialProviders() {
-  const providers: Record<string, { clientId: string; clientSecret: string }> =
-    {}
-  const { betterAuth: ba } = config
-
-  if (ba.GOOGLE_CLIENT_ID && ba.GOOGLE_CLIENT_SECRET) {
-    providers.google = {
-      clientId: ba.GOOGLE_CLIENT_ID,
-      clientSecret: ba.GOOGLE_CLIENT_SECRET,
-    }
-  }
-
-  if (ba.DISCORD_CLIENT_ID && ba.DISCORD_CLIENT_SECRET) {
-    providers.discord = {
-      clientId: ba.DISCORD_CLIENT_ID,
-      clientSecret: ba.DISCORD_CLIENT_SECRET,
-    }
-  }
-
-  if (ba.GITHUB_CLIENT_ID && ba.GITHUB_CLIENT_SECRET) {
-    providers.github = {
-      clientId: ba.GITHUB_CLIENT_ID,
-      clientSecret: ba.GITHUB_CLIENT_SECRET,
-    }
-  }
-
-  return providers
-}
+const ba = config.betterAuth
 
 export const auth = betterAuth({
-  baseURL: config.betterAuth.BETTER_AUTH_URL,
-  secret: config.betterAuth.BETTER_AUTH_SECRET,
-  trustedOrigins: [
-    config.betterAuth.BETTER_AUTH_URL,
-    config.betterAuth.FRONTEND_URL,
-  ],
+  baseURL: ba.BETTER_AUTH_URL,
+  secret: ba.BETTER_AUTH_SECRET,
+  trustedOrigins: [ba.BETTER_AUTH_URL, ba.FRONTEND_URL],
   database: drizzleAdapter(db, {
     provider: 'pg',
   }),
-  socialProviders: buildSocialProviders(),
+  socialProviders: {
+    ...(ba.GOOGLE_CLIENT_ID &&
+      ba.GOOGLE_CLIENT_SECRET && {
+        google: {
+          clientId: ba.GOOGLE_CLIENT_ID,
+          clientSecret: ba.GOOGLE_CLIENT_SECRET,
+        },
+      }),
+    ...(ba.DISCORD_CLIENT_ID &&
+      ba.DISCORD_CLIENT_SECRET && {
+        discord: {
+          clientId: ba.DISCORD_CLIENT_ID,
+          clientSecret: ba.DISCORD_CLIENT_SECRET,
+        },
+      }),
+    ...(ba.GITHUB_CLIENT_ID &&
+      ba.GITHUB_CLIENT_SECRET && {
+        github: {
+          clientId: ba.GITHUB_CLIENT_ID,
+          clientSecret: ba.GITHUB_CLIENT_SECRET,
+        },
+      }),
+  },
   databaseHooks: {
     user: {
       create: {

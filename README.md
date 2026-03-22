@@ -102,7 +102,7 @@ bun install
 docker compose up -d
 
 # Copy and fill in environment variables
-cp .env.example .env.local
+cp .env.example .env
 
 # Run migrations
 bun run db:migrate
@@ -146,7 +146,7 @@ bun --env-file=.env.test run vitest src/domain/services/bookmarks/get-bookmark-s
 
 ## Environment Variables
 
-Copy `.env.example` to `.env.local` and fill in the values. All variables are validated at startup via Zod schemas in `src/config.ts`.
+Copy `.env.example` to `.env` and fill in the values. Bun auto-loads `.env` at startup. All variables are validated via Zod schemas in `src/config.ts`.
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
