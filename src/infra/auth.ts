@@ -44,6 +44,13 @@ export const auth = betterAuth({
     config.betterAuth.BETTER_AUTH_URL,
     config.betterAuth.FRONTEND_URL,
   ],
+  advanced: {
+    useSecureCookies: true,
+    defaultCookieAttributes: {
+      sameSite: 'none',
+      secure: true,
+    },
+  },
   database: drizzleAdapter(db, {
     provider: 'pg',
   }),
