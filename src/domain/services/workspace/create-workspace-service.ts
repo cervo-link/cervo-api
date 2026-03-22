@@ -1,5 +1,6 @@
 import type { InsertWorkspace, Workspace } from '@/domain/entities/workspace'
 import { DomainError } from '@/domain/errors/domain-error'
+import { insertMembership } from '@/infra/db/repositories/membership-repository'
 import { insertWorkspace } from '@/infra/db/repositories/workspaces-repository'
 import { withSpan } from '@/infra/utils/with-span'
 
@@ -15,6 +16,8 @@ export async function createWorkspace(
     if (!workspace.ownerId) {
       return new DomainError('Owner ID is required', 400)
     }
+
+    await insertMembership({ memberId: workspace.ownerId, workspaceId: result.id })
 
     return result
   })

@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { makeRawWorkspace, makeWorkspace } from '@/tests/factories/make-workspace'
+import { DomainError } from '@/domain/errors/domain-error'
 import { makeMember } from '@/tests/factories/make-member'
+import {
+  makeRawWorkspace,
+  makeWorkspace,
+} from '@/tests/factories/make-workspace'
 import { createWorkspace } from './create-workspace-service'
 
 describe('createWorkspace', () => {
@@ -18,8 +22,20 @@ describe('createWorkspace', () => {
     const owner2 = await makeMember()
 
     await makeWorkspace({ ownerId: owner1.id })
-    const result = await createWorkspace(makeRawWorkspace({ ownerId: owner2.id }))
+    const result = await createWorkspace(
+      makeRawWorkspace({ ownerId: owner2.id })
+    )
 
     expect(result).toBeDefined()
+  })
+
+  it('should return DomainError when ownerId is null', async () => {
+    const owner = await makeMember()
+    const raw = makeRawWorkspace({ ownerId: owner.id })
+
+    const result = await createWorkspace({ ...raw, ownerId: null })
+
+    expect(result).toBeInstanceOf(DomainError)
+    expect((result as DomainError).status).toBe(400)
   })
 })
