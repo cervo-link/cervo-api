@@ -102,7 +102,7 @@ bun install
 docker compose up -d
 
 # Copy and fill in environment variables
-cp .env.example .env
+cp .env.example .env.local
 
 # Run migrations
 bun run db:migrate
@@ -146,26 +146,31 @@ bun --env-file=.env.test run vitest src/domain/services/bookmarks/get-bookmark-s
 
 ## Environment Variables
 
+Copy `.env.example` to `.env.local` and fill in the values. All variables are validated at startup via Zod schemas in `src/config.ts`.
+
 | Variable | Required | Default | Description |
 |---|---|---|---|
 | `DATABASE_URL` | Yes | — | PostgreSQL connection string |
 | `API_KEY` | Yes | — | API key for all authenticated routes |
-| `JWT_SECRET` | Yes | — | Secret for signing JWT tokens |
 | `PORT` | No | `8080` | HTTP server port |
 | `NODE_ENV` | No | `test` | `dev`, `production`, or `test` |
-| `APP_URL` | No | `http://localhost:3000` | Base URL for magic link generation |
-| `JWT_ACCESS_EXPIRES_IN` | No | `15m` | Access token lifetime |
-| `JWT_REFRESH_EXPIRES_IN` | No | `7d` | Refresh token lifetime |
-| `MAGIC_LINK_EXPIRES_IN` | No | `15m` | Magic link token lifetime |
+| `BETTER_AUTH_SECRET` | Yes | — | Secret for Better Auth session signing |
+| `BETTER_AUTH_URL` | No | `http://localhost:8080` | Backend URL for Better Auth |
+| `FRONTEND_URL` | No | `http://localhost:3000` | Frontend URL (trusted origin for CORS) |
+| `GOOGLE_CLIENT_ID` | No | — | Google OAuth client ID |
+| `GOOGLE_CLIENT_SECRET` | No | — | Google OAuth client secret |
+| `DISCORD_CLIENT_ID` | No | — | Discord OAuth client ID |
+| `DISCORD_CLIENT_SECRET` | No | — | Discord OAuth client secret |
+| `GITHUB_CLIENT_ID` | No | — | GitHub OAuth client ID |
+| `GITHUB_CLIENT_SECRET` | No | — | GitHub OAuth client secret |
 | `GEMMA_URL` | No | — | Ollama instance URL for text generation |
 | `EMBEDDINGGEMMA_URL` | No | — | Ollama instance URL for embeddings |
 | `SCRAPPING_BEE_API_KEY` | No | — | ScrapingBee API key |
+| `FIRECRAWL_API_KEY` | No | — | Firecrawl API key |
+| `FIRECRAWL_URL` | No | — | Firecrawl API URL |
 | `X_OEMBED_URL` | No | `https://publish.twitter.com/oembed` | X/Twitter oEmbed endpoint |
-| `SMTP_HOST` | No | — | SMTP host (omit to use console email logger) |
-| `SMTP_PORT` | No | `587` | SMTP port |
-| `SMTP_USER` | No | — | SMTP username |
-| `SMTP_PASS` | No | — | SMTP password |
-| `SMTP_FROM` | No | `noreply@cervo.app` | From address for emails |
+
+OAuth providers are only registered when both `*_CLIENT_ID` and `*_CLIENT_SECRET` are set.
 
 Generate a secure API key:
 ```bash

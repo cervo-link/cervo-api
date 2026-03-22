@@ -69,12 +69,12 @@ function getBetterAuthConfig() {
     BETTER_AUTH_SECRET: z.string().min(1, 'BETTER_AUTH_SECRET is required'),
     BETTER_AUTH_URL: z.string().default('http://localhost:8080'),
     FRONTEND_URL: z.string().default('http://localhost:3000'),
-    GOOGLE_CLIENT_ID: z.string().default(''),
-    GOOGLE_CLIENT_SECRET: z.string().default(''),
-    DISCORD_CLIENT_ID: z.string().default(''),
-    DISCORD_CLIENT_SECRET: z.string().default(''),
-    GITHUB_CLIENT_ID: z.string().default(''),
-    GITHUB_CLIENT_SECRET: z.string().default(''),
+    GOOGLE_CLIENT_ID: z.string().optional(),
+    GOOGLE_CLIENT_SECRET: z.string().optional(),
+    DISCORD_CLIENT_ID: z.string().optional(),
+    DISCORD_CLIENT_SECRET: z.string().optional(),
+    GITHUB_CLIENT_ID: z.string().optional(),
+    GITHUB_CLIENT_SECRET: z.string().optional(),
   })
 
   return schema.parse(process.env)
