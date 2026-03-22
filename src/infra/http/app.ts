@@ -20,7 +20,7 @@ setErrorHandler(app)
 app.setValidatorCompiler(validatorCompiler)
 app.setSerializerCompiler(serializerCompiler)
 app.register(fastifyCors, {
-  origin: config.betterAuth.FRONTEND_URL,
+  origin: true,
   credentials: true,
 })
 
