@@ -13,13 +13,15 @@ import {
   retryBookmarkParamsSchema,
   retryBookmarkResponseSchema,
 } from '@/infra/http/schemas/bookmarks-schema'
+import { anyAuth } from '@/infra/http/middlewares/any-auth'
 import { apiKeyAuth } from '@/infra/http/middlewares/api-key-auth'
+import { sessionAuth } from '@/infra/http/middlewares/session-auth'
 
 export async function bookmarksRoutes(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().route({
     method: 'POST',
     url: '/bookmarks',
-    onRequest: [apiKeyAuth],
+    onRequest: [anyAuth(sessionAuth, apiKeyAuth)],
     schema: {
       description: 'Create a bookmark',
       tags: ['bookmarks'],
@@ -32,7 +34,7 @@ export async function bookmarksRoutes(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().route({
     method: 'GET',
     url: '/bookmarks',
-    onRequest: [apiKeyAuth],
+    onRequest: [anyAuth(sessionAuth, apiKeyAuth)],
     schema: {
       description: 'Get all bookmarks',
       tags: ['bookmarks'],
@@ -45,7 +47,7 @@ export async function bookmarksRoutes(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().route({
     method: 'POST',
     url: '/bookmarks/:id/retry',
-    onRequest: [apiKeyAuth],
+    onRequest: [anyAuth(sessionAuth, apiKeyAuth)],
     schema: {
       description: 'Retry processing a failed bookmark',
       tags: ['bookmarks'],

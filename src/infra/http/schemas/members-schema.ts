@@ -78,3 +78,8 @@ export const findMemberByIdentityResponseSchema = {
   200: z.object({ member: memberResponseSchema }).describe('Member found'),
   404: z.object({ message: z.string() }).describe('Member not found'),
 }
+
+export const getMeResponseSchema = {
+  200: z.object({ member: memberResponseSchema }).describe('Current member'),
+  401: z.object({ message: z.string() }).describe('Unauthorized'),
+}

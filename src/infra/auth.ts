@@ -27,6 +27,10 @@ export const auth = betterAuth({
       clientId: config.betterAuth.DISCORD_CLIENT_ID,
       clientSecret: config.betterAuth.DISCORD_CLIENT_SECRET,
     },
+    github: {
+      clientId: config.betterAuth.GITHUB_CLIENT_ID,
+      clientSecret: config.betterAuth.GITHUB_CLIENT_SECRET,
+    },
   },
   databaseHooks: {
     user: {

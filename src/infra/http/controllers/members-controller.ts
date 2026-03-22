@@ -26,6 +26,13 @@ export async function createMemberController(
   })
 }
 
+export async function getMeController(
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
+  return reply.status(200).send({ member: request.member })
+}
+
 export async function addMemberToWorkspaceController(
   request: FastifyRequest,
   reply: FastifyReply

@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import { apiKeyAuth } from '@/infra/http/middlewares/api-key-auth'
+import { sessionAuth } from '@/infra/http/middlewares/session-auth'
 import {
   createMemberIdentityController,
   findMemberByIdentityController,
@@ -8,6 +9,7 @@ import {
 import {
   addMemberToWorkspaceController,
   createMemberController,
+  getMeController,
 } from '../controllers/members-controller'
 import {
   addMemberToWorkspaceBodySchemaRequest,
@@ -19,9 +21,22 @@ import {
   createMemberIdentityResponseSchema,
   findMemberByIdentityQuerySchema,
   findMemberByIdentityResponseSchema,
+  getMeResponseSchema,
 } from '../schemas/members-schema'
 
 export async function memberRoutes(app: FastifyInstance) {
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: 'GET',
+    url: '/members/me',
+    onRequest: [sessionAuth],
+    schema: {
+      description: 'Get the currently authenticated member',
+      tags: ['members'],
+      response: getMeResponseSchema,
+    },
+    handler: getMeController,
+  })
+
   app.withTypeProvider<ZodTypeProvider>().route({
     method: 'POST',
     url: '/members/create',
