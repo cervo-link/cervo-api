@@ -73,6 +73,8 @@ function getBetterAuthConfig() {
     GOOGLE_CLIENT_SECRET: z.string().default(''),
     DISCORD_CLIENT_ID: z.string().default(''),
     DISCORD_CLIENT_SECRET: z.string().default(''),
+    GITHUB_CLIENT_ID: z.string().default(''),
+    GITHUB_CLIENT_SECRET: z.string().default(''),
   })
 
   return schema.parse(process.env)

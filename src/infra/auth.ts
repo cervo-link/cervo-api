@@ -1,10 +1,10 @@
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { config } from '@/config'
+import { createMemberFromOAuth } from '@/domain/services/members/create-member-from-oauth-service'
 import { db } from '@/infra/db'
 import {
   findByEmail,
-  insertMember,
   updateUserId,
 } from '@/infra/db/repositories/members-repository'
 
@@ -27,11 +27,15 @@ export const auth = betterAuth({
       clientId: config.betterAuth.DISCORD_CLIENT_ID,
       clientSecret: config.betterAuth.DISCORD_CLIENT_SECRET,
     },
+    github: {
+      clientId: config.betterAuth.GITHUB_CLIENT_ID,
+      clientSecret: config.betterAuth.GITHUB_CLIENT_SECRET,
+    },
   },
   databaseHooks: {
     user: {
       create: {
-        after: async (user) => {
+        after: async user => {
           const existing = await findByEmail(user.email)
 
           if (existing) {
@@ -46,12 +50,11 @@ export const auth = betterAuth({
             .toLowerCase()
             .replace(/[^a-z0-9_]/g, '_')
 
-          await insertMember({
+          await createMemberFromOAuth({
             userId: user.id,
             name: user.name,
             username,
             email: user.email,
-            active: true,
           })
         },
       },

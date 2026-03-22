@@ -1017,6 +1017,135 @@
         }
       }
     },
+    "/members/me": {
+      "get": {
+        "tags": [
+          "members"
+        ],
+        "description": "Get the currently authenticated member",
+        "responses": {
+          "200": {
+            "description": "Current member",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "member": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "username": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "email": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "active": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "username",
+                        "email",
+                        "createdAt",
+                        "updatedAt",
+                        "active"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "workspace": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "isPublic": {
+                          "type": "boolean"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "active": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "description",
+                        "isPublic",
+                        "createdAt",
+                        "updatedAt",
+                        "active"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "member",
+                    "workspace"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Current member"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Unauthorized"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/members/create": {
       "post": {
         "tags": [

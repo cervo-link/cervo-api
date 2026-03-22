@@ -10,13 +10,15 @@ import {
   getWorkspaceQuerySchemaRequest,
   getWorkspaceQuerySchemaResponse,
 } from '../schemas/workspaces-schema'
+import { anyAuth } from '@/infra/http/middlewares/any-auth'
 import { apiKeyAuth } from '@/infra/http/middlewares/api-key-auth'
+import { sessionAuth } from '@/infra/http/middlewares/session-auth'
 
 export async function workspaceRoutes(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().route({
     method: 'POST',
     url: '/workspaces/create',
-    onRequest: [apiKeyAuth],
+    onRequest: [anyAuth(sessionAuth, apiKeyAuth)],
     schema: {
       description: 'Create a workspace',
       tags: ['workspaces'],
@@ -29,7 +31,7 @@ export async function workspaceRoutes(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().route({
     method: 'GET',
     url: '/workspaces',
-    onRequest: [apiKeyAuth],
+    onRequest: [anyAuth(sessionAuth, apiKeyAuth)],
     schema: {
       description: 'Get a workspace by platform ID',
       tags: ['workspaces'],
