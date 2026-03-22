@@ -31,6 +31,15 @@ function getScrappingBeeConfig() {
 
   return schema.parse(process.env)
 }
+
+function getFirecrawlConfig() {
+  const schema = z.object({
+    FIRECRAWL_API_KEY: z.string().optional(),
+    FIRECRAWL_URL: z.url().optional(),
+  })
+
+  return schema.parse(process.env)
+}
 function getEmbeddingGemmaConfig() {
   const schema = z.object({
     EMBEDDINGGEMMA_URL: z.url().optional(),
@@ -74,6 +83,7 @@ export const config = {
   app: getAppConfig(),
   gemma: getGemmaConfig(),
   scrappingBee: getScrappingBeeConfig(),
+  firecrawl: getFirecrawlConfig(),
   embeddingGemma: getEmbeddingGemmaConfig(),
   x: getXConfig(),
   auth: getAuthConfig(),

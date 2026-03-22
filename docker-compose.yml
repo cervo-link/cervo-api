@@ -10,7 +10,7 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=cervo
-      
+
   grafana:
     image: grafana/otel-lgtm
     container_name: cervo-grafana
@@ -18,3 +18,49 @@ services:
       - 12345:3000
       - 4317:4317
       - 4318:4318
+
+  redis:
+    image: redis:alpine
+    container_name: cervo_redis
+    profiles: [firecrawl]
+
+  playwright:
+    image: ghcr.io/mendableai/playwright-service:latest
+    container_name: cervo_playwright
+    profiles: [firecrawl]
+    environment:
+      - PORT=3000
+
+  firecrawl:
+    image: ghcr.io/mendableai/firecrawl:latest
+    container_name: cervo_firecrawl
+    profiles: [firecrawl]
+    ports:
+      - '3002:3002'
+    environment:
+      - PORT=3002
+      - HOST=0.0.0.0
+      - USE_DB_AUTHENTICATION=false
+      - REDIS_URL=redis://firecrawl-redis:6379
+      - REDIS_RATE_LIMIT_URL=redis://firecrawl-redis:6379
+      - PLAYWRIGHT_MICROSERVICE_URL=http://playwright:3000/scrape
+      - BULL_AUTH_KEY=cervo-local
+    depends_on:
+      - redis
+      - playwright
+
+  firecrawl-worker:
+    image: ghcr.io/mendableai/firecrawl:latest
+    container_name: cervo_firecrawl_worker
+    profiles: [firecrawl]
+    environment:
+      - PORT=3002
+      - HOST=0.0.0.0
+      - USE_DB_AUTHENTICATION=false
+      - REDIS_URL=redis://firecrawl-redis:6379
+      - REDIS_RATE_LIMIT_URL=redis://firecrawl-redis:6379
+      - PLAYWRIGHT_MICROSERVICE_URL=http://playwright:3000/scrape
+      - BULL_AUTH_KEY=cervo-local
+    depends_on:
+      - redis
+      - playwright
