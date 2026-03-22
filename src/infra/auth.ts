@@ -40,10 +40,7 @@ function buildSocialProviders() {
 export const auth = betterAuth({
   baseURL: config.betterAuth.BETTER_AUTH_URL,
   secret: config.betterAuth.BETTER_AUTH_SECRET,
-  trustedOrigins: [
-    config.betterAuth.BETTER_AUTH_URL,
-    config.betterAuth.FRONTEND_URL,
-  ],
+  trustedOrigins: ['*'],
   advanced: {
     useSecureCookies: true,
     defaultCookieAttributes: {
