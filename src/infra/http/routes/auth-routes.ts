@@ -1,4 +1,5 @@
 import type { FastifyInstance } from 'fastify'
+import { config } from '@/config'
 import { auth } from '@/infra/auth'
 
 export async function authRoutes(app: FastifyInstance) {
@@ -6,7 +7,7 @@ export async function authRoutes(app: FastifyInstance) {
     method: ['GET', 'POST'],
     url: '/api/auth/*',
     async handler(request, reply) {
-      const url = new URL(request.url, `http://${request.headers.host}`)
+      const url = new URL(request.url, config.betterAuth.BETTER_AUTH_URL)
 
       const headers = new Headers()
       for (const [key, value] of Object.entries(request.headers)) {
