@@ -1,6 +1,7 @@
 import { resolve } from 'node:path'
 import fastifyCookie from '@fastify/cookie'
 import fastifyCors from '@fastify/cors'
+import fastifyRateLimit from '@fastify/rate-limit'
 import { fastifySwagger } from '@fastify/swagger'
 import { fastifySwaggerUi } from '@fastify/swagger-ui'
 import { type FastifyInstance, fastify } from 'fastify'
@@ -25,6 +26,14 @@ app.register(fastifyCors, {
 })
 
 app.register(fastifyCookie)
+
+app.register(fastifyRateLimit, {
+  max: 100,
+  timeWindow: '1 minute',
+  errorResponseBuilder: (_request, context) => ({
+    message: `Too many requests, please try again in ${context.after}`,
+  }),
+})
 
 enableSagger(app)
 
