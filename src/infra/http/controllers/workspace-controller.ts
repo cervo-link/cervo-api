@@ -3,10 +3,21 @@ import { DomainError } from '@/domain/errors/domain-error'
 import { createWorkspace } from '@/domain/services/workspace/create-workspace-service'
 import { getWorkspace } from '@/domain/services/workspace/get-workspace-service'
 import { withSpan } from '@/infra/utils/with-span'
+import { findByMemberId } from '@/infra/db/repositories/workspaces-repository'
 import {
   createWorkspaceBodySchemaRequest,
   getWorkspaceQuerySchemaRequest,
 } from '../schemas/workspaces-schema'
+
+export async function getMyWorkspacesController(
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
+  return withSpan('get-my-workspaces', async () => {
+    const workspaces = await findByMemberId(request.member.id)
+    return reply.status(200).send({ workspaces })
+  })
+}
 
 export async function createWorkspaceController(
   request: FastifyRequest,
