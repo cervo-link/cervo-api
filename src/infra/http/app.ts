@@ -15,15 +15,7 @@ import {
 import { config } from '@/config'
 import { routes } from './routes'
 
-const app = fastify({
-  logger: {
-    level: 'info',
-    transport:
-      process.env.NODE_ENV === 'dev'
-        ? { target: 'pino-pretty', options: { colorize: true } }
-        : undefined,
-  },
-})
+const app = fastify({ logger: { level: 'info' } })
 
 setErrorHandler(app)
 app.setValidatorCompiler(validatorCompiler)
