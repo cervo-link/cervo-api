@@ -1,8 +1,13 @@
+import { fromNodeHeaders } from 'better-auth/node'
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import { DomainError } from '@/domain/errors/domain-error'
 import { addMemberToWorkspace } from '@/domain/services/members/add-member-service'
+import { createMemberFromOAuth } from '@/domain/services/members/create-member-from-oauth-service'
 import { createMember } from '@/domain/services/members/create-member-service'
+import { auth } from '@/infra/auth'
+import { findByUserId } from '@/infra/db/repositories/members-repository'
 import { findByOwnerId } from '@/infra/db/repositories/workspaces-repository'
+import { logger } from '@/infra/logger'
 import { withSpan } from '@/infra/utils/with-span'
 import {
   addMemberToWorkspaceBodySchemaRequest,
@@ -36,6 +41,61 @@ export async function getMeController(
   return reply
     .status(200)
     .send({ member: request.member, workspace: workspace ?? null })
+}
+
+export async function syncMemberController(
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
+  return withSpan('sync-member', async () => {
+    const session = await auth.api.getSession({
+      headers: fromNodeHeaders(request.headers),
+    })
+
+    if (!session) {
+      return reply.status(401).send({ message: 'No active session.' })
+    }
+
+    logger.info({ userId: session.user.id }, '[syncMember] session resolved')
+
+    const existing = await findByUserId(session.user.id)
+
+    if (existing) {
+      logger.info(
+        { memberId: existing.id },
+        '[syncMember] member already exists'
+      )
+      return reply.status(200).send({ member: existing })
+    }
+
+    logger.info(
+      { userId: session.user.id },
+      '[syncMember] member not found, creating'
+    )
+
+    const username = session.user.email
+      .split('@')[0]
+      .toLowerCase()
+      .replace(/[^a-z0-9_]/g, '_')
+
+    const result = await createMemberFromOAuth({
+      userId: session.user.id,
+      name: session.user.name,
+      email: session.user.email,
+      username,
+    })
+
+    if (result instanceof DomainError) {
+      logger.error(
+        { message: result.message },
+        '[syncMember] failed to create member'
+      )
+      return reply.status(result.status).send({ message: result.message })
+    }
+
+    logger.info({ memberId: result.id }, '[syncMember] member created')
+    return reply.status(201).send({ member: result })
+  })
 }
 
 export async function addMemberToWorkspaceController(

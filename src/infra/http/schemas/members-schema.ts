@@ -89,6 +89,14 @@ const workspaceResponseSchema = z.object({
   active: z.boolean(),
 })
 
+export const syncMemberResponseSchema = {
+  200: z.object({ member: memberResponseSchema }).describe('Member already exists'),
+  201: z.object({ member: memberResponseSchema }).describe('Member created'),
+  401: z.object({ message: z.string() }).describe('Unauthorized'),
+  422: z.object({ message: z.string() }).describe('Member already exists with different userId'),
+  500: z.object({ message: z.string() }).describe('Failed to sync member'),
+}
+
 export const getMeResponseSchema = {
   200: z
     .object({
