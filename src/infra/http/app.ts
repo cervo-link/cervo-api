@@ -15,7 +15,15 @@ import {
 import { config } from '@/config'
 import { routes } from './routes'
 
-const app = fastify()
+const app = fastify({
+  logger: {
+    level: 'info',
+    transport:
+      process.env.NODE_ENV === 'dev'
+        ? { target: 'pino-pretty', options: { colorize: true } }
+        : undefined,
+  },
+})
 
 setErrorHandler(app)
 app.setValidatorCompiler(validatorCompiler)
@@ -67,7 +75,7 @@ function setErrorHandler(app: FastifyInstance) {
       })
     }
 
-    console.error('🚨 Global Error Handler:\n', err, '\n')
+    app.log.error({ err }, 'unhandled error')
     return reply.code(err.statusCode ?? 500).send({
       error: err.name,
       message: err.message,
@@ -137,7 +145,7 @@ export async function writeSwaggerSpec(
   const apiSpec = JSON.stringify(server.swagger() || {}, null, 2)
 
   await Bun.write(specFile, apiSpec)
-  console.info(`Swagger specification file write to ${specFile}`)
+  server.log.info({ path: specFile }, 'Swagger spec written')
 }
 
 export function transformSwaggerSchema(

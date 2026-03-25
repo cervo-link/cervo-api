@@ -3,6 +3,7 @@ import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { config } from '@/config'
 import { createMemberFromOAuth } from '@/domain/services/members/create-member-from-oauth-service'
 import { DomainError } from '@/domain/errors/domain-error'
+import { logger } from '@/infra/logger'
 import { db } from '@/infra/db'
 import {
   findByEmail,
@@ -57,15 +58,15 @@ export const auth = betterAuth({
     user: {
       create: {
         after: async user => {
-          console.log(`[auth:hook] user.create.after fired — id=${user.id} email=${user.email}`)
+          logger.info({ userId: user.id, email: user.email }, '[auth:hook] user.create.after fired')
 
           const existing = await findByEmail(user.email)
 
           if (existing) {
-            console.log(`[auth:hook] existing member found — memberId=${existing.id} hasUserId=${!!existing.userId}`)
+            logger.info({ memberId: existing.id, hasUserId: !!existing.userId }, '[auth:hook] existing member found')
             if (!existing.userId) {
               await updateUserId(existing.id, user.id)
-              console.log(`[auth:hook] linked userId ${user.id} to member ${existing.id}`)
+              logger.info({ userId: user.id, memberId: existing.id }, '[auth:hook] linked userId to member')
             }
             return
           }
@@ -75,7 +76,7 @@ export const auth = betterAuth({
             .toLowerCase()
             .replace(/[^a-z0-9_]/g, '_')
 
-          console.log(`[auth:hook] creating new member — username=${username}`)
+          logger.info({ username }, '[auth:hook] creating new member')
 
           const result = await createMemberFromOAuth({
             userId: user.id,
@@ -85,9 +86,9 @@ export const auth = betterAuth({
           })
 
           if (result instanceof DomainError) {
-            console.error(`[auth:hook] ❌ failed to create member — ${result.message} (status=${result.status})`)
+            logger.error({ message: result.message, status: result.status }, '[auth:hook] failed to create member')
           } else {
-            console.log(`[auth:hook] ✅ member created — memberId=${result.id}`)
+            logger.info({ memberId: result.id }, '[auth:hook] member created')
           }
         },
       },

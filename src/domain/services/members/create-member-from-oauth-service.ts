@@ -2,6 +2,7 @@ import type { Member } from '@/domain/entities/member'
 import { DomainError } from '@/domain/errors/domain-error'
 import { createWorkspace } from '@/domain/services/workspace/create-workspace-service'
 import { insertMember } from '@/infra/db/repositories/members-repository'
+import { logger } from '@/infra/logger'
 import { withSpan } from '@/infra/utils/with-span'
 
 export async function createMemberFromOAuth(params: {
@@ -11,7 +12,7 @@ export async function createMemberFromOAuth(params: {
   username: string
 }): Promise<Member | DomainError> {
   return withSpan('create-member-from-oauth', async () => {
-    console.log(`[createMemberFromOAuth] inserting member — email=${params.email} username=${params.username}`)
+    logger.info({ email: params.email, username: params.username }, '[createMemberFromOAuth] inserting member')
 
     const member = await insertMember({
       userId: params.userId,
@@ -22,11 +23,11 @@ export async function createMemberFromOAuth(params: {
     })
 
     if (member instanceof DomainError) {
-      console.error(`[createMemberFromOAuth] ❌ insertMember failed — ${member.message}`)
+      logger.error({ message: member.message }, '[createMemberFromOAuth] insertMember failed')
       return member
     }
 
-    console.log(`[createMemberFromOAuth] member inserted — memberId=${member.id}`)
+    logger.info({ memberId: member.id }, '[createMemberFromOAuth] member inserted')
 
     const workspace = await createWorkspace({
       name: 'Personal',
@@ -36,9 +37,9 @@ export async function createMemberFromOAuth(params: {
     })
 
     if (workspace instanceof DomainError) {
-      console.error(`[createMemberFromOAuth] ❌ createWorkspace failed — memberId=${member.id} error=${workspace.message}`)
+      logger.error({ memberId: member.id, message: workspace.message }, '[createMemberFromOAuth] createWorkspace failed')
     } else {
-      console.log(`[createMemberFromOAuth] ✅ Personal workspace created — workspaceId=${workspace.id}`)
+      logger.info({ workspaceId: workspace.id }, '[createMemberFromOAuth] Personal workspace created')
     }
 
     return member

@@ -2,6 +2,7 @@ import type { FastifyReply, FastifyRequest } from 'fastify'
 import { fromNodeHeaders } from 'better-auth/node'
 import { auth } from '@/infra/auth'
 import { findByUserId } from '@/infra/db/repositories/members-repository'
+import { logger } from '@/infra/logger'
 
 export async function sessionAuth(
   request: FastifyRequest,
@@ -12,7 +13,7 @@ export async function sessionAuth(
   })
 
   if (!session) {
-    console.warn(`[sessionAuth] no session — ${request.method} ${request.url}`)
+    logger.warn({ method: request.method, url: request.url }, '[sessionAuth] no session')
     return reply.code(401).send({
       error: 'Unauthorized',
       message: 'Valid session is required.',
@@ -20,12 +21,12 @@ export async function sessionAuth(
     })
   }
 
-  console.log(`[sessionAuth] session found — userId=${session.user.id} ${request.method} ${request.url}`)
+  logger.info({ userId: session.user.id, method: request.method, url: request.url }, '[sessionAuth] session found')
 
   const member = await findByUserId(session.user.id)
 
   if (!member) {
-    console.warn(`[sessionAuth] no member for userId=${session.user.id}`)
+    logger.warn({ userId: session.user.id }, '[sessionAuth] no member found for userId')
     return reply.code(401).send({
       error: 'Unauthorized',
       message: 'No member record found for this session.',
@@ -33,6 +34,6 @@ export async function sessionAuth(
     })
   }
 
-  console.log(`[sessionAuth] member resolved — memberId=${member.id}`)
+  logger.info({ memberId: member.id }, '[sessionAuth] member resolved')
   request.member = member
 }

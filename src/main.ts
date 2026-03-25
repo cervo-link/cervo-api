@@ -6,5 +6,6 @@ async function main() {
 }
 
 main().catch(err => {
-  console.error('Error initializing Cervo', err)
+  process.stderr.write(`Error initializing Cervo: ${err}\n`)
+  process.exit(1)
 })
