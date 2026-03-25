@@ -64,6 +64,14 @@ function getAuthConfig() {
   return schema.parse(process.env)
 }
 
+function loadTelemetryEnvs() {
+  const schema = z.object({
+    OTEL_EXPORTER_OTLP_ENDPOINT: z.string().optional(),
+    OTEL_EXPORTER_OTLP_HEADERS: z.string().optional(),
+  })
+  return schema.parse(process.env)
+}
+
 function getBetterAuthConfig() {
   const schema = z.object({
     BETTER_AUTH_SECRET: z.string().min(1, 'BETTER_AUTH_SECRET is required'),
@@ -90,4 +98,5 @@ export const config = {
   x: getXConfig(),
   auth: getAuthConfig(),
   betterAuth: getBetterAuthConfig(),
+  telemetry: loadTelemetryEnvs(),
 }

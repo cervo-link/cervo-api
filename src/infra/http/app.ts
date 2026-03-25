@@ -13,10 +13,14 @@ import {
   validatorCompiler,
 } from 'fastify-type-provider-zod'
 import { config } from '@/config'
+import { registerHttpRequestMetrics } from '@/infra/telemetry/http-request-metrics'
+import { fastifyOtel } from '@/infra/telemetry/otel'
 import { routes } from './routes'
 
 const app = fastify({ logger: { level: 'info' } })
 
+app.register(fastifyOtel.plugin())
+registerHttpRequestMetrics(app)
 setErrorHandler(app)
 app.setValidatorCompiler(validatorCompiler)
 app.setSerializerCompiler(serializerCompiler)
