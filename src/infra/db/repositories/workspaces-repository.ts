@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm'
+import { eq, inArray } from 'drizzle-orm'
 import type { InsertWorkspace, Workspace } from '@/domain/entities/workspace'
 import { CannotCreateWorkspaceAlreadyExists } from '@/domain/errors/cannot-create-workspace-already-exists'
 import { DomainError } from '@/domain/errors/domain-error'
@@ -55,5 +55,26 @@ export async function findByOwnerId(
       .from(schema.workspaces)
       .where(eq(schema.workspaces.ownerId, ownerId))
     return result || null
+  })
+}
+
+export async function findByMemberId(memberId: string): Promise<Workspace[]> {
+  return withSpan('find-workspaces-by-member-id', async () => {
+    const memberships = await db
+      .select({ workspaceId: schema.memberships.workspaceId })
+      .from(schema.memberships)
+      .where(eq(schema.memberships.memberId, memberId))
+
+    if (memberships.length === 0) return []
+
+    return db
+      .select()
+      .from(schema.workspaces)
+      .where(
+        inArray(
+          schema.workspaces.id,
+          memberships.map(m => m.workspaceId)
+        )
+      )
   })
 }

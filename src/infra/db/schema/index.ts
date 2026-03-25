@@ -149,6 +149,19 @@ export const bookmarks = pgTable(
   ]
 )
 
+export const waitingList = pgTable(
+  'waiting_list',
+  {
+    id: uuid()
+      .primaryKey()
+      .$defaultFn(() => uuidv7()),
+    email: text().notNull(),
+    allowPromoEmails: boolean('allow_promo_emails').default(false).notNull(),
+    createdAt: timestamp().defaultNow().notNull(),
+  },
+  t => [uniqueIndex('email_waiting_list_idx').on(t.email)]
+)
+
 export const schema = {
   members,
   workspaces,
@@ -156,6 +169,7 @@ export const schema = {
   memberPlatformIdentities,
   memberships,
   bookmarks,
+  waitingList,
   user,
   session,
   account,

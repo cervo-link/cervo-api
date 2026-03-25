@@ -5,6 +5,7 @@ export const healthcheckRoute: FastifyPluginAsyncZod = async server => {
   server.get(
     '/health',
     {
+      config: { rateLimit: false },
       schema: {
         tags: ['service'],
         operationId: 'healthcheck',

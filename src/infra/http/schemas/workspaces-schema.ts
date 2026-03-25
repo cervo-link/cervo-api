@@ -28,6 +28,24 @@ export const createWorkspaceBodySchemaResponse = {
     .describe('Workspace created.'),
 }
 
+const workspaceShape = z.object({
+  id: z.string(),
+  ownerId: z.string().nullable(),
+  name: z.string(),
+  description: z.string().nullable(),
+  isPublic: z.boolean(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  active: z.boolean(),
+})
+
+export const getMyWorkspacesSchemaResponse = {
+  500: z.object({ message: z.string() }).describe('Failed to get workspaces'),
+  200: z
+    .object({ workspaces: z.array(workspaceShape) })
+    .describe('List of workspaces the member belongs to'),
+}
+
 export const getWorkspaceQuerySchemaRequest = z.object({
   id: z.string().uuid('Workspace ID must be a valid UUID'),
 })

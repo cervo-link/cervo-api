@@ -1,6 +1,7 @@
 import { resolve } from 'node:path'
 import fastifyCookie from '@fastify/cookie'
 import fastifyCors from '@fastify/cors'
+import fastifyRateLimit from '@fastify/rate-limit'
 import { fastifySwagger } from '@fastify/swagger'
 import { fastifySwaggerUi } from '@fastify/swagger-ui'
 import { type FastifyInstance, fastify } from 'fastify'
@@ -12,19 +13,31 @@ import {
   validatorCompiler,
 } from 'fastify-type-provider-zod'
 import { config } from '@/config'
+import { registerHttpRequestMetrics } from '@/infra/telemetry/http-request-metrics'
+import { fastifyOtel } from '@/infra/telemetry/otel'
 import { routes } from './routes'
 
-const app = fastify()
+const app = fastify({ logger: { level: 'info' } })
 
+app.register(fastifyOtel.plugin())
+registerHttpRequestMetrics(app)
 setErrorHandler(app)
 app.setValidatorCompiler(validatorCompiler)
 app.setSerializerCompiler(serializerCompiler)
 app.register(fastifyCors, {
-  origin: config.betterAuth.FRONTEND_URL,
+  origin: true,
   credentials: true,
 })
 
 app.register(fastifyCookie)
+
+app.register(fastifyRateLimit, {
+  max: 100,
+  timeWindow: '1 minute',
+  errorResponseBuilder: (_request, context) => ({
+    message: `Too many requests, please try again in ${context.after}`,
+  }),
+})
 
 enableSagger(app)
 
@@ -58,7 +71,7 @@ function setErrorHandler(app: FastifyInstance) {
       })
     }
 
-    console.error('🚨 Global Error Handler:\n', err, '\n')
+    app.log.error({ err }, 'unhandled error')
     return reply.code(err.statusCode ?? 500).send({
       error: err.name,
       message: err.message,
@@ -114,12 +127,21 @@ function enableSagger(server: FastifyInstance) {
     routePrefix: '/swagger',
   })
 
-  server.ready(async () => {
-    const apiSpec = JSON.stringify(server.swagger() || {}, null, 2)
+  if (config.app.NODE_ENV === 'dev') {
+    server.ready(async () => {
+      await writeSwaggerSpec(server, specFile)
+    })
+  }
+}
 
-    await Bun.write(specFile, apiSpec)
-    console.info(`Swagger specification file write to ${spec}`)
-  })
+export async function writeSwaggerSpec(
+  server: FastifyInstance,
+  specFile: string
+) {
+  const apiSpec = JSON.stringify(server.swagger() || {}, null, 2)
+
+  await Bun.write(specFile, apiSpec)
+  server.log.info({ path: specFile }, 'Swagger spec written')
 }
 
 export function transformSwaggerSchema(

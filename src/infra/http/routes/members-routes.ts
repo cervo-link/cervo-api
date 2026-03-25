@@ -10,6 +10,7 @@ import {
   addMemberToWorkspaceController,
   createMemberController,
   getMeController,
+  syncMemberController,
 } from '../controllers/members-controller'
 import {
   addMemberToWorkspaceBodySchemaRequest,
@@ -22,6 +23,7 @@ import {
   findMemberByIdentityQuerySchema,
   findMemberByIdentityResponseSchema,
   getMeResponseSchema,
+  syncMemberResponseSchema,
 } from '../schemas/members-schema'
 
 export async function memberRoutes(app: FastifyInstance) {
@@ -35,6 +37,17 @@ export async function memberRoutes(app: FastifyInstance) {
       response: getMeResponseSchema,
     },
     handler: getMeController,
+  })
+
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: 'POST',
+    url: '/members/sync',
+    schema: {
+      description: 'Create member from active session if not exists (idempotent)',
+      tags: ['members'],
+      response: syncMemberResponseSchema,
+    },
+    handler: syncMemberController,
   })
 
   app.withTypeProvider<ZodTypeProvider>().route({

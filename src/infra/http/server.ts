@@ -8,7 +8,7 @@ export async function startServer(): Promise<FastifyInstance> {
     host: '0.0.0.0',
   })
 
-  console.info(`HTTP server running at ${config.app.PORT}`)
+  app.log.info({ port: config.app.PORT }, 'HTTP server running')
 
   return app
 }

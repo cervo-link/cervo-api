@@ -3,6 +3,7 @@ import { authRoutes } from './auth-routes'
 import { bookmarksRoutes } from './bookmarks-routes'
 import { healthcheckRoute } from './healthcheck'
 import { memberRoutes } from './members-routes'
+import { waitingListRoutes } from './waiting-list-routes'
 import { workspaceIntegrationsRoutes } from './workspace-integrations-routes'
 import { workspaceRoutes } from './workspaces-routes'
 
@@ -13,4 +14,5 @@ export function routes(server: FastifyInstance) {
   server.register(workspaceRoutes)
   server.register(workspaceIntegrationsRoutes)
   server.register(memberRoutes)
+  server.register(waitingListRoutes)
 }

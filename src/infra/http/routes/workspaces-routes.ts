@@ -2,11 +2,13 @@ import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import {
   createWorkspaceController,
+  getMyWorkspacesController,
   getWorkspaceController,
 } from '../controllers/workspace-controller'
 import {
   createWorkspaceBodySchemaRequest,
   createWorkspaceBodySchemaResponse,
+  getMyWorkspacesSchemaResponse,
   getWorkspaceQuerySchemaRequest,
   getWorkspaceQuerySchemaResponse,
 } from '../schemas/workspaces-schema'
@@ -26,6 +28,18 @@ export async function workspaceRoutes(app: FastifyInstance) {
       body: createWorkspaceBodySchemaRequest,
     },
     handler: createWorkspaceController,
+  })
+
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: 'GET',
+    url: '/workspaces/me',
+    onRequest: [sessionAuth],
+    schema: {
+      description: 'List all workspaces the authenticated member belongs to',
+      tags: ['workspaces'],
+      response: getMyWorkspacesSchemaResponse,
+    },
+    handler: getMyWorkspacesController,
   })
 
   app.withTypeProvider<ZodTypeProvider>().route({
