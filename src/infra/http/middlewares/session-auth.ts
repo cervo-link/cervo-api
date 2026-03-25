@@ -12,6 +12,7 @@ export async function sessionAuth(
   })
 
   if (!session) {
+    console.warn(`[sessionAuth] no session — ${request.method} ${request.url}`)
     return reply.code(401).send({
       error: 'Unauthorized',
       message: 'Valid session is required.',
@@ -19,9 +20,12 @@ export async function sessionAuth(
     })
   }
 
+  console.log(`[sessionAuth] session found — userId=${session.user.id} ${request.method} ${request.url}`)
+
   const member = await findByUserId(session.user.id)
 
   if (!member) {
+    console.warn(`[sessionAuth] no member for userId=${session.user.id}`)
     return reply.code(401).send({
       error: 'Unauthorized',
       message: 'No member record found for this session.',
@@ -29,5 +33,6 @@ export async function sessionAuth(
     })
   }
 
+  console.log(`[sessionAuth] member resolved — memberId=${member.id}`)
   request.member = member
 }

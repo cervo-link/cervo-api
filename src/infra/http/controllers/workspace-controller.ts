@@ -14,7 +14,9 @@ export async function getMyWorkspacesController(
   reply: FastifyReply
 ) {
   return withSpan('get-my-workspaces', async () => {
+    console.log(`[getMyWorkspacesController] memberId=${request.member.id}`)
     const workspaces = await findByMemberId(request.member.id)
+    console.log(`[getMyWorkspacesController] found ${workspaces.length} workspace(s) for memberId=${request.member.id}`)
     return reply.status(200).send({ workspaces })
   })
 }

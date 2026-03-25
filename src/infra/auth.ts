@@ -2,6 +2,7 @@ import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { config } from '@/config'
 import { createMemberFromOAuth } from '@/domain/services/members/create-member-from-oauth-service'
+import { DomainError } from '@/domain/errors/domain-error'
 import { db } from '@/infra/db'
 import {
   findByEmail,
@@ -56,11 +57,15 @@ export const auth = betterAuth({
     user: {
       create: {
         after: async user => {
+          console.log(`[auth:hook] user.create.after fired — id=${user.id} email=${user.email}`)
+
           const existing = await findByEmail(user.email)
 
           if (existing) {
+            console.log(`[auth:hook] existing member found — memberId=${existing.id} hasUserId=${!!existing.userId}`)
             if (!existing.userId) {
               await updateUserId(existing.id, user.id)
+              console.log(`[auth:hook] linked userId ${user.id} to member ${existing.id}`)
             }
             return
           }
@@ -70,12 +75,20 @@ export const auth = betterAuth({
             .toLowerCase()
             .replace(/[^a-z0-9_]/g, '_')
 
-          await createMemberFromOAuth({
+          console.log(`[auth:hook] creating new member — username=${username}`)
+
+          const result = await createMemberFromOAuth({
             userId: user.id,
             name: user.name,
             username,
             email: user.email,
           })
+
+          if (result instanceof DomainError) {
+            console.error(`[auth:hook] ❌ failed to create member — ${result.message} (status=${result.status})`)
+          } else {
+            console.log(`[auth:hook] ✅ member created — memberId=${result.id}`)
+          }
         },
       },
     },

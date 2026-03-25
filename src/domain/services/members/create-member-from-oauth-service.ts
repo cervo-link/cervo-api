@@ -11,6 +11,8 @@ export async function createMemberFromOAuth(params: {
   username: string
 }): Promise<Member | DomainError> {
   return withSpan('create-member-from-oauth', async () => {
+    console.log(`[createMemberFromOAuth] inserting member — email=${params.email} username=${params.username}`)
+
     const member = await insertMember({
       userId: params.userId,
       name: params.name,
@@ -20,15 +22,24 @@ export async function createMemberFromOAuth(params: {
     })
 
     if (member instanceof DomainError) {
+      console.error(`[createMemberFromOAuth] ❌ insertMember failed — ${member.message}`)
       return member
     }
 
-    await createWorkspace({
+    console.log(`[createMemberFromOAuth] member inserted — memberId=${member.id}`)
+
+    const workspace = await createWorkspace({
       name: 'Personal',
       ownerId: member.id,
       isPublic: false,
       active: true,
     })
+
+    if (workspace instanceof DomainError) {
+      console.error(`[createMemberFromOAuth] ❌ createWorkspace failed — memberId=${member.id} error=${workspace.message}`)
+    } else {
+      console.log(`[createMemberFromOAuth] ✅ Personal workspace created — workspaceId=${workspace.id}`)
+    }
 
     return member
   })
