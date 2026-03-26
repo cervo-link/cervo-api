@@ -1,4 +1,5 @@
 import type { FastifyReply, FastifyRequest } from 'fastify'
+import { config } from '@/config'
 import { DomainError } from '@/domain/errors/domain-error'
 import { MemberNotFound } from '@/domain/errors/member-not-found'
 import { WorkspaceNotFound } from '@/domain/errors/workspace-not-found'
@@ -28,7 +29,9 @@ export async function createBookmarkController(
 
     const workspace = await findWorkspaceById(workspaceId)
     if (!workspace) {
-      return reply.status(404).send({ message: new WorkspaceNotFound().message })
+      return reply
+        .status(404)
+        .send({ message: new WorkspaceNotFound().message })
     }
 
     const member = await findMemberById(memberId)
@@ -38,10 +41,14 @@ export async function createBookmarkController(
 
     const membership = await getMembership(workspaceId, memberId)
     if (membership instanceof DomainError) {
-      return reply.status(membership.status).send({ message: membership.message })
+      return reply
+        .status(membership.status)
+        .send({ message: membership.message })
     }
 
-    const scrappingAdapter = createScrappingService('scrapping-bee')
+    const scrappingAdapter = createScrappingService(
+      config.firecrawl.SCRAPPING_PROVIDER
+    )
     const embeddingAdapter = createEmbeddingProvider('embeddinggemma')
     const summarizeAdapter = createSummarizeService('gemma')
 
@@ -70,7 +77,9 @@ export async function getBookmarksController(
 
     const workspace = await findWorkspaceById(workspaceId)
     if (!workspace) {
-      return reply.status(404).send({ message: new WorkspaceNotFound().message })
+      return reply
+        .status(404)
+        .send({ message: new WorkspaceNotFound().message })
     }
 
     const member = await findMemberById(memberId)
@@ -102,7 +111,9 @@ export async function retryBookmarkController(
   return withSpan('retry-bookmark', async () => {
     const { id } = retryBookmarkParamsSchema.parse(request.params)
 
-    const scrappingAdapter = createScrappingService('scrapping-bee')
+    const scrappingAdapter = createScrappingService(
+      config.firecrawl.SCRAPPING_PROVIDER
+    )
     const embeddingAdapter = createEmbeddingProvider('embeddinggemma')
     const summarizeAdapter = createSummarizeService('gemma')
 

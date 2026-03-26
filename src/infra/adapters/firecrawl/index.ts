@@ -16,7 +16,10 @@ async function scrapping(url: string) {
   })
 
   try {
-    const response = await client.scrape(url, { formats: ['markdown'] })
+    const response = await client.scrape(url, {
+      formats: ['markdown'],
+      onlyMainContent: true,
+    })
     return response.markdown ?? ''
   } catch (error) {
     return new FailedToScrap(`Firecrawl error: ${error as string}`)

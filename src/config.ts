@@ -36,6 +36,7 @@ function getFirecrawlConfig() {
   const schema = z.object({
     FIRECRAWL_API_KEY: z.string().optional(),
     FIRECRAWL_URL: z.url().optional(),
+    SCRAPPING_PROVIDER: z.enum(['scrapping-bee', 'firecrawl']).default('scrapping-bee'),
   })
 
   return schema.parse(process.env)
