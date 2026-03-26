@@ -114,8 +114,9 @@ describe('retryBookmark', () => {
 
     await retryBookmark(bookmark.id, scrappingService, embeddingService, summarizeService)
 
-    // Let the setImmediate fire
+    // Let the setImmediate fire and wait for all async DB operations to complete
     await new Promise(resolve => setImmediate(resolve))
+    await new Promise(resolve => setTimeout(resolve, 500))
 
     const updated = await findBookmarkById(bookmark.id)
     expect(updated?.status).toBe('ready')

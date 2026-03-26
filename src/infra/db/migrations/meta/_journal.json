@@ -92,6 +92,27 @@
       "when": 1774303106376,
       "tag": "20260323215826_create_waiting_list",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1774493541221,
+      "tag": "20260326025221_alter_bookmards_remove_table",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1774493554217,
+      "tag": "20260326025234_change_embedding_dimension_768_to_1536",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1774495856440,
+      "tag": "20260326033056_alter_bookmarks_table",
+      "breakpoints": true
     }
   ]
 }

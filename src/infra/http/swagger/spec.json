@@ -123,6 +123,16 @@
                   "url": {
                     "type": "string",
                     "format": "uri"
+                  },
+                  "source": {
+                    "default": "web",
+                    "type": "string",
+                    "enum": [
+                      "web",
+                      "discord",
+                      "raycast",
+                      "api"
+                    ]
                   }
                 },
                 "required": [
@@ -324,6 +334,9 @@
                         "nullable": true,
                         "type": "string"
                       },
+                      "source": {
+                        "type": "string"
+                      },
                       "createdAt": {
                         "type": "string",
                         "format": "date-time"
@@ -350,6 +363,7 @@
                       "description",
                       "tags",
                       "failureReason",
+                      "source",
                       "createdAt",
                       "updatedAt",
                       "visible"

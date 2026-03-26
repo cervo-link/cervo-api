@@ -6,10 +6,15 @@ export const bookmarkSchema = createSelectSchema(schema.bookmarks).omit({
   embedding: true,
 })
 
+export const bookmarkSourceSchema = z
+  .enum(['web', 'discord', 'raycast', 'api'])
+  .default('web')
+
 export const createBookmarkBodySchemaRequest = z.object({
   workspaceId: z.string().uuid('Workspace ID must be a valid UUID'),
   memberId: z.string().uuid('Member ID must be a valid UUID'),
   url: z.string().url('URL must be a valid URL'),
+  source: bookmarkSourceSchema.optional(),
 })
 
 export const createBookmarkBodySchemaResponse = {

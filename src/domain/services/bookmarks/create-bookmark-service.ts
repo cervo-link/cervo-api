@@ -12,6 +12,7 @@ export const insertBookmarkSchema = z.object({
   workspaceId: z.string(),
   memberId: z.string(),
   url: z.string(),
+  source: z.string().default('web'),
 })
 
 export type InsertBookmarkInput = z.infer<typeof insertBookmarkSchema>

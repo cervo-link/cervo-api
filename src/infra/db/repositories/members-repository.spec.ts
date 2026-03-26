@@ -75,8 +75,9 @@ describe('members-repository', () => {
 
   describe('findByEmail', () => {
     it('should return the member when found', async () => {
-      const member = await makeMember()
-      const result = await findByEmail(member.email!)
+      const email = 'member-find-by-email@example.com'
+      const member = await makeMember({ email })
+      const result = await findByEmail(email)
 
       expect(result).toEqual(expect.objectContaining({ id: member.id }))
     })

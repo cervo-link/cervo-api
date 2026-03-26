@@ -134,10 +134,13 @@ describe('createBookmarkController', () => {
 
 })
 
+let getBookmarksEmbedding: number[]
+
 describe('getBookmarksController', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockEmbeddingService.generateEmbedding.mockResolvedValue(makeRawEmbedding())
+    getBookmarksEmbedding = makeRawEmbedding()
+    mockEmbeddingService.generateEmbedding.mockResolvedValue(getBookmarksEmbedding)
     mockSummarizeService.explain.mockResolvedValue(['Because it matches the test query'])
   })
 
@@ -149,6 +152,7 @@ describe('getBookmarksController', () => {
     const bookmark = await makeBookmark({
       workspaceId: workspace.id,
       memberId: member.id,
+      embedding: getBookmarksEmbedding,
     })
 
     const response = await app.inject({
@@ -175,6 +179,7 @@ describe('getBookmarksController', () => {
       description: bookmark.description,
       tags: bookmark.tags,
       failureReason: bookmark.failureReason,
+      source: bookmark.source,
       createdAt: bookmark.createdAt.toISOString(),
       updatedAt: bookmark.updatedAt.toISOString(),
       visible: bookmark.visible,
