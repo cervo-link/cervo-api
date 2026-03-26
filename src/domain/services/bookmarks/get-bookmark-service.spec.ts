@@ -13,13 +13,15 @@ describe('getBookmarks', () => {
     const workspace = await makeWorkspace()
     await makeMembership(workspace.id, member.id)
 
+    const embedding = makeRawEmbedding()
     const bookmark = await makeBookmark({
       workspaceId: workspace.id,
       memberId: member.id,
+      embedding,
     })
 
     const embeddingService = {
-      generateEmbedding: vi.fn().mockResolvedValue(makeRawEmbedding()),
+      generateEmbedding: vi.fn().mockResolvedValue(embedding),
     }
 
     const summarizeService = {
@@ -54,6 +56,7 @@ describe('getBookmarks', () => {
         description: bookmark.description,
         tags: bookmark.tags,
         failureReason: bookmark.failureReason,
+        source: bookmark.source,
         createdAt: expect.any(Date),
         updatedAt: expect.any(Date),
         visible: true,
@@ -67,13 +70,15 @@ describe('getBookmarks', () => {
     const workspace = await makeWorkspace()
     await makeMembership(workspace.id, member.id)
 
+    const embedding = makeRawEmbedding()
     const bookmark = await makeBookmark({
       workspaceId: workspace.id,
       memberId: member.id,
+      embedding,
     })
 
     const embeddingService = {
-      generateEmbedding: vi.fn().mockResolvedValue(makeRawEmbedding()),
+      generateEmbedding: vi.fn().mockResolvedValue(embedding),
     }
 
     const summarizeService = {
