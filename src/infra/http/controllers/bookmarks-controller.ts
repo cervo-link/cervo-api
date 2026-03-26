@@ -24,7 +24,7 @@ export async function createBookmarkController(
   reply: FastifyReply
 ) {
   return withSpan('create-bookmark', async () => {
-    const { workspaceId, memberId, url } =
+    const { workspaceId, memberId, url, source } =
       createBookmarkBodySchemaRequest.parse(request.body)
 
     const workspace = await findWorkspaceById(workspaceId)
@@ -53,7 +53,7 @@ export async function createBookmarkController(
     const summarizeAdapter = createSummarizeService(config.openai.SUMMARIZE_PROVIDER)
 
     const result = await createBookmark(
-      { workspaceId, memberId, url },
+      { workspaceId, memberId, url, source: source ?? 'web' },
       scrappingAdapter,
       embeddingAdapter,
       summarizeAdapter

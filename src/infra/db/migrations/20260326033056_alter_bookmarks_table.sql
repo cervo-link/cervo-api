@@ -1,0 +1,1 @@
+ALTER TABLE "bookmarks" ADD COLUMN "source" text DEFAULT 'web' NOT NULL;

@@ -132,6 +132,7 @@ export const bookmarks = pgTable(
     description: text(),
     tags: text('tags').array(),
     failureReason: text('failure_reason'),
+    source: text('source').default('web').notNull(),
     embedding: vector('embedding', { dimensions: 1536 }),
     createdAt: timestamp().defaultNow().notNull(),
     updatedAt: timestamp().defaultNow().notNull(),

@@ -1,4 +1,4 @@
-import { and, asc, eq, getTableColumns, sql } from 'drizzle-orm'
+import { and, asc, eq, getTableColumns, lt, sql } from 'drizzle-orm'
 import type { Bookmark, InsertBookmark } from '@/domain/entities/bookmark'
 import type { DomainError } from '@/domain/errors/domain-error'
 import { FailedToCreateBookmark } from '@/domain/errors/failed-to-create-bookmark'
@@ -61,16 +61,19 @@ export async function findBookmarks(
       schema.bookmarks
     )
 
+    const distance = sql<number>`embedding <=> ${JSON.stringify(embedded)}::vector`
+
     return db
       .select(columns)
       .from(schema.bookmarks)
       .where(
         and(
           eq(schema.bookmarks.workspaceId, workspaceId),
-          eq(schema.bookmarks.visible, true)
+          eq(schema.bookmarks.visible, true),
+          lt(distance, 0.7)
         )
       )
-      .orderBy(asc(sql`embedding <-> ${JSON.stringify(embedded)}::vector`))
+      .orderBy(asc(distance))
       .limit(limit)
   })
 }
