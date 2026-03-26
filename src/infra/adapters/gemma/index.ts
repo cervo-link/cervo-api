@@ -39,12 +39,14 @@ export async function summarize(
     .filter(
       l =>
         l &&
-        !l.toLowerCase().includes('sure') &&
-        !l.toLowerCase().includes('summary') &&
-        !l.toLowerCase().includes('here') &&
-        !l.toLowerCase().includes('requested')
+        !l.toLowerCase().startsWith('sure') &&
+        !l.toLowerCase().startsWith('here') &&
+        !l.toLowerCase().startsWith('certainly') &&
+        !l.toLowerCase().startsWith('of course')
     )
-  const summary = lines[0].trim()
+
+  const summary = lines[0]?.trim()
+  if (!summary) return new FailedToSummarize('Empty summary response')
 
   return summary
 }

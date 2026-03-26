@@ -41,6 +41,16 @@ function getFirecrawlConfig() {
 
   return schema.parse(process.env)
 }
+
+function getOpenAIConfig() {
+  const schema = z.object({
+    OPENAI_API_KEY: z.string().optional(),
+    EMBEDDING_PROVIDER: z.enum(['embeddinggemma', 'openai']).default('embeddinggemma'),
+    SUMMARIZE_PROVIDER: z.enum(['gemma', 'openai']).default('gemma'),
+  })
+
+  return schema.parse(process.env)
+}
 function getEmbeddingGemmaConfig() {
   const schema = z.object({
     EMBEDDINGGEMMA_URL: z.url().optional(),
@@ -96,6 +106,7 @@ export const config = {
   scrappingBee: getScrappingBeeConfig(),
   firecrawl: getFirecrawlConfig(),
   embeddingGemma: getEmbeddingGemmaConfig(),
+  openai: getOpenAIConfig(),
   x: getXConfig(),
   auth: getAuthConfig(),
   betterAuth: getBetterAuthConfig(),

@@ -49,8 +49,8 @@ export async function createBookmarkController(
     const scrappingAdapter = createScrappingService(
       config.firecrawl.SCRAPPING_PROVIDER
     )
-    const embeddingAdapter = createEmbeddingProvider('embeddinggemma')
-    const summarizeAdapter = createSummarizeService('gemma')
+    const embeddingAdapter = createEmbeddingProvider(config.openai.EMBEDDING_PROVIDER)
+    const summarizeAdapter = createSummarizeService(config.openai.SUMMARIZE_PROVIDER)
 
     const result = await createBookmark(
       { workspaceId, memberId, url },
@@ -87,8 +87,8 @@ export async function getBookmarksController(
       return reply.status(404).send({ message: new MemberNotFound().message })
     }
 
-    const embeddingAdapter = createEmbeddingProvider('embeddinggemma')
-    const summarizeAdapter = createSummarizeService('gemma')
+    const embeddingAdapter = createEmbeddingProvider(config.openai.EMBEDDING_PROVIDER)
+    const summarizeAdapter = createSummarizeService(config.openai.SUMMARIZE_PROVIDER)
 
     const bookmarks = await getBookmarks(
       { workspaceId, memberId, text, limit },
@@ -114,8 +114,8 @@ export async function retryBookmarkController(
     const scrappingAdapter = createScrappingService(
       config.firecrawl.SCRAPPING_PROVIDER
     )
-    const embeddingAdapter = createEmbeddingProvider('embeddinggemma')
-    const summarizeAdapter = createSummarizeService('gemma')
+    const embeddingAdapter = createEmbeddingProvider(config.openai.EMBEDDING_PROVIDER)
+    const summarizeAdapter = createSummarizeService(config.openai.SUMMARIZE_PROVIDER)
 
     const result = await retryBookmark(
       id,
