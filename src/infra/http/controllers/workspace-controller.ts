@@ -5,6 +5,7 @@ import { getWorkspace } from '@/domain/services/workspace/get-workspace-service'
 import { logger } from '@/infra/logger'
 import { withSpan } from '@/infra/utils/with-span'
 import { findByMemberId } from '@/infra/db/repositories/workspaces-repository'
+import { replyWithError } from '@/infra/http/utils/reply-with'
 import {
   createWorkspaceBodySchemaRequest,
   getWorkspaceQuerySchemaRequest,
@@ -32,9 +33,7 @@ export async function createWorkspaceController(
 
     const workspace = await createWorkspace({ name, description, ownerId })
 
-    if (workspace instanceof DomainError) {
-      return reply.status(workspace.status).send({ message: workspace.message })
-    }
+    if (workspace instanceof DomainError) return replyWithError(reply, workspace)
 
     return reply.status(201).send({ workspace })
   })
@@ -49,9 +48,7 @@ export async function getWorkspaceController(
 
     const workspace = await getWorkspace(id)
 
-    if (workspace instanceof DomainError) {
-      return reply.status(workspace.status).send({ message: workspace.message })
-    }
+    if (workspace instanceof DomainError) return replyWithError(reply, workspace)
 
     return reply.status(200).send({ workspace })
   })
