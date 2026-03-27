@@ -1,9 +1,23 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "files": {
+    "includes": [
+      "src/**",
+      "!src/infra/db/migrations/**"
+    ]
+  },
   "formatter": {
-    "indentStyle": "space",
+    "enabled": true,
+    "indentStyle": "tab",
     "indentWidth": 2,
     "lineWidth": 80
+  },
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
   },
   "javascript": {
     "formatter": {
