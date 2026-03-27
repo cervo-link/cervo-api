@@ -34,6 +34,7 @@ const workspaceShape = z.object({
   name: z.string(),
   description: z.string().nullable(),
   isPublic: z.boolean(),
+  isPersonal: z.boolean(),
   createdAt: z.date(),
   updatedAt: z.date(),
   active: z.boolean(),

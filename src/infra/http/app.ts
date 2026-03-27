@@ -141,7 +141,6 @@ export async function writeSwaggerSpec(
   const apiSpec = JSON.stringify(server.swagger() || {}, null, 2)
 
   await Bun.write(specFile, apiSpec)
-  server.log.info({ path: specFile }, 'Swagger spec written')
 }
 
 export function transformSwaggerSchema(

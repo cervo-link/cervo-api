@@ -12,8 +12,6 @@ export async function createMemberFromOAuth(params: {
   username: string
 }): Promise<Member | DomainError> {
   return withSpan('create-member-from-oauth', async () => {
-    logger.info({ email: params.email, username: params.username }, '[createMemberFromOAuth] inserting member')
-
     const member = await insertMember({
       userId: params.userId,
       name: params.name,
@@ -33,6 +31,7 @@ export async function createMemberFromOAuth(params: {
       name: 'Personal',
       ownerId: member.id,
       isPublic: false,
+      isPersonal: true,
       active: true,
     })
 
