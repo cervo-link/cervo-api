@@ -51,6 +51,16 @@ export async function updateBookmark(
   })
 }
 
+export async function deleteBookmark(id: string): Promise<boolean> {
+  return withSpan('delete-bookmark', async () => {
+    const result = await db
+      .delete(schema.bookmarks)
+      .where(eq(schema.bookmarks.id, id))
+      .returning({ id: schema.bookmarks.id })
+    return result.length > 0
+  })
+}
+
 export async function findBookmarks(
   workspaceId: string,
   embedded: number[],

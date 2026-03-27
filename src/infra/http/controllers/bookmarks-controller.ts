@@ -7,6 +7,10 @@ import { createBookmark } from '@/domain/services/bookmarks/create-bookmark-serv
 import { getBookmarks } from '@/domain/services/bookmarks/get-bookmark-service'
 import { retryBookmark } from '@/domain/services/bookmarks/retry-bookmark-service'
 import { getMembership } from '@/domain/services/membership/get-membership'
+import {
+  deleteBookmark,
+  findBookmarkById,
+} from '@/infra/db/repositories/bookmark-repository'
 import { findById as findMemberById } from '@/infra/db/repositories/members-repository'
 import { findById as findWorkspaceById } from '@/infra/db/repositories/workspaces-repository'
 import { createEmbeddingProvider } from '@/infra/factories/embedding-service-factory'
@@ -15,7 +19,10 @@ import { createSummarizeService } from '@/infra/factories/summarize-service-fact
 import { replyWithError } from '@/infra/http/utils/reply-with'
 import { withSpan } from '@/infra/utils/with-span'
 import {
+  bookmarkSchema,
   createBookmarkBodySchemaRequest,
+  deleteBookmarkParamsSchema,
+  getBookmarkByIdParamsSchema,
   getBookmarksQuerySchemaRequest,
   retryBookmarkParamsSchema,
 } from '../schemas/bookmarks-schema'
@@ -107,5 +114,39 @@ export async function retryBookmarkController(
     if (result instanceof DomainError) return replyWithError(reply, result)
 
     return reply.status(200).send({ message: 'Retry triggered' })
+  })
+}
+
+export async function deleteBookmarkController(
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
+  return withSpan('delete-bookmark', async () => {
+    const { id } = deleteBookmarkParamsSchema.parse(request.params)
+
+    const bookmark = await findBookmarkById(id)
+    if (!bookmark) {
+      return reply.status(404).send({ message: 'Bookmark not found' })
+    }
+
+    await deleteBookmark(id)
+
+    return reply.status(200).send({ message: 'Bookmark deleted' })
+  })
+}
+
+export async function getBookmarkByIdController(
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
+  return withSpan('get-bookmark-by-id', async () => {
+    const { id } = getBookmarkByIdParamsSchema.parse(request.params)
+
+    const bookmark = await findBookmarkById(id)
+    if (!bookmark) {
+      return reply.status(404).send({ message: 'Bookmark not found' })
+    }
+
+    return reply.status(200).send(bookmarkSchema.parse(bookmark))
   })
 }
