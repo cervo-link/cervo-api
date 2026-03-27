@@ -328,3 +328,65 @@ describe('retryBookmarkController', () => {
     expect(JSON.parse(response.body)).toEqual({ message: 'Bookmark not found' })
   })
 })
+
+describe('deleteBookmarkController', () => {
+  it('should delete an existing bookmark', async () => {
+    const member = await makeMember()
+    const workspace = await makeWorkspace()
+    await makeMembership(workspace.id, member.id)
+    const bookmark = await makeBookmark({ workspaceId: workspace.id, memberId: member.id })
+
+    const response = await app.inject({
+      method: 'DELETE',
+      url: `/bookmarks/${bookmark.id}`,
+      headers: { authorization: `Bearer ${API_KEY}` },
+    })
+
+    expect(response.statusCode).toBe(200)
+    expect(JSON.parse(response.body)).toEqual({ message: 'Bookmark deleted' })
+  })
+
+  it('should return 404 when bookmark does not exist', async () => {
+    const response = await app.inject({
+      method: 'DELETE',
+      url: '/bookmarks/00000000-0000-0000-0000-000000000000',
+      headers: { authorization: `Bearer ${API_KEY}` },
+    })
+
+    expect(response.statusCode).toBe(404)
+    expect(JSON.parse(response.body)).toEqual({ message: 'Bookmark not found' })
+  })
+})
+
+describe('getBookmarkByIdController', () => {
+  it('should return a bookmark by id', async () => {
+    const member = await makeMember()
+    const workspace = await makeWorkspace()
+    await makeMembership(workspace.id, member.id)
+    const bookmark = await makeBookmark({ workspaceId: workspace.id, memberId: member.id })
+
+    const response = await app.inject({
+      method: 'GET',
+      url: `/bookmarks/${bookmark.id}`,
+      headers: { authorization: `Bearer ${API_KEY}` },
+    })
+
+    expect(response.statusCode).toBe(200)
+    const body = JSON.parse(response.body)
+    expect(body.id).toBe(bookmark.id)
+    expect(body.url).toBe(bookmark.url)
+    expect(body.workspaceId).toBe(workspace.id)
+    expect(body.memberId).toBe(member.id)
+  })
+
+  it('should return 404 when bookmark does not exist', async () => {
+    const response = await app.inject({
+      method: 'GET',
+      url: '/bookmarks/00000000-0000-0000-0000-000000000000',
+      headers: { authorization: `Bearer ${API_KEY}` },
+    })
+
+    expect(response.statusCode).toBe(404)
+    expect(JSON.parse(response.body)).toEqual({ message: 'Bookmark not found' })
+  })
+})
