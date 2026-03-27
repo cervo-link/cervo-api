@@ -142,7 +142,7 @@ const session = await auth.api.getSession({
 | Service | Location | Returns |
 |---|---|---|
 | `createBookmark` | `bookmarks/create-bookmark-service` | `Bookmark \| DomainError` |
-| `processBookmark` | `bookmarks/process-bookmark-service` | `void` |
+| `processBookmark` | `bookmarks/process-bookmark-service` | `DomainError \| null` |
 | `getBookmarks` | `bookmarks/get-bookmark-service` | `BookmarkWithExplanation[] \| DomainError` |
 | `retryBookmark` | `bookmarks/retry-bookmark-service` | `DomainError \| null` |
 | `createWorkspace` | `workspace/create-workspace-service` | `Workspace \| DomainError` |
@@ -164,14 +164,16 @@ Domain routes require API key auth (`Authorization: Bearer`, `X-API-Key`, or `?a
 | GET | `/health` | Health check (no auth) |
 | GET/POST | `/api/auth/*` | Better Auth handler (OAuth sign-in, session, logout) |
 | POST | `/bookmarks` | Submit URL for processing |
-| GET | `/bookmarks` | Vector similarity search |
+| GET | `/bookmarks` | Vector similarity search (cross-workspace when isPersonal) |
 | POST | `/bookmarks/:id/retry` | Retry failed bookmark |
 | POST | `/members/create` | Create member |
 | PUT | `/members/add` | Add member to workspace |
 | POST | `/members/:memberId/identities` | Link platform identity to member |
 | GET | `/members/by-identity` | Find member by platform identity |
+| GET | `/members/me` | Get current authenticated member + workspace |
 | POST | `/workspaces/create` | Create workspace |
 | GET | `/workspaces` | Get workspace by ID |
+| GET | `/workspaces/me` | Get workspaces for current authenticated member |
 | POST | `/workspaces/:workspaceId/integrations` | Add platform integration |
 | GET | `/workspaces/by-integration` | Find workspace by platform ID |
 

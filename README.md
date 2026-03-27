@@ -235,6 +235,8 @@ Interactive docs available at `/swagger` (development only).
 
 Only returns results with cosine distance < 0.7 (semantically relevant matches). Returns an empty array if nothing is relevant.
 
+**Personal workspace behaviour:** if the workspace has `isPersonal: true`, the search spans *all* workspaces the member belongs to — not just the given workspace. This lets a personal workspace act as a centralized view across every workspace the member has joined.
+
 ```json
 // 200
 [
@@ -334,7 +336,9 @@ workspaces
   id            UUID PK
   name          TEXT NOT NULL
   description   TEXT
+  ownerId       UUID → members.id
   isPublic      BOOLEAN DEFAULT false
+  isPersonal    BOOLEAN DEFAULT false  -- cross-workspace search when true
   createdAt     TIMESTAMP
   updatedAt     TIMESTAMP
   active        BOOLEAN DEFAULT true
