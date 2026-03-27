@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
 import { DomainError } from '@/domain/errors/domain-error'
-import { EmailAlreadyOnWaitingList } from '@/domain/errors/email-already-on-waiting-list'
 import { makeWaitingListEntry } from '@/tests/factories/make-waiting-list-entry'
 import { joinWaitingList } from './join-waiting-list-service'
 
@@ -12,7 +11,8 @@ describe('joinWaitingList', () => {
     })
 
     expect(result).not.toBeInstanceOf(DomainError)
-    if (!(result instanceof DomainError)) {
+    expect(result).not.toBeNull()
+    if (result !== null && !(result instanceof DomainError)) {
       expect(result.email).toBe('test@example.com')
       expect(result.allowPromoEmails).toBe(false)
       expect(result.id).toBeDefined()
@@ -27,12 +27,13 @@ describe('joinWaitingList', () => {
     })
 
     expect(result).not.toBeInstanceOf(DomainError)
-    if (!(result instanceof DomainError)) {
+    expect(result).not.toBeNull()
+    if (result !== null && !(result instanceof DomainError)) {
       expect(result.allowPromoEmails).toBe(true)
     }
   })
 
-  it('should return EmailAlreadyOnWaitingList when email is duplicated', async () => {
+  it('should return null when email is already on the waiting list', async () => {
     const entry = await makeWaitingListEntry()
 
     const result = await joinWaitingList({
@@ -40,9 +41,6 @@ describe('joinWaitingList', () => {
       allowPromoEmails: false,
     })
 
-    expect(result).toBeInstanceOf(EmailAlreadyOnWaitingList)
-    if (result instanceof DomainError) {
-      expect(result.status).toBe(409)
-    }
+    expect(result).toBeNull()
   })
 })

@@ -41,6 +41,7 @@ export const workspaces = pgTable('workspaces', {
   name: text().notNull(),
   description: text(),
   isPublic: boolean('is_public').default(false).notNull(),
+  isPersonal: boolean('is_personal').default(false).notNull(),
   createdAt: timestamp().defaultNow().notNull(),
   updatedAt: timestamp().defaultNow().notNull(),
   active: boolean().default(true).notNull(),

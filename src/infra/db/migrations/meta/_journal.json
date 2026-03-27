@@ -113,6 +113,13 @@
       "when": 1774495856440,
       "tag": "20260326033056_alter_bookmarks_table",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1774625282547,
+      "tag": "20260327152802_add_is_personal_to_workspaces",
+      "breakpoints": true
     }
   ]
 }

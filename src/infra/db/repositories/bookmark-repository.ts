@@ -1,4 +1,4 @@
-import { and, asc, eq, getTableColumns, lt, sql } from 'drizzle-orm'
+import { and, asc, eq, getTableColumns, inArray, lt, sql } from 'drizzle-orm'
 import type { Bookmark, InsertBookmark } from '@/domain/entities/bookmark'
 import type { DomainError } from '@/domain/errors/domain-error'
 import { FailedToCreateBookmark } from '@/domain/errors/failed-to-create-bookmark'
@@ -51,6 +51,16 @@ export async function updateBookmark(
   })
 }
 
+export async function deleteBookmark(id: string): Promise<boolean> {
+  return withSpan('delete-bookmark', async () => {
+    const result = await db
+      .delete(schema.bookmarks)
+      .where(eq(schema.bookmarks.id, id))
+      .returning({ id: schema.bookmarks.id })
+    return result.length > 0
+  })
+}
+
 export async function findBookmarks(
   workspaceId: string,
   embedded: number[],
@@ -69,6 +79,33 @@ export async function findBookmarks(
       .where(
         and(
           eq(schema.bookmarks.workspaceId, workspaceId),
+          eq(schema.bookmarks.visible, true),
+          lt(distance, 0.7)
+        )
+      )
+      .orderBy(asc(distance))
+      .limit(limit)
+  })
+}
+
+export async function findBookmarksAcrossWorkspaces(
+  workspaceIds: string[],
+  embedded: number[],
+  limit: number
+): Promise<Omit<Bookmark, 'embedding'>[]> {
+  return withSpan('get-bookmarks-across-workspaces', async () => {
+    const { embedding: _embedding, ...columns } = getTableColumns(
+      schema.bookmarks
+    )
+
+    const distance = sql<number>`embedding <=> ${JSON.stringify(embedded)}::vector`
+
+    return db
+      .select(columns)
+      .from(schema.bookmarks)
+      .where(
+        and(
+          inArray(schema.bookmarks.workspaceId, workspaceIds),
           eq(schema.bookmarks.visible, true),
           lt(distance, 0.7)
         )

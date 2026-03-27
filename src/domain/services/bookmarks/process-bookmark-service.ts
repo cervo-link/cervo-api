@@ -13,31 +13,23 @@ export async function processBookmark(
   scrappingService: ScrappingService,
   embeddingService: EmbeddingService,
   summarizeService: SummarizeService
-): Promise<void> {
+): Promise<DomainError | null> {
   return withSpan('process-bookmark', async (_span, tracer) => {
     const bookmark = await findBookmarkById(bookmarkId)
-    if (!bookmark) {
-      return
-    }
+    if (!bookmark) return null
 
     await updateBookmark(bookmarkId, { status: 'processing' })
 
     const rawText = await scrappingService.scrapping(bookmark.url, tracer)
     if (rawText instanceof DomainError) {
-      await updateBookmark(bookmarkId, {
-        status: 'failed',
-        failureReason: rawText.message,
-      })
-      return
+      await updateBookmark(bookmarkId, { status: 'failed', failureReason: rawText.message })
+      return rawText
     }
 
     const description = await summarizeService.summarize(rawText, tracer)
     if (description instanceof DomainError) {
-      await updateBookmark(bookmarkId, {
-        status: 'failed',
-        failureReason: description.message,
-      })
-      return
+      await updateBookmark(bookmarkId, { status: 'failed', failureReason: description.message })
+      return description
     }
 
     const titleResult = await summarizeService.generateTitle(description, tracer)
@@ -48,19 +40,11 @@ export async function processBookmark(
 
     const embedding = await embeddingService.generateEmbedding(description, tracer)
     if (embedding instanceof DomainError) {
-      await updateBookmark(bookmarkId, {
-        status: 'failed',
-        failureReason: embedding.message,
-      })
-      return
+      await updateBookmark(bookmarkId, { status: 'failed', failureReason: embedding.message })
+      return embedding
     }
 
-    await updateBookmark(bookmarkId, {
-      status: 'ready',
-      description,
-      title,
-      tags,
-      embedding,
-    })
+    await updateBookmark(bookmarkId, { status: 'ready', description, title, tags, embedding })
+    return null
   })
 }

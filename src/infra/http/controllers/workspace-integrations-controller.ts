@@ -3,12 +3,13 @@ import type { z } from 'zod'
 import { DomainError } from '@/domain/errors/domain-error'
 import { createWorkspaceIntegration } from '@/domain/services/workspace-integrations/create-workspace-integration-service'
 import { getWorkspaceByIntegration } from '@/domain/services/workspace-integrations/get-workspace-by-integration-service'
-import { withSpan } from '@/infra/utils/with-span'
 import type {
   addWorkspaceIntegrationBodySchema,
   addWorkspaceIntegrationParamsSchema,
   getWorkspaceByIntegrationQuerySchema,
 } from '@/infra/http/schemas/workspace-integrations-schema'
+import { replyWithError } from '@/infra/http/utils/reply-with'
+import { withSpan } from '@/infra/utils/with-span'
 
 export async function addWorkspaceIntegrationController(
   request: FastifyRequest<{
@@ -21,11 +22,13 @@ export async function addWorkspaceIntegrationController(
     const { workspaceId } = request.params
     const { provider, providerId } = request.body
 
-    const result = await createWorkspaceIntegration({ workspaceId, provider, providerId })
+    const result = await createWorkspaceIntegration({
+      workspaceId,
+      provider,
+      providerId,
+    })
 
-    if (result instanceof DomainError) {
-      return reply.status(result.status).send({ message: result.message })
-    }
+    if (result instanceof DomainError) return replyWithError(reply, result)
 
     return reply.status(201).send({ integration: result })
   })
@@ -42,9 +45,8 @@ export async function getWorkspaceByIntegrationController(
 
     const workspace = await getWorkspaceByIntegration(provider, providerId)
 
-    if (workspace instanceof DomainError) {
-      return reply.status(workspace.status).send({ message: workspace.message })
-    }
+    if (workspace instanceof DomainError)
+      return replyWithError(reply, workspace)
 
     return reply.status(200).send({ workspace })
   })

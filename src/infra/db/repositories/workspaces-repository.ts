@@ -5,34 +5,21 @@ import { DomainError } from '@/domain/errors/domain-error'
 import { withSpan } from '@/infra/utils/with-span'
 import { db } from '@/infra/db'
 import { schema } from '@/infra/db/schema'
-import { getPgError } from '@/infra/db/utils/get-pg-error'
-import { PgIntegrityConstraintViolation } from '@/infra/db/utils/postgres-error-codes'
+import { handleInsertError } from '@/infra/db/utils/insert-with-error-handling'
 
 export async function insertWorkspace(
   workspace: InsertWorkspace
 ): Promise<Workspace | DomainError> {
   return withSpan('insert-workspace', async () => {
-    try {
-      const [result] = await db
-        .insert(schema.workspaces)
-        .values(workspace)
-        .returning()
+    const result = await handleInsertError(
+      () => db.insert(schema.workspaces).values(workspace).returning(),
+      CannotCreateWorkspaceAlreadyExists,
+      'Failed to insert workspace'
+    )
 
-      if (!result) {
-        return new DomainError('Workspace not created', 500)
-      }
-
-      return result
-    } catch (error) {
-      const pgError = getPgError(error)
-      if (pgError?.code === PgIntegrityConstraintViolation.UniqueViolation) {
-        return new CannotCreateWorkspaceAlreadyExists()
-      }
-      return new DomainError(
-        `Failed to insert workspace due error: ${error as string}`,
-        500
-      )
-    }
+    if (result instanceof DomainError) return result
+    if (!result) return new DomainError('Workspace not created', 500)
+    return result
   })
 }
 

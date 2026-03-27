@@ -7,6 +7,7 @@ import { createMember } from '@/domain/services/members/create-member-service'
 import { auth } from '@/infra/auth'
 import { findByUserId } from '@/infra/db/repositories/members-repository'
 import { findByOwnerId } from '@/infra/db/repositories/workspaces-repository'
+import { replyWithError } from '@/infra/http/utils/reply-with'
 import { logger } from '@/infra/logger'
 import { withSpan } from '@/infra/utils/with-span'
 import {
@@ -19,15 +20,11 @@ export async function createMemberController(
   reply: FastifyReply
 ) {
   return withSpan('create-member', async () => {
-    const { name, username, email } = createMemberBodySchemaRequest.parse(
-      request.body
-    )
+    const { name, username, email } = createMemberBodySchemaRequest.parse(request.body)
 
     const member = await createMember({ name, username, email })
 
-    if (member instanceof DomainError) {
-      return reply.status(member.status).send({ message: member.message })
-    }
+    if (member instanceof DomainError) return replyWithError(reply, member)
 
     return reply.status(201).send({ member })
   })
@@ -38,9 +35,7 @@ export async function getMeController(
   reply: FastifyReply
 ) {
   const workspace = await findByOwnerId(request.member.id)
-  return reply
-    .status(200)
-    .send({ member: request.member, workspace: workspace ?? null })
+  return reply.status(200).send({ member: request.member, workspace: workspace ?? null })
 }
 
 export async function syncMemberController(
@@ -61,17 +56,11 @@ export async function syncMemberController(
     const existing = await findByUserId(session.user.id)
 
     if (existing) {
-      logger.info(
-        { memberId: existing.id },
-        '[syncMember] member already exists'
-      )
+      logger.info({ memberId: existing.id }, '[syncMember] member already exists')
       return reply.status(200).send({ member: existing })
     }
 
-    logger.info(
-      { userId: session.user.id },
-      '[syncMember] member not found, creating'
-    )
+    logger.info({ userId: session.user.id }, '[syncMember] member not found, creating')
 
     const username = session.user.email
       .split('@')[0]
@@ -86,11 +75,8 @@ export async function syncMemberController(
     })
 
     if (result instanceof DomainError) {
-      logger.error(
-        { message: result.message },
-        '[syncMember] failed to create member'
-      )
-      return reply.status(result.status).send({ message: result.message })
+      logger.error({ message: result.message }, '[syncMember] failed to create member')
+      return replyWithError(reply, result)
     }
 
     logger.info({ memberId: result.id }, '[syncMember] member created')
@@ -108,9 +94,7 @@ export async function addMemberToWorkspaceController(
 
     const result = await addMemberToWorkspace(memberId, workspaceId)
 
-    if (result instanceof DomainError) {
-      return reply.status(result.status).send({ message: result.message })
-    }
+    if (result instanceof DomainError) return replyWithError(reply, result)
 
     return reply.status(201).send({ message: 'Member invited to workspace.' })
   })

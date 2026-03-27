@@ -7,14 +7,22 @@ import { createBookmark } from '@/domain/services/bookmarks/create-bookmark-serv
 import { getBookmarks } from '@/domain/services/bookmarks/get-bookmark-service'
 import { retryBookmark } from '@/domain/services/bookmarks/retry-bookmark-service'
 import { getMembership } from '@/domain/services/membership/get-membership'
+import {
+  deleteBookmark,
+  findBookmarkById,
+} from '@/infra/db/repositories/bookmark-repository'
 import { findById as findMemberById } from '@/infra/db/repositories/members-repository'
 import { findById as findWorkspaceById } from '@/infra/db/repositories/workspaces-repository'
 import { createEmbeddingProvider } from '@/infra/factories/embedding-service-factory'
 import { createScrappingService } from '@/infra/factories/scrapping-service-factory'
 import { createSummarizeService } from '@/infra/factories/summarize-service-factory'
+import { replyWithError } from '@/infra/http/utils/reply-with'
 import { withSpan } from '@/infra/utils/with-span'
 import {
+  bookmarkSchema,
   createBookmarkBodySchemaRequest,
+  deleteBookmarkParamsSchema,
+  getBookmarkByIdParamsSchema,
   getBookmarksQuerySchemaRequest,
   retryBookmarkParamsSchema,
 } from '../schemas/bookmarks-schema'
@@ -29,9 +37,7 @@ export async function createBookmarkController(
 
     const workspace = await findWorkspaceById(workspaceId)
     if (!workspace) {
-      return reply
-        .status(404)
-        .send({ message: new WorkspaceNotFound().message })
+      return reply.status(404).send({ message: new WorkspaceNotFound().message })
     }
 
     const member = await findMemberById(memberId)
@@ -40,15 +46,9 @@ export async function createBookmarkController(
     }
 
     const membership = await getMembership(workspaceId, memberId)
-    if (membership instanceof DomainError) {
-      return reply
-        .status(membership.status)
-        .send({ message: membership.message })
-    }
+    if (membership instanceof DomainError) return replyWithError(reply, membership)
 
-    const scrappingAdapter = createScrappingService(
-      config.firecrawl.SCRAPPING_PROVIDER
-    )
+    const scrappingAdapter = createScrappingService(config.firecrawl.SCRAPPING_PROVIDER)
     const embeddingAdapter = createEmbeddingProvider(config.openai.EMBEDDING_PROVIDER)
     const summarizeAdapter = createSummarizeService(config.openai.SUMMARIZE_PROVIDER)
 
@@ -59,9 +59,7 @@ export async function createBookmarkController(
       summarizeAdapter
     )
 
-    if (result instanceof DomainError) {
-      return reply.status(result.status).send({ message: result.message })
-    }
+    if (result instanceof DomainError) return replyWithError(reply, result)
 
     return reply.status(201).send({ id: result.id, status: result.status })
   })
@@ -77,9 +75,7 @@ export async function getBookmarksController(
 
     const workspace = await findWorkspaceById(workspaceId)
     if (!workspace) {
-      return reply
-        .status(404)
-        .send({ message: new WorkspaceNotFound().message })
+      return reply.status(404).send({ message: new WorkspaceNotFound().message })
     }
 
     const member = await findMemberById(memberId)
@@ -96,9 +92,7 @@ export async function getBookmarksController(
       summarizeAdapter
     )
 
-    if (bookmarks instanceof DomainError) {
-      return reply.status(bookmarks.status).send({ message: bookmarks.message })
-    }
+    if (bookmarks instanceof DomainError) return replyWithError(reply, bookmarks)
 
     return reply.status(200).send(bookmarks)
   })
@@ -111,23 +105,48 @@ export async function retryBookmarkController(
   return withSpan('retry-bookmark', async () => {
     const { id } = retryBookmarkParamsSchema.parse(request.params)
 
-    const scrappingAdapter = createScrappingService(
-      config.firecrawl.SCRAPPING_PROVIDER
-    )
+    const scrappingAdapter = createScrappingService(config.firecrawl.SCRAPPING_PROVIDER)
     const embeddingAdapter = createEmbeddingProvider(config.openai.EMBEDDING_PROVIDER)
     const summarizeAdapter = createSummarizeService(config.openai.SUMMARIZE_PROVIDER)
 
-    const result = await retryBookmark(
-      id,
-      scrappingAdapter,
-      embeddingAdapter,
-      summarizeAdapter
-    )
+    const result = await retryBookmark(id, scrappingAdapter, embeddingAdapter, summarizeAdapter)
 
-    if (result instanceof DomainError) {
-      return reply.status(result.status).send({ message: result.message })
-    }
+    if (result instanceof DomainError) return replyWithError(reply, result)
 
     return reply.status(200).send({ message: 'Retry triggered' })
+  })
+}
+
+export async function deleteBookmarkController(
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
+  return withSpan('delete-bookmark', async () => {
+    const { id } = deleteBookmarkParamsSchema.parse(request.params)
+
+    const bookmark = await findBookmarkById(id)
+    if (!bookmark) {
+      return reply.status(404).send({ message: 'Bookmark not found' })
+    }
+
+    await deleteBookmark(id)
+
+    return reply.status(200).send({ message: 'Bookmark deleted' })
+  })
+}
+
+export async function getBookmarkByIdController(
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
+  return withSpan('get-bookmark-by-id', async () => {
+    const { id } = getBookmarkByIdParamsSchema.parse(request.params)
+
+    const bookmark = await findBookmarkById(id)
+    if (!bookmark) {
+      return reply.status(404).send({ message: 'Bookmark not found' })
+    }
+
+    return reply.status(200).send(bookmarkSchema.parse(bookmark))
   })
 }
