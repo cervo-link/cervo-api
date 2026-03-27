@@ -47,6 +47,7 @@ export async function findWorkspaceByIntegration(
         name: schema.workspaces.name,
         description: schema.workspaces.description,
         isPublic: schema.workspaces.isPublic,
+        isPersonal: schema.workspaces.isPersonal,
         createdAt: schema.workspaces.createdAt,
         updatedAt: schema.workspaces.updatedAt,
         active: schema.workspaces.active,

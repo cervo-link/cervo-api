@@ -15,7 +15,7 @@ export const insertBookmarkSchema = z.object({
   source: z.string().default('web'),
 })
 
-export type InsertBookmarkInput = z.infer<typeof insertBookmarkSchema>
+export type InsertBookmarkInput = z.input<typeof insertBookmarkSchema>
 
 export async function createBookmark(
   params: InsertBookmarkInput,
