@@ -1,7 +1,7 @@
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import { DomainError } from '@/domain/errors/domain-error'
-import { EmailAlreadyOnWaitingList } from '@/domain/errors/email-already-on-waiting-list'
 import { joinWaitingList } from '@/domain/services/waiting-list/join-waiting-list-service'
+import { replyWithError } from '@/infra/http/utils/reply-with'
 import { withSpan } from '@/infra/utils/with-span'
 import { joinWaitingListBodySchemaRequest } from '../schemas/waiting-list-schema'
 
@@ -15,13 +15,10 @@ export async function joinWaitingListController(
 
     const result = await joinWaitingList({ email, allowPromoEmails })
 
-    if (result instanceof EmailAlreadyOnWaitingList) {
-      return reply.status(200).send({ message: 'ok' })
-    }
+    if (result instanceof DomainError) return replyWithError(reply, result)
 
-    if (result instanceof DomainError) {
-      return reply.status(result.status).send({ message: result.message })
-    }
+    // null = already registered, both cases return 200/201 with ok response
+    if (result === null) return reply.status(200).send({ message: 'ok' })
 
     return reply.status(201).send(result)
   })

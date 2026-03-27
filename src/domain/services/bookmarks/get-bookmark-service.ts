@@ -1,6 +1,10 @@
 import type { Bookmark } from '@/domain/entities/bookmark'
 import { DomainError } from '@/domain/errors/domain-error'
-import { findBookmarks } from '@/infra/db/repositories/bookmark-repository'
+import {
+  findBookmarks,
+  findBookmarksAcrossWorkspaces,
+} from '@/infra/db/repositories/bookmark-repository'
+import { findByMemberId, findById } from '@/infra/db/repositories/workspaces-repository'
 import type { EmbeddingService } from '@/infra/ports/embedding'
 import type { SummarizeService } from '@/infra/ports/summarize'
 import { withSpan } from '@/infra/utils/with-span'
@@ -29,7 +33,16 @@ export async function getBookmarks(
       return embedded
     }
 
-    const bookmarks = await findBookmarks(input.workspaceId, embedded, input.limit)
+    const workspace = await findById(input.workspaceId)
+
+    let bookmarks: Omit<Bookmark, 'embedding'>[]
+    if (workspace?.isPersonal) {
+      const memberWorkspaces = await findByMemberId(input.memberId)
+      const workspaceIds = memberWorkspaces.map(w => w.id)
+      bookmarks = await findBookmarksAcrossWorkspaces(workspaceIds, embedded, input.limit)
+    } else {
+      bookmarks = await findBookmarks(input.workspaceId, embedded, input.limit)
+    }
 
     if (bookmarks.length === 0) {
       return []

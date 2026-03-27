@@ -12,6 +12,7 @@ export function makeRawWorkspace(overrides: Overrides = {}): InsertWorkspace {
     name: faker.company.name(),
     active: true,
     isPublic: false,
+    isPersonal: false,
     description: faker.lorem.sentence(),
     ownerId: overrides.ownerId ?? '',
     ...overrides,

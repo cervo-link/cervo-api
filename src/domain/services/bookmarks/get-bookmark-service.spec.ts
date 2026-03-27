@@ -139,4 +139,99 @@ describe('getBookmarks', () => {
     expect(result).toEqual([])
     expect(summarizeService.explain).not.toHaveBeenCalled()
   })
+
+  it('should return bookmarks from all member workspaces when workspace is personal', async () => {
+    const member = await makeMember()
+
+    const personalWorkspace = await makeWorkspace({ isPersonal: true, ownerId: member.id })
+    await makeMembership(personalWorkspace.id, member.id)
+
+    const otherWorkspace = await makeWorkspace({ ownerId: member.id })
+    await makeMembership(otherWorkspace.id, member.id)
+
+    const embedding = makeRawEmbedding()
+
+    const bookmarkInPersonal = await makeBookmark({
+      workspaceId: personalWorkspace.id,
+      memberId: member.id,
+      embedding,
+    })
+    const bookmarkInOther = await makeBookmark({
+      workspaceId: otherWorkspace.id,
+      memberId: member.id,
+      embedding,
+    })
+
+    const embeddingService = {
+      generateEmbedding: vi.fn().mockResolvedValue(embedding),
+    }
+    const summarizeService = {
+      summarize: vi.fn(),
+      generateTitle: vi.fn(),
+      generateTags: vi.fn(),
+      explain: vi.fn().mockResolvedValue([]),
+    }
+
+    const bookmarks = await getBookmarks(
+      {
+        workspaceId: personalWorkspace.id,
+        memberId: member.id,
+        text: 'test',
+        limit: 10,
+      },
+      embeddingService,
+      summarizeService
+    )
+
+    const ids = (bookmarks as { id: string }[]).map(b => b.id)
+    expect(ids).toContain(bookmarkInPersonal.id)
+    expect(ids).toContain(bookmarkInOther.id)
+  })
+
+  it('should not return bookmarks from other workspaces when workspace is not personal', async () => {
+    const member = await makeMember()
+
+    const workspace = await makeWorkspace({ ownerId: member.id })
+    await makeMembership(workspace.id, member.id)
+
+    const otherWorkspace = await makeWorkspace({ ownerId: member.id })
+    await makeMembership(otherWorkspace.id, member.id)
+
+    const embedding = makeRawEmbedding()
+
+    await makeBookmark({
+      workspaceId: workspace.id,
+      memberId: member.id,
+      embedding,
+    })
+    const bookmarkInOther = await makeBookmark({
+      workspaceId: otherWorkspace.id,
+      memberId: member.id,
+      embedding,
+    })
+
+    const embeddingService = {
+      generateEmbedding: vi.fn().mockResolvedValue(embedding),
+    }
+    const summarizeService = {
+      summarize: vi.fn(),
+      generateTitle: vi.fn(),
+      generateTags: vi.fn(),
+      explain: vi.fn().mockResolvedValue([]),
+    }
+
+    const bookmarks = await getBookmarks(
+      {
+        workspaceId: workspace.id,
+        memberId: member.id,
+        text: 'test',
+        limit: 10,
+      },
+      embeddingService,
+      summarizeService
+    )
+
+    const ids = (bookmarks as { id: string }[]).map(b => b.id)
+    expect(ids).not.toContain(bookmarkInOther.id)
+  })
 })

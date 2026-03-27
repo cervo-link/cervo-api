@@ -2,6 +2,7 @@ import type { FastifyReply, FastifyRequest } from 'fastify'
 import { DomainError } from '@/domain/errors/domain-error'
 import { createMemberPlatformIdentity } from '@/domain/services/members/create-member-platform-identity-service'
 import { findMemberByPlatform } from '@/domain/services/members/find-member-by-platform-service'
+import { replyWithError } from '@/infra/http/utils/reply-with'
 import { withSpan } from '@/infra/utils/with-span'
 import {
   createMemberIdentityBodySchema,
@@ -19,9 +20,7 @@ export async function createMemberIdentityController(
 
     const result = await createMemberPlatformIdentity({ memberId, provider, providerUserId })
 
-    if (result instanceof DomainError) {
-      return reply.status(result.status).send({ message: result.message })
-    }
+    if (result instanceof DomainError) return replyWithError(reply, result)
 
     return reply.status(201).send({ identity: result })
   })
@@ -36,9 +35,7 @@ export async function findMemberByIdentityController(
 
     const result = await findMemberByPlatform({ provider, providerUserId })
 
-    if (result instanceof DomainError) {
-      return reply.status(result.status).send({ message: result.message })
-    }
+    if (result instanceof DomainError) return replyWithError(reply, result)
 
     return reply.status(200).send({ member: result })
   })

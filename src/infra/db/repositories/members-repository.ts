@@ -1,39 +1,36 @@
 import { eq } from 'drizzle-orm'
 import type { InsertMember, Member } from '@/domain/entities/member'
 import { CannotCreateDuplicatedMember } from '@/domain/errors/cannot-create-duplicated-member'
-import { DomainError } from '@/domain/errors/domain-error'
-import { withSpan } from '@/infra/utils/with-span'
+import type { DomainError } from '@/domain/errors/domain-error'
 import { db } from '@/infra/db/'
 import { members } from '@/infra/db/schema'
-import { getPgError } from '@/infra/db/utils/get-pg-error'
-import { PgIntegrityConstraintViolation } from '@/infra/db/utils/postgres-error-codes'
+import { handleInsertError } from '@/infra/db/utils/insert-with-error-handling'
 import type { Transaction } from '@/infra/db/utils/transactions'
+import { withSpan } from '@/infra/utils/with-span'
 
 export async function insertMember(
   member: InsertMember
 ): Promise<Member | DomainError> {
-  return withSpan('insert-member', async () => {
-    try {
-      const [result] = await db.insert(members).values(member).returning()
-      return result
-    } catch (error) {
-      return handleError(error)
-    }
-  })
+  return withSpan('insert-member', () =>
+    handleInsertError(
+      () => db.insert(members).values(member).returning(),
+      CannotCreateDuplicatedMember,
+      'Failed to insert member'
+    )
+  )
 }
 
 export async function insertMemberWithTransaction(
   tx: Transaction,
   member: InsertMember
 ): Promise<Member | DomainError> {
-  return withSpan('insert-member-with-transaction', async () => {
-    try {
-      const [result] = await tx.insert(members).values(member).returning()
-      return result
-    } catch (error) {
-      return handleError(error)
-    }
-  })
+  return withSpan('insert-member-with-transaction', () =>
+    handleInsertError(
+      () => tx.insert(members).values(member).returning(),
+      CannotCreateDuplicatedMember,
+      'Failed to insert member'
+    )
+  )
 }
 
 export async function findById(id: string): Promise<Member | null> {
@@ -68,17 +65,4 @@ export async function findByEmail(email: string): Promise<Member | null> {
       .where(eq(members.email, email))
     return result || null
   })
-}
-
-function handleError(error: unknown): DomainError {
-  const pgError = getPgError(error)
-  if (pgError) {
-    if (pgError.code === PgIntegrityConstraintViolation.UniqueViolation) {
-      return new CannotCreateDuplicatedMember()
-    }
-  }
-  return new DomainError(
-    `Failed to insert member due error: ${error as string}`,
-    500
-  )
 }
