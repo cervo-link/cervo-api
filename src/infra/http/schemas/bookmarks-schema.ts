@@ -47,6 +47,28 @@ export const bookmarkWithExplanationSchema = bookmarkSchema.extend({
   matchedBecause: z.string().optional(),
 })
 
+export const deleteBookmarkParamsSchema = z.object({
+  id: z.string().uuid(),
+})
+
+export const deleteBookmarkResponseSchema = {
+  200: z.object({
+    message: z.string(),
+  }),
+  404: z.object({
+    message: z.string(),
+  }),
+}
+
+export const getBookmarkByIdParamsSchema = z.object({
+  id: z.string().uuid('Bookmark ID must be a valid UUID'),
+})
+
+export const getBookmarkByIdResponseSchema = {
+  200: bookmarkSchema.describe('Bookmark retrieved successfully'),
+  404: z.object({ message: z.string() }).describe('Bookmark not found'),
+}
+
 export const getBookmarksBodySchemaResponse = {
   500: z
     .object({ message: z.string() })
