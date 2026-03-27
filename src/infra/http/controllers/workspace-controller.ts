@@ -9,6 +9,7 @@ import { replyWithError } from '@/infra/http/utils/reply-with'
 import {
   createWorkspaceBodySchemaRequest,
   getWorkspaceQuerySchemaRequest,
+  getWorkspacesByMemberParamsSchema,
 } from '../schemas/workspaces-schema'
 
 export async function getMyWorkspacesController(
@@ -19,6 +20,19 @@ export async function getMyWorkspacesController(
     logger.info({ memberId: request.member.id }, '[getMyWorkspacesController] fetching workspaces')
     const workspaces = await findByMemberId(request.member.id)
     logger.info({ memberId: request.member.id, count: workspaces.length }, '[getMyWorkspacesController] workspaces found')
+    return reply.status(200).send({ workspaces })
+  })
+}
+
+export async function getWorkspacesByMemberController(
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
+  return withSpan('get-workspaces-by-member', async () => {
+    const { memberId } = getWorkspacesByMemberParamsSchema.parse(request.params)
+    logger.info({ memberId }, '[getWorkspacesByMemberController] fetching workspaces')
+    const workspaces = await findByMemberId(memberId)
+    logger.info({ memberId, count: workspaces.length }, '[getWorkspacesByMemberController] workspaces found')
     return reply.status(200).send({ workspaces })
   })
 }
