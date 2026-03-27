@@ -5,34 +5,22 @@ import type {
 } from '@/domain/entities/workspace-integration'
 import type { Workspace } from '@/domain/entities/workspace'
 import { IntegrationAlreadyExists } from '@/domain/errors/integration-already-exists'
-import { DomainError } from '@/domain/errors/domain-error'
+import type { DomainError } from '@/domain/errors/domain-error'
 import { withSpan } from '@/infra/utils/with-span'
 import { db } from '@/infra/db'
 import { schema } from '@/infra/db/schema'
-import { getPgError } from '@/infra/db/utils/get-pg-error'
-import { PgIntegrityConstraintViolation } from '@/infra/db/utils/postgres-error-codes'
+import { handleInsertError } from '@/infra/db/utils/insert-with-error-handling'
 
 export async function insertWorkspaceIntegration(
   params: InsertWorkspaceIntegration
 ): Promise<WorkspaceIntegration | DomainError> {
-  return withSpan('insert-workspace-integration', async () => {
-    try {
-      const [result] = await db
-        .insert(schema.workspaceIntegrations)
-        .values(params)
-        .returning()
-      return result
-    } catch (error) {
-      const pgError = getPgError(error)
-      if (pgError?.code === PgIntegrityConstraintViolation.UniqueViolation) {
-        return new IntegrationAlreadyExists()
-      }
-      return new DomainError(
-        `Failed to insert workspace integration: ${error as string}`,
-        500
-      )
-    }
-  })
+  return withSpan('insert-workspace-integration', () =>
+    handleInsertError(
+      () => db.insert(schema.workspaceIntegrations).values(params).returning(),
+      IntegrationAlreadyExists,
+      'Failed to insert workspace integration'
+    )
+  )
 }
 
 export async function findWorkspaceByIntegration(

@@ -5,34 +5,22 @@ import type {
 } from '@/domain/entities/member-platform-identity'
 import type { Member } from '@/domain/entities/member'
 import { IdentityAlreadyExists } from '@/domain/errors/identity-already-exists'
-import { DomainError } from '@/domain/errors/domain-error'
+import type { DomainError } from '@/domain/errors/domain-error'
 import { withSpan } from '@/infra/utils/with-span'
 import { db } from '@/infra/db'
 import { schema } from '@/infra/db/schema'
-import { getPgError } from '@/infra/db/utils/get-pg-error'
-import { PgIntegrityConstraintViolation } from '@/infra/db/utils/postgres-error-codes'
+import { handleInsertError } from '@/infra/db/utils/insert-with-error-handling'
 
 export async function insertMemberPlatformIdentity(
   params: InsertMemberPlatformIdentity
 ): Promise<MemberPlatformIdentity | DomainError> {
-  return withSpan('insert-member-platform-identity', async () => {
-    try {
-      const [result] = await db
-        .insert(schema.memberPlatformIdentities)
-        .values(params)
-        .returning()
-      return result
-    } catch (error) {
-      const pgError = getPgError(error)
-      if (pgError?.code === PgIntegrityConstraintViolation.UniqueViolation) {
-        return new IdentityAlreadyExists()
-      }
-      return new DomainError(
-        `Failed to insert member platform identity: ${error as string}`,
-        500
-      )
-    }
-  })
+  return withSpan('insert-member-platform-identity', () =>
+    handleInsertError(
+      () => db.insert(schema.memberPlatformIdentities).values(params).returning(),
+      IdentityAlreadyExists,
+      'Failed to insert member platform identity'
+    )
+  )
 }
 
 export async function findMemberByProviderIdentity(
