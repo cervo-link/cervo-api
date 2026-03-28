@@ -5,6 +5,7 @@ import {
   deleteWorkspaceController,
   getMyWorkspacesController,
   getWorkspaceController,
+  updateWorkspaceController,
 } from '../controllers/workspace-controller'
 import {
   createWorkspaceBodySchemaRequest,
@@ -14,6 +15,9 @@ import {
   getMyWorkspacesSchemaResponse,
   getWorkspaceQuerySchemaRequest,
   getWorkspaceQuerySchemaResponse,
+  updateWorkspaceBodySchemaRequest,
+  updateWorkspaceParamsSchemaRequest,
+  updateWorkspaceSchemaResponse,
 } from '../schemas/workspaces-schema'
 import { anyAuth } from '@/infra/http/middlewares/any-auth'
 import { apiKeyAuth } from '@/infra/http/middlewares/api-key-auth'
@@ -31,6 +35,20 @@ export async function workspaceRoutes(app: FastifyInstance) {
       body: createWorkspaceBodySchemaRequest,
     },
     handler: createWorkspaceController,
+  })
+
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: 'PATCH',
+    url: '/workspaces/:workspaceId',
+    onRequest: [sessionAuth],
+    schema: {
+      description: 'Update a workspace name, description, or visibility',
+      tags: ['workspaces'],
+      params: updateWorkspaceParamsSchemaRequest,
+      body: updateWorkspaceBodySchemaRequest,
+      response: updateWorkspaceSchemaResponse,
+    },
+    handler: updateWorkspaceController,
   })
 
   app.withTypeProvider<ZodTypeProvider>().route({

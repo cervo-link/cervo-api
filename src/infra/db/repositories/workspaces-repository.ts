@@ -66,6 +66,20 @@ export async function findByMemberId(memberId: string): Promise<Workspace[]> {
   })
 }
 
+export async function updateWorkspaceById(
+  id: string,
+  data: Partial<Pick<InsertWorkspace, 'name' | 'description' | 'isPublic'>>
+): Promise<Workspace | null> {
+  return withSpan('update-workspace-by-id', async () => {
+    const [result] = await db
+      .update(schema.workspaces)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(schema.workspaces.id, id))
+      .returning()
+    return result ?? null
+  })
+}
+
 export async function deleteWorkspaceById(id: string): Promise<void> {
   return withSpan('delete-workspace-by-id', async () => {
     await db

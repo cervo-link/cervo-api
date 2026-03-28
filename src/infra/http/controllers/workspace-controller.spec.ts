@@ -1,9 +1,20 @@
-import { describe, expect, it } from 'vitest'
+import { randomUUID } from 'node:crypto'
+import { describe, expect, it, vi } from 'vitest'
+import type { Member } from '@/domain/entities/member'
+import type { FastifyRequest } from 'fastify'
 import app from '@/infra/http/app'
 import { makeMember } from '@/tests/factories/make-member'
 import { makeWorkspace } from '@/tests/factories/make-workspace'
 
 const API_KEY = 'test-api-key-for-testing'
+
+let currentMember: Member
+
+vi.mock('@/infra/http/middlewares/session-auth', () => ({
+  sessionAuth: vi.fn(async (request: FastifyRequest) => {
+    request.member = currentMember
+  }),
+}))
 
 describe('WorkspaceController', () => {
   describe('POST /workspaces/create', () => {
@@ -73,6 +84,188 @@ describe('WorkspaceController', () => {
 
       expect(response.statusCode).toBe(404)
       expect(JSON.parse(response.body)).toEqual({ message: 'Workspace not found' })
+    })
+  })
+
+  describe('PATCH /workspaces/:workspaceId', () => {
+    it('should update workspace name', async () => {
+      const owner = await makeMember()
+      const workspace = await makeWorkspace({ ownerId: owner.id })
+      currentMember = owner
+
+      const response = await app.inject({
+        method: 'PATCH',
+        url: `/workspaces/${workspace.id}`,
+        payload: { name: 'Updated Name' },
+      })
+
+      expect(response.statusCode).toBe(200)
+      expect(JSON.parse(response.body).workspace.name).toBe('Updated Name')
+    })
+
+    it('should update workspace description', async () => {
+      const owner = await makeMember()
+      const workspace = await makeWorkspace({ ownerId: owner.id })
+      currentMember = owner
+
+      const response = await app.inject({
+        method: 'PATCH',
+        url: `/workspaces/${workspace.id}`,
+        payload: { description: 'New description' },
+      })
+
+      expect(response.statusCode).toBe(200)
+      expect(JSON.parse(response.body).workspace.description).toBe(
+        'New description'
+      )
+    })
+
+    it('should update workspace visibility', async () => {
+      const owner = await makeMember()
+      const workspace = await makeWorkspace({ ownerId: owner.id, isPublic: false })
+      currentMember = owner
+
+      const response = await app.inject({
+        method: 'PATCH',
+        url: `/workspaces/${workspace.id}`,
+        payload: { isPublic: true },
+      })
+
+      expect(response.statusCode).toBe(200)
+      expect(JSON.parse(response.body).workspace.isPublic).toBe(true)
+    })
+
+    it('should return 404 when workspace does not exist', async () => {
+      currentMember = await makeMember()
+
+      const response = await app.inject({
+        method: 'PATCH',
+        url: `/workspaces/${randomUUID()}`,
+        payload: { name: 'New Name' },
+      })
+
+      expect(response.statusCode).toBe(404)
+      expect(JSON.parse(response.body)).toEqual({ message: 'Workspace not found' })
+    })
+
+    it('should return 403 when requester is not the owner', async () => {
+      const owner = await makeMember()
+      const other = await makeMember()
+      const workspace = await makeWorkspace({ ownerId: owner.id })
+      currentMember = other
+
+      const response = await app.inject({
+        method: 'PATCH',
+        url: `/workspaces/${workspace.id}`,
+        payload: { name: 'Hijacked' },
+      })
+
+      expect(response.statusCode).toBe(403)
+    })
+
+    it('should return 403 for a personal workspace', async () => {
+      const owner = await makeMember()
+      const workspace = await makeWorkspace({ ownerId: owner.id, isPersonal: true })
+      currentMember = owner
+
+      const response = await app.inject({
+        method: 'PATCH',
+        url: `/workspaces/${workspace.id}`,
+        payload: { name: 'New Name' },
+      })
+
+      expect(response.statusCode).toBe(403)
+    })
+
+    it('should return 400 when body is empty', async () => {
+      const owner = await makeMember()
+      const workspace = await makeWorkspace({ ownerId: owner.id })
+      currentMember = owner
+
+      const response = await app.inject({
+        method: 'PATCH',
+        url: `/workspaces/${workspace.id}`,
+        payload: {},
+      })
+
+      expect(response.statusCode).toBe(400)
+    })
+
+    it('should return 400 when workspaceId is not a valid UUID', async () => {
+      currentMember = await makeMember()
+
+      const response = await app.inject({
+        method: 'PATCH',
+        url: '/workspaces/not-a-uuid',
+        payload: { name: 'New Name' },
+      })
+
+      expect(response.statusCode).toBe(400)
+    })
+  })
+
+  describe('DELETE /workspaces/:workspaceId', () => {
+    it('should delete a workspace', async () => {
+      const owner = await makeMember()
+      const workspace = await makeWorkspace({ ownerId: owner.id })
+      currentMember = owner
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/workspaces/${workspace.id}`,
+      })
+
+      expect(response.statusCode).toBe(204)
+    })
+
+    it('should return 404 when workspace does not exist', async () => {
+      currentMember = await makeMember()
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/workspaces/${randomUUID()}`,
+      })
+
+      expect(response.statusCode).toBe(404)
+      expect(JSON.parse(response.body)).toEqual({ message: 'Workspace not found' })
+    })
+
+    it('should return 403 when requester is not the owner', async () => {
+      const owner = await makeMember()
+      const other = await makeMember()
+      const workspace = await makeWorkspace({ ownerId: owner.id })
+      currentMember = other
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/workspaces/${workspace.id}`,
+      })
+
+      expect(response.statusCode).toBe(403)
+    })
+
+    it('should return 403 for a personal workspace', async () => {
+      const owner = await makeMember()
+      const workspace = await makeWorkspace({ ownerId: owner.id, isPersonal: true })
+      currentMember = owner
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/workspaces/${workspace.id}`,
+      })
+
+      expect(response.statusCode).toBe(403)
+    })
+
+    it('should return 400 when workspaceId is not a valid UUID', async () => {
+      currentMember = await makeMember()
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: '/workspaces/not-a-uuid',
+      })
+
+      expect(response.statusCode).toBe(400)
     })
   })
 })

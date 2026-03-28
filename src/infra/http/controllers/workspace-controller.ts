@@ -3,6 +3,7 @@ import { DomainError } from '@/domain/errors/domain-error'
 import { createWorkspace } from '@/domain/services/workspace/create-workspace-service'
 import { deleteWorkspace } from '@/domain/services/workspace/delete-workspace-service'
 import { getWorkspace } from '@/domain/services/workspace/get-workspace-service'
+import { updateWorkspace } from '@/domain/services/workspace/update-workspace-service'
 import { withSpan } from '@/infra/utils/with-span'
 import { findByMemberId } from '@/infra/db/repositories/workspaces-repository'
 import { replyWithError } from '@/infra/http/utils/reply-with'
@@ -10,6 +11,8 @@ import {
   createWorkspaceBodySchemaRequest,
   deleteWorkspaceParamsSchemaRequest,
   getWorkspaceQuerySchemaRequest,
+  updateWorkspaceBodySchemaRequest,
+  updateWorkspaceParamsSchemaRequest,
 } from '../schemas/workspaces-schema'
 
 export async function getMyWorkspacesController(
@@ -35,6 +38,24 @@ export async function createWorkspaceController(
     if (workspace instanceof DomainError) return replyWithError(reply, workspace)
 
     return reply.status(201).send({ workspace })
+  })
+}
+
+export async function updateWorkspaceController(
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
+  return withSpan('update-workspace', async () => {
+    const { workspaceId } = updateWorkspaceParamsSchemaRequest.parse(
+      request.params
+    )
+    const data = updateWorkspaceBodySchemaRequest.parse(request.body)
+
+    const workspace = await updateWorkspace(workspaceId, request.member.id, data)
+
+    if (workspace instanceof DomainError) return replyWithError(reply, workspace)
+
+    return reply.status(200).send({ workspace })
   })
 }
 
