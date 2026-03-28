@@ -110,6 +110,16 @@ export const inviteMemberSchemaResponse = {
   201: z.object({ message: z.string() }).describe('Member invited'),
 }
 
+export const getWorkspacesByMemberParamsSchema = z.object({
+  memberId: z.string().uuid('Member ID must be a valid UUID'),
+})
+
+export const getWorkspacesByMemberResponseSchema = {
+  200: z.object({ workspaces: z.array(workspaceShape) }).describe('List of workspaces'),
+  404: z.object({ message: z.string() }).describe('Member not found'),
+  500: z.object({ message: z.string() }).describe('Failed to get workspaces'),
+}
+
 export const getWorkspaceQuerySchemaRequest = z.object({
   id: z.string().uuid('Workspace ID must be a valid UUID'),
 })

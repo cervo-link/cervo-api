@@ -6,12 +6,14 @@ import { getWorkspace } from '@/domain/services/workspace/get-workspace-service'
 import { inviteMemberByEmail } from '@/domain/services/workspace/invite-member-service'
 import { updateWorkspace } from '@/domain/services/workspace/update-workspace-service'
 import { findByMemberId } from '@/infra/db/repositories/workspaces-repository'
+import { logger } from '@/infra/logger'
 import { replyWithError } from '@/infra/http/utils/reply-with'
 import { withSpan } from '@/infra/utils/with-span'
 import {
 	createWorkspaceBodySchemaRequest,
 	deleteWorkspaceParamsSchemaRequest,
 	getWorkspaceQuerySchemaRequest,
+	getWorkspacesByMemberParamsSchema,
 	inviteMemberBodySchemaRequest,
 	inviteMemberParamsSchemaRequest,
 	updateWorkspaceBodySchemaRequest,
@@ -26,6 +28,19 @@ export async function getMyWorkspacesController(
 		const workspaces = await findByMemberId(request.member.id)
 		return reply.status(200).send({ workspaces })
 	})
+}
+
+export async function getWorkspacesByMemberController(
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
+  return withSpan('get-workspaces-by-member', async () => {
+    const { memberId } = getWorkspacesByMemberParamsSchema.parse(request.params)
+    logger.info({ memberId }, '[getWorkspacesByMemberController] fetching workspaces')
+    const workspaces = await findByMemberId(memberId)
+    logger.info({ memberId, count: workspaces.length }, '[getWorkspacesByMemberController] workspaces found')
+    return reply.status(200).send({ workspaces })
+  })
 }
 
 export async function createWorkspaceController(
