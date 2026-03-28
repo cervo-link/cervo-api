@@ -65,3 +65,21 @@ export async function findByMemberId(memberId: string): Promise<Workspace[]> {
       )
   })
 }
+
+export async function deleteWorkspaceById(id: string): Promise<void> {
+  return withSpan('delete-workspace-by-id', async () => {
+    await db
+      .delete(schema.memberships)
+      .where(eq(schema.memberships.workspaceId, id))
+
+    await db
+      .delete(schema.workspaceIntegrations)
+      .where(eq(schema.workspaceIntegrations.workspaceId, id))
+
+    await db
+      .delete(schema.bookmarks)
+      .where(eq(schema.bookmarks.workspaceId, id))
+
+    await db.delete(schema.workspaces).where(eq(schema.workspaces.id, id))
+  })
+}

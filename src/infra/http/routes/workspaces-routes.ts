@@ -2,12 +2,15 @@ import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import {
   createWorkspaceController,
+  deleteWorkspaceController,
   getMyWorkspacesController,
   getWorkspaceController,
 } from '../controllers/workspace-controller'
 import {
   createWorkspaceBodySchemaRequest,
   createWorkspaceBodySchemaResponse,
+  deleteWorkspaceParamsSchemaRequest,
+  deleteWorkspaceSchemaResponse,
   getMyWorkspacesSchemaResponse,
   getWorkspaceQuerySchemaRequest,
   getWorkspaceQuerySchemaResponse,
@@ -28,6 +31,19 @@ export async function workspaceRoutes(app: FastifyInstance) {
       body: createWorkspaceBodySchemaRequest,
     },
     handler: createWorkspaceController,
+  })
+
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: 'DELETE',
+    url: '/workspaces/:workspaceId',
+    onRequest: [sessionAuth],
+    schema: {
+      description: 'Delete a workspace',
+      tags: ['workspaces'],
+      params: deleteWorkspaceParamsSchemaRequest,
+      response: deleteWorkspaceSchemaResponse,
+    },
+    handler: deleteWorkspaceController,
   })
 
   app.withTypeProvider<ZodTypeProvider>().route({

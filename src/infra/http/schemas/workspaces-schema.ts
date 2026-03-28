@@ -47,6 +47,17 @@ export const getMyWorkspacesSchemaResponse = {
     .describe('List of workspaces the member belongs to'),
 }
 
+export const deleteWorkspaceParamsSchemaRequest = z.object({
+  workspaceId: z.string().uuid('Workspace ID must be a valid UUID'),
+})
+
+export const deleteWorkspaceSchemaResponse = {
+  500: z.object({ message: z.string() }).describe('Internal error'),
+  404: z.object({ message: z.string() }).describe('Workspace not found'),
+  403: z.object({ message: z.string() }).describe('Forbidden'),
+  204: z.void().describe('Workspace deleted'),
+}
+
 export const getWorkspaceQuerySchemaRequest = z.object({
   id: z.string().uuid('Workspace ID must be a valid UUID'),
 })

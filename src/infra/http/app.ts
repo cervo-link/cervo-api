@@ -27,6 +27,7 @@ app.setSerializerCompiler(serializerCompiler)
 app.register(fastifyCors, {
   origin: true,
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 })
 
 app.register(fastifyCookie)
