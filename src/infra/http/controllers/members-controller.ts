@@ -51,16 +51,11 @@ export async function syncMemberController(
       return reply.status(401).send({ message: 'No active session.' })
     }
 
-    logger.info({ userId: session.user.id }, '[syncMember] session resolved')
-
     const existing = await findByUserId(session.user.id)
 
     if (existing) {
-      logger.info({ memberId: existing.id }, '[syncMember] member already exists')
       return reply.status(200).send({ member: existing })
     }
-
-    logger.info({ userId: session.user.id }, '[syncMember] member not found, creating')
 
     const username = session.user.email
       .split('@')[0]
@@ -79,7 +74,6 @@ export async function syncMemberController(
       return replyWithError(reply, result)
     }
 
-    logger.info({ memberId: result.id }, '[syncMember] member created')
     return reply.status(201).send({ member: result })
   })
 }

@@ -34,6 +34,7 @@ const workspaceShape = z.object({
   name: z.string(),
   description: z.string().nullable(),
   isPublic: z.boolean(),
+  isPersonal: z.boolean(),
   createdAt: z.date(),
   updatedAt: z.date(),
   active: z.boolean(),
@@ -44,6 +45,69 @@ export const getMyWorkspacesSchemaResponse = {
   200: z
     .object({ workspaces: z.array(workspaceShape) })
     .describe('List of workspaces the member belongs to'),
+}
+
+export const updateWorkspaceParamsSchemaRequest = z.object({
+  workspaceId: z.string().uuid('Workspace ID must be a valid UUID'),
+})
+
+export const updateWorkspaceBodySchemaRequest = z
+  .object({
+    name: z.string().min(1, 'Name must not be empty').optional(),
+    description: z.string().nullable().optional(),
+    isPublic: z.boolean().optional(),
+  })
+  .refine(d => Object.keys(d).length > 0, {
+    message: 'At least one field must be provided',
+  })
+
+export const updateWorkspaceSchemaResponse = {
+  500: z.object({ message: z.string() }).describe('Internal error'),
+  404: z.object({ message: z.string() }).describe('Workspace not found'),
+  403: z.object({ message: z.string() }).describe('Forbidden'),
+  400: z.object({ message: z.string() }).describe('Bad request'),
+  200: z
+    .object({
+      workspace: z.object({
+        id: z.string(),
+        ownerId: z.string().nullable(),
+        name: z.string(),
+        description: z.string().nullable(),
+        isPublic: z.boolean(),
+        isPersonal: z.boolean(),
+        createdAt: z.date(),
+        updatedAt: z.date(),
+        active: z.boolean(),
+      }),
+    })
+    .describe('Workspace updated'),
+}
+
+export const deleteWorkspaceParamsSchemaRequest = z.object({
+  workspaceId: z.string().uuid('Workspace ID must be a valid UUID'),
+})
+
+export const deleteWorkspaceSchemaResponse = {
+  500: z.object({ message: z.string() }).describe('Internal error'),
+  404: z.object({ message: z.string() }).describe('Workspace not found'),
+  403: z.object({ message: z.string() }).describe('Forbidden'),
+  204: z.void().describe('Workspace deleted'),
+}
+
+export const inviteMemberParamsSchemaRequest = z.object({
+  workspaceId: z.string().uuid('Workspace ID must be a valid UUID'),
+})
+
+export const inviteMemberBodySchemaRequest = z.object({
+  email: z.string().email('Email must be a valid email'),
+})
+
+export const inviteMemberSchemaResponse = {
+  500: z.object({ message: z.string() }).describe('Internal error'),
+  404: z.object({ message: z.string() }).describe('Workspace or member not found'),
+  403: z.object({ message: z.string() }).describe('Forbidden'),
+  422: z.object({ message: z.string() }).describe('Member already in workspace'),
+  201: z.object({ message: z.string() }).describe('Member invited'),
 }
 
 export const getWorkspacesByMemberParamsSchema = z.object({

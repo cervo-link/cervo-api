@@ -26,21 +26,12 @@ export async function sessionAuth(
   }
 
   if (!session) {
-    logger.warn(
-      { method: request.method, url: request.url },
-      '[sessionAuth] no session'
-    )
     return reply.code(401).send({
       error: 'Unauthorized',
       message: 'Valid session is required.',
       statusCode: 401,
     })
   }
-
-  logger.info(
-    { userId: session.user.id, method: request.method, url: request.url },
-    '[sessionAuth] session found'
-  )
 
   const member = await findByUserId(session.user.id)
 
@@ -56,6 +47,5 @@ export async function sessionAuth(
     })
   }
 
-  logger.info({ memberId: member.id }, '[sessionAuth] member resolved')
   request.member = member
 }

@@ -27,6 +27,7 @@ app.setSerializerCompiler(serializerCompiler)
 app.register(fastifyCors, {
   origin: true,
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 })
 
 app.register(fastifyCookie)
@@ -141,7 +142,6 @@ export async function writeSwaggerSpec(
   const apiSpec = JSON.stringify(server.swagger() || {}, null, 2)
 
   await Bun.write(specFile, apiSpec)
-  server.log.info({ path: specFile }, 'Swagger spec written')
 }
 
 export function transformSwaggerSchema(

@@ -2,18 +2,29 @@ import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import {
   createWorkspaceController,
+  deleteWorkspaceController,
   getMyWorkspacesController,
   getWorkspaceController,
   getWorkspacesByMemberController,
+  inviteMemberController,
+  updateWorkspaceController,
 } from '../controllers/workspace-controller'
 import {
   createWorkspaceBodySchemaRequest,
   createWorkspaceBodySchemaResponse,
+  deleteWorkspaceParamsSchemaRequest,
+  deleteWorkspaceSchemaResponse,
   getMyWorkspacesSchemaResponse,
   getWorkspaceQuerySchemaRequest,
   getWorkspaceQuerySchemaResponse,
   getWorkspacesByMemberParamsSchema,
   getWorkspacesByMemberResponseSchema,
+  inviteMemberBodySchemaRequest,
+  inviteMemberParamsSchemaRequest,
+  inviteMemberSchemaResponse,
+  updateWorkspaceBodySchemaRequest,
+  updateWorkspaceParamsSchemaRequest,
+  updateWorkspaceSchemaResponse,
 } from '../schemas/workspaces-schema'
 import { anyAuth } from '@/infra/http/middlewares/any-auth'
 import { apiKeyAuth } from '@/infra/http/middlewares/api-key-auth'
@@ -31,6 +42,47 @@ export async function workspaceRoutes(app: FastifyInstance) {
       body: createWorkspaceBodySchemaRequest,
     },
     handler: createWorkspaceController,
+  })
+
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: 'PATCH',
+    url: '/workspaces/:workspaceId',
+    onRequest: [sessionAuth],
+    schema: {
+      description: 'Update a workspace name, description, or visibility',
+      tags: ['workspaces'],
+      params: updateWorkspaceParamsSchemaRequest,
+      body: updateWorkspaceBodySchemaRequest,
+      response: updateWorkspaceSchemaResponse,
+    },
+    handler: updateWorkspaceController,
+  })
+
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: 'DELETE',
+    url: '/workspaces/:workspaceId',
+    onRequest: [sessionAuth],
+    schema: {
+      description: 'Delete a workspace',
+      tags: ['workspaces'],
+      params: deleteWorkspaceParamsSchemaRequest,
+      response: deleteWorkspaceSchemaResponse,
+    },
+    handler: deleteWorkspaceController,
+  })
+
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: 'POST',
+    url: '/workspaces/:workspaceId/members',
+    onRequest: [sessionAuth],
+    schema: {
+      description: 'Invite a member to a workspace by email',
+      tags: ['workspaces'],
+      params: inviteMemberParamsSchemaRequest,
+      body: inviteMemberBodySchemaRequest,
+      response: inviteMemberSchemaResponse,
+    },
+    handler: inviteMemberController,
   })
 
   app.withTypeProvider<ZodTypeProvider>().route({
