@@ -5,6 +5,7 @@ import {
   deleteWorkspaceController,
   getMyWorkspacesController,
   getWorkspaceController,
+  inviteMemberController,
   updateWorkspaceController,
 } from '../controllers/workspace-controller'
 import {
@@ -15,6 +16,9 @@ import {
   getMyWorkspacesSchemaResponse,
   getWorkspaceQuerySchemaRequest,
   getWorkspaceQuerySchemaResponse,
+  inviteMemberBodySchemaRequest,
+  inviteMemberParamsSchemaRequest,
+  inviteMemberSchemaResponse,
   updateWorkspaceBodySchemaRequest,
   updateWorkspaceParamsSchemaRequest,
   updateWorkspaceSchemaResponse,
@@ -62,6 +66,20 @@ export async function workspaceRoutes(app: FastifyInstance) {
       response: deleteWorkspaceSchemaResponse,
     },
     handler: deleteWorkspaceController,
+  })
+
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: 'POST',
+    url: '/workspaces/:workspaceId/members',
+    onRequest: [sessionAuth],
+    schema: {
+      description: 'Invite a member to a workspace by email',
+      tags: ['workspaces'],
+      params: inviteMemberParamsSchemaRequest,
+      body: inviteMemberBodySchemaRequest,
+      response: inviteMemberSchemaResponse,
+    },
+    handler: inviteMemberController,
   })
 
   app.withTypeProvider<ZodTypeProvider>().route({

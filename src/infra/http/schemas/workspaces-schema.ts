@@ -94,6 +94,22 @@ export const deleteWorkspaceSchemaResponse = {
   204: z.void().describe('Workspace deleted'),
 }
 
+export const inviteMemberParamsSchemaRequest = z.object({
+  workspaceId: z.string().uuid('Workspace ID must be a valid UUID'),
+})
+
+export const inviteMemberBodySchemaRequest = z.object({
+  email: z.string().email('Email must be a valid email'),
+})
+
+export const inviteMemberSchemaResponse = {
+  500: z.object({ message: z.string() }).describe('Internal error'),
+  404: z.object({ message: z.string() }).describe('Workspace or member not found'),
+  403: z.object({ message: z.string() }).describe('Forbidden'),
+  422: z.object({ message: z.string() }).describe('Member already in workspace'),
+  201: z.object({ message: z.string() }).describe('Member invited'),
+}
+
 export const getWorkspaceQuerySchemaRequest = z.object({
   id: z.string().uuid('Workspace ID must be a valid UUID'),
 })
