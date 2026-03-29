@@ -1,15 +1,16 @@
 import { and, eq } from 'drizzle-orm'
+import type { Member } from '@/domain/entities/member'
 import type {
   InsertMemberPlatformIdentity,
   MemberPlatformIdentity,
 } from '@/domain/entities/member-platform-identity'
-import type { Member } from '@/domain/entities/member'
-import { IdentityAlreadyExists } from '@/domain/errors/identity-already-exists'
 import type { DomainError } from '@/domain/errors/domain-error'
-import { withSpan } from '@/infra/utils/with-span'
+import { IdentityAlreadyExists } from '@/domain/errors/identity-already-exists'
 import { db } from '@/infra/db'
 import { schema } from '@/infra/db/schema'
 import { handleInsertError } from '@/infra/db/utils/insert-with-error-handling'
+import type { Transaction } from '@/infra/db/utils/transactions'
+import { withSpan } from '@/infra/utils/with-span'
 
 export async function insertMemberPlatformIdentity(
   params: InsertMemberPlatformIdentity
@@ -21,6 +22,30 @@ export async function insertMemberPlatformIdentity(
       'Failed to insert member platform identity'
     )
   )
+}
+
+export async function insertMemberPlatformIdentityWithTransaction(
+  tx: Transaction,
+  params: InsertMemberPlatformIdentity
+): Promise<MemberPlatformIdentity | DomainError> {
+  return withSpan('insert-member-platform-identity-with-transaction', () =>
+    handleInsertError(
+      () => tx.insert(schema.memberPlatformIdentities).values(params).returning(),
+      IdentityAlreadyExists,
+      'Failed to insert member platform identity'
+    )
+  )
+}
+
+export async function findIdentitiesByMemberId(
+  memberId: string
+): Promise<MemberPlatformIdentity[]> {
+  return withSpan('find-identities-by-member-id', async () => {
+    return db
+      .select()
+      .from(schema.memberPlatformIdentities)
+      .where(eq(schema.memberPlatformIdentities.memberId, memberId))
+  })
 }
 
 export async function findMemberByProviderIdentity(

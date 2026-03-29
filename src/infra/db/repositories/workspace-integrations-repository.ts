@@ -23,6 +23,73 @@ export async function insertWorkspaceIntegration(
   )
 }
 
+export async function findIntegrationsByWorkspaceId(
+  workspaceId: string
+): Promise<WorkspaceIntegration[]> {
+  return withSpan('find-integrations-by-workspace-id', async () => {
+    return db
+      .select()
+      .from(schema.workspaceIntegrations)
+      .where(eq(schema.workspaceIntegrations.workspaceId, workspaceId))
+  })
+}
+
+export async function deleteIntegrationById(
+  id: string,
+  workspaceId: string
+): Promise<boolean> {
+  return withSpan('delete-integration-by-id', async () => {
+    const result = await db
+      .delete(schema.workspaceIntegrations)
+      .where(
+        and(
+          eq(schema.workspaceIntegrations.id, id),
+          eq(schema.workspaceIntegrations.workspaceId, workspaceId)
+        )
+      )
+      .returning()
+    return result.length > 0
+  })
+}
+
+export async function deleteIntegrationByProvider(
+  provider: string,
+  providerId: string
+): Promise<boolean> {
+  return withSpan('delete-integration-by-provider', async () => {
+    const result = await db
+      .delete(schema.workspaceIntegrations)
+      .where(
+        and(
+          eq(schema.workspaceIntegrations.provider, provider),
+          eq(schema.workspaceIntegrations.providerId, providerId)
+        )
+      )
+      .returning()
+    return result.length > 0
+  })
+}
+
+export async function updateIntegrationProviderName(
+  provider: string,
+  providerId: string,
+  providerName: string
+): Promise<WorkspaceIntegration | null> {
+  return withSpan('update-integration-provider-name', async () => {
+    const [result] = await db
+      .update(schema.workspaceIntegrations)
+      .set({ providerName, updatedAt: new Date() })
+      .where(
+        and(
+          eq(schema.workspaceIntegrations.provider, provider),
+          eq(schema.workspaceIntegrations.providerId, providerId)
+        )
+      )
+      .returning()
+    return result || null
+  })
+}
+
 export async function findWorkspaceByIntegration(
   provider: string,
   providerId: string

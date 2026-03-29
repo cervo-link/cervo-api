@@ -1,7 +1,8 @@
+import assert from 'node:assert'
 import { describe, expect, it } from 'vitest'
-import { DomainError } from '@/domain/errors/domain-error'
 import { IdentityAlreadyExists } from '@/domain/errors/identity-already-exists'
 import { MemberNotFound } from '@/domain/errors/member-not-found'
+import { DomainError } from '@/domain/errors/domain-error'
 import { makeMember } from '@/tests/factories/make-member'
 import { createMemberPlatformIdentity } from './create-member-platform-identity-service'
 
@@ -15,12 +16,10 @@ describe('createMemberPlatformIdentity', () => {
       providerUserId: 'discord-user-123',
     })
 
-    expect(result).not.toBeInstanceOf(DomainError)
-    if (!(result instanceof DomainError)) {
-      expect(result.memberId).toBe(member.id)
-      expect(result.provider).toBe('discord')
-      expect(result.providerUserId).toBe('discord-user-123')
-    }
+    assert(!(result instanceof DomainError))
+    expect(result.memberId).toBe(member.id)
+    expect(result.provider).toBe('discord')
+    expect(result.providerUserId).toBe('discord-user-123')
   })
 
   it('should return MemberNotFound when member does not exist', async () => {

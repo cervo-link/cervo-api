@@ -149,6 +149,10 @@ export function transformSwaggerSchema(
 ) {
   const { schema, url } = jsonSchemaTransform(data)
 
+  if (url.startsWith('/api/auth')) {
+    return { schema: { hide: true }, url }
+  }
+
   if (schema?.consumes?.includes('multipart/form-data')) {
     schema.body = {
       type: 'object',

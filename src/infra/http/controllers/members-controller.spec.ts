@@ -103,6 +103,111 @@ describe('MembersController', () => {
 		})
 	})
 
+	describe('POST /members/resolve', () => {
+		it('should return existing member when identity already exists', async () => {
+			const member = await makeMember()
+			await app.inject({
+				method: 'POST',
+				url: '/members/resolve',
+				headers: { authorization: `Bearer ${API_KEY}` },
+				payload: {
+					provider: 'discord',
+					providerUserId: 'known-user',
+					displayName: member.name,
+				},
+			})
+
+			const response = await app.inject({
+				method: 'POST',
+				url: '/members/resolve',
+				headers: { authorization: `Bearer ${API_KEY}` },
+				payload: {
+					provider: 'discord',
+					providerUserId: 'known-user',
+					displayName: 'Different Name',
+				},
+			})
+
+			expect(response.statusCode).toBe(201)
+			const body = JSON.parse(response.body)
+			expect(body.member.id).toEqual(expect.any(String))
+		})
+
+		it('should create a shadow member when provider user is unknown', async () => {
+			const providerUserId = `new-user-${Date.now()}`
+
+			const response = await app.inject({
+				method: 'POST',
+				url: '/members/resolve',
+				headers: { authorization: `Bearer ${API_KEY}` },
+				payload: {
+					provider: 'discord',
+					providerUserId,
+					displayName: 'Brand New User',
+				},
+			})
+
+			expect(response.statusCode).toBe(201)
+			const body = JSON.parse(response.body)
+			expect(body.member.id).toEqual(expect.any(String))
+			expect(body.member.email).toBeNull()
+		})
+
+		it('should be idempotent — two calls return the same memberId', async () => {
+			const providerUserId = `idempotent-http-${Date.now()}`
+			const payload = {
+				provider: 'discord',
+				providerUserId,
+				displayName: 'Same User',
+			}
+
+			const first = await app.inject({
+				method: 'POST',
+				url: '/members/resolve',
+				headers: { authorization: `Bearer ${API_KEY}` },
+				payload,
+			})
+
+			const second = await app.inject({
+				method: 'POST',
+				url: '/members/resolve',
+				headers: { authorization: `Bearer ${API_KEY}` },
+				payload,
+			})
+
+			expect(first.statusCode).toBe(201)
+			expect(second.statusCode).toBe(201)
+			expect(JSON.parse(first.body).member.id).toBe(
+				JSON.parse(second.body).member.id
+			)
+		})
+
+		it('should return 400 when required fields are missing', async () => {
+			const response = await app.inject({
+				method: 'POST',
+				url: '/members/resolve',
+				headers: { authorization: `Bearer ${API_KEY}` },
+				payload: { provider: 'discord' },
+			})
+
+			expect(response.statusCode).toBe(400)
+		})
+
+		it('should return 401 when API key is not provided', async () => {
+			const response = await app.inject({
+				method: 'POST',
+				url: '/members/resolve',
+				payload: {
+					provider: 'discord',
+					providerUserId: 'some-user',
+					displayName: 'Someone',
+				},
+			})
+
+			expect(response.statusCode).toBe(401)
+		})
+	})
+
 	describe('PUT /members/add', () => {
 		it('should be able to add a member to a workspace', async () => {
 			const member = await makeMember()

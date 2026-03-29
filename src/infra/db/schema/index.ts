@@ -56,6 +56,7 @@ export const workspaceIntegrations = pgTable(
     workspaceId: uuid().notNull(),
     provider: text().notNull(),
     providerId: text().notNull(),
+    providerName: text(),
     createdAt: timestamp().defaultNow().notNull(),
     updatedAt: timestamp().defaultNow().notNull(),
     active: boolean().default(true).notNull(),
