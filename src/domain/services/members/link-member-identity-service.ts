@@ -1,3 +1,4 @@
+import type { Member } from '@/domain/entities/member'
 import type { MemberPlatformIdentity } from '@/domain/entities/member-platform-identity'
 import type { DomainError } from '@/domain/errors/domain-error'
 import { IdentityAlreadyLinked } from '@/domain/errors/identity-already-linked'
@@ -26,31 +27,31 @@ export async function linkMemberIdentity(
     const linkedMember = await findMemberByProviderIdentity(provider, providerUserId)
 
     if (linkedMember) {
-      if (linkedMember.id === realMemberId) {
-        return new IdentityAlreadyLinked()
-      }
-
-      if (linkedMember.userId === null) {
-        // Shadow member — merge into real member then create identity atomically
-        return executeTransaction(async tx => {
-          const mergeError = await mergeMembersInTransaction(
-            tx,
-            linkedMember.id,
-            realMemberId
-          )
-          if (mergeError) return mergeError
-
-          return insertMemberPlatformIdentityWithTransaction(tx, {
-            memberId: realMemberId,
-            provider,
-            providerUserId,
-          })
-        })
-      }
-
-      return new IdentityLinkedToDifferentMember()
+      return handleExistingIdentity(linkedMember, { realMemberId, provider, providerUserId })
     }
 
     return insertMemberPlatformIdentity({ memberId: realMemberId, provider, providerUserId })
+  })
+}
+
+async function handleExistingIdentity(
+  linkedMember: Member,
+  input: LinkMemberIdentityInput
+): Promise<MemberPlatformIdentity | DomainError> {
+  const { realMemberId, provider, providerUserId } = input
+
+  if (linkedMember.id === realMemberId) return new IdentityAlreadyLinked()
+  if (linkedMember.userId !== null) return new IdentityLinkedToDifferentMember()
+
+  // Shadow member — merge into real member then create identity atomically
+  return executeTransaction(async tx => {
+    const mergeError = await mergeMembersInTransaction(tx, linkedMember.id, realMemberId)
+    if (mergeError) return mergeError
+
+    return insertMemberPlatformIdentityWithTransaction(tx, {
+      memberId: realMemberId,
+      provider,
+      providerUserId,
+    })
   })
 }
