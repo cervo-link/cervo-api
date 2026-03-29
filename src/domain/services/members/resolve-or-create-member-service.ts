@@ -5,7 +5,7 @@ import {
 	insertMemberPlatformIdentityWithTransaction,
 } from '@/infra/db/repositories/member-platform-identities-repository'
 import { insertMemberWithTransaction } from '@/infra/db/repositories/members-repository'
-import { executeTransaction } from '@/infra/db/utils/transactions'
+import { executeTransaction, type Transaction } from '@/infra/db/utils/transactions'
 import { withSpan } from '@/infra/utils/with-span'
 
 export type ResolveOrCreateMemberInput = {
@@ -25,25 +25,30 @@ export async function resolveOrCreateMember(
 
 		if (existing) return existing
 
-		return executeTransaction(async tx => {
-			const member = await insertMemberWithTransaction(tx, {
-				name: input.displayName,
-				email: null,
-				username: null,
-				userId: null,
-			})
-
-			if (member instanceof Error) return member
-
-			const identity = await insertMemberPlatformIdentityWithTransaction(tx, {
-				memberId: member.id,
-				provider: input.provider,
-				providerUserId: input.providerUserId,
-			})
-
-			if (identity instanceof Error) return identity
-
-			return member
-		})
+		return executeTransaction(tx => createMemberWithIdentity(tx, input))
 	})
+}
+
+async function createMemberWithIdentity(
+	tx: Transaction,
+	input: ResolveOrCreateMemberInput
+): Promise<Member | DomainError> {
+	const member = await insertMemberWithTransaction(tx, {
+		name: input.displayName,
+		email: null,
+		username: null,
+		userId: null,
+	})
+
+	if (member instanceof Error) return member
+
+	const identity = await insertMemberPlatformIdentityWithTransaction(tx, {
+		memberId: member.id,
+		provider: input.provider,
+		providerUserId: input.providerUserId,
+	})
+
+	if (identity instanceof Error) return identity
+
+	return member
 }
