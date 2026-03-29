@@ -15,12 +15,10 @@ describe('createMemberPlatformIdentity', () => {
       providerUserId: 'discord-user-123',
     })
 
-    expect(result).not.toBeInstanceOf(DomainError)
-    if (!(result instanceof DomainError)) {
-      expect(result.memberId).toBe(member.id)
-      expect(result.provider).toBe('discord')
-      expect(result.providerUserId).toBe('discord-user-123')
-    }
+    if (result instanceof DomainError) throw result
+    expect(result.memberId).toBe(member.id)
+    expect(result.provider).toBe('discord')
+    expect(result.providerUserId).toBe('discord-user-123')
   })
 
   it('should return MemberNotFound when member does not exist', async () => {

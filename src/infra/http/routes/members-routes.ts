@@ -5,6 +5,8 @@ import { sessionAuth } from '@/infra/http/middlewares/session-auth'
 import {
   createMemberIdentityController,
   findMemberByIdentityController,
+  getMemberIdentitiesController,
+  linkMemberIdentityController,
 } from '../controllers/member-identities-controller'
 import {
   addMemberToWorkspaceController,
@@ -24,6 +26,9 @@ import {
   findMemberByIdentityQuerySchema,
   findMemberByIdentityResponseSchema,
   getMeResponseSchema,
+  getMemberIdentitiesResponseSchema,
+  linkMemberIdentityBodySchema,
+  linkMemberIdentityResponseSchema,
   resolveMemberBodySchema,
   resolveMemberResponseSchema,
   syncMemberResponseSchema,
@@ -90,6 +95,31 @@ export async function memberRoutes(app: FastifyInstance) {
       body: addMemberToWorkspaceBodySchemaRequest,
     },
     handler: addMemberToWorkspaceController,
+  })
+
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: 'POST',
+    url: '/members/me/identities',
+    onRequest: [sessionAuth],
+    schema: {
+      description: 'Link a provider identity to the authenticated member, merging any shadow member',
+      tags: ['members'],
+      body: linkMemberIdentityBodySchema,
+      response: linkMemberIdentityResponseSchema,
+    },
+    handler: linkMemberIdentityController,
+  })
+
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: 'GET',
+    url: '/members/me/identities',
+    onRequest: [sessionAuth],
+    schema: {
+      description: 'List all provider identities linked to the authenticated member',
+      tags: ['members'],
+      response: getMemberIdentitiesResponseSchema,
+    },
+    handler: getMemberIdentitiesController,
   })
 
   app.withTypeProvider<ZodTypeProvider>().route({

@@ -7,15 +7,23 @@ import { unwrapOrThrow } from './unwrap'
 type Overrides = Partial<InsertMember>
 
 export function makeRawMember(overrides: Overrides = {}): InsertMember {
-  return {
-    name: faker.person.fullName(),
-    email: faker.internet.email(),
-    active: true,
-    username: faker.internet.username(),
-    ...overrides,
-  }
+	return {
+		name: faker.person.fullName(),
+		email: faker.internet.email(),
+		active: true,
+		username: faker.internet.username(),
+		...overrides,
+	}
 }
 
 export async function makeMember(overrides: Overrides = {}) {
-  return unwrapOrThrow(await insertMember(makeRawMember(overrides)))
+	return unwrapOrThrow(await insertMember(makeRawMember(overrides)))
+}
+
+export async function makeShadowMember(overrides: Overrides = {}) {
+	return unwrapOrThrow(
+		await insertMember(
+			makeRawMember({ ...overrides, email: null, username: null, userId: null })
+		)
+	)
 }

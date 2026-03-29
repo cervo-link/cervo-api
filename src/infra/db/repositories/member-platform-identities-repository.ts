@@ -37,6 +37,17 @@ export async function insertMemberPlatformIdentityWithTransaction(
   )
 }
 
+export async function findIdentitiesByMemberId(
+  memberId: string
+): Promise<MemberPlatformIdentity[]> {
+  return withSpan('find-identities-by-member-id', async () => {
+    return db
+      .select()
+      .from(schema.memberPlatformIdentities)
+      .where(eq(schema.memberPlatformIdentities.memberId, memberId))
+  })
+}
+
 export async function findMemberByProviderIdentity(
   provider: string,
   providerUserId: string

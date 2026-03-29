@@ -97,6 +97,24 @@ export const syncMemberResponseSchema = {
   500: z.object({ message: z.string() }).describe('Failed to sync member'),
 }
 
+export const linkMemberIdentityBodySchema = z.object({
+  provider: z.string().min(1, 'Provider must not be empty'),
+  providerUserId: z.string().min(1, 'Provider user ID must not be empty'),
+})
+
+export const linkMemberIdentityResponseSchema = {
+  201: z.object({ identity: identityResponseSchema }).describe('Identity linked'),
+  409: z.object({ message: z.string() }).describe('Identity already linked to this account'),
+  422: z.object({ message: z.string() }).describe('Identity linked to a different account'),
+  500: z.object({ message: z.string() }).describe('Failed to link identity'),
+}
+
+export const getMemberIdentitiesResponseSchema = {
+  200: z
+    .object({ identities: z.array(identityResponseSchema) })
+    .describe('Member identities'),
+}
+
 export const resolveMemberBodySchema = z.object({
   provider: z.string().min(1, 'Provider must not be empty'),
   providerUserId: z.string().min(1, 'Provider user ID must not be empty'),

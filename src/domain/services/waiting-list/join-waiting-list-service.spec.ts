@@ -10,14 +10,12 @@ describe('joinWaitingList', () => {
       allowPromoEmails: false,
     })
 
-    expect(result).not.toBeInstanceOf(DomainError)
+    if (result instanceof DomainError) throw result
     expect(result).not.toBeNull()
-    if (result !== null && !(result instanceof DomainError)) {
-      expect(result.email).toBe('test@example.com')
-      expect(result.allowPromoEmails).toBe(false)
-      expect(result.id).toBeDefined()
-      expect(result.createdAt).toBeDefined()
-    }
+    expect(result?.email).toBe('test@example.com')
+    expect(result?.allowPromoEmails).toBe(false)
+    expect(result?.id).toBeDefined()
+    expect(result?.createdAt).toBeDefined()
   })
 
   it('should store allowPromoEmails as true when provided', async () => {
@@ -26,11 +24,9 @@ describe('joinWaitingList', () => {
       allowPromoEmails: true,
     })
 
-    expect(result).not.toBeInstanceOf(DomainError)
+    if (result instanceof DomainError) throw result
     expect(result).not.toBeNull()
-    if (result !== null && !(result instanceof DomainError)) {
-      expect(result.allowPromoEmails).toBe(true)
-    }
+    expect(result?.allowPromoEmails).toBe(true)
   })
 
   it('should return null when email is already on the waiting list', async () => {

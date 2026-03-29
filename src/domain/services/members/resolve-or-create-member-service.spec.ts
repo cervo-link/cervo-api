@@ -20,10 +20,8 @@ describe('resolveOrCreateMember', () => {
       displayName: 'Should Not Matter',
     })
 
-    expect(result).not.toBeInstanceOf(DomainError)
-    if (!(result instanceof DomainError)) {
-      expect(result.id).toBe(member.id)
-    }
+    if (result instanceof DomainError) throw result
+    expect(result.id).toBe(member.id)
   })
 
   it('should create a shadow member and identity when provider user is unknown', async () => {
@@ -33,13 +31,11 @@ describe('resolveOrCreateMember', () => {
       displayName: 'Ghost User',
     })
 
-    expect(result).not.toBeInstanceOf(DomainError)
-    if (!(result instanceof DomainError)) {
-      expect(result.name).toBe('Ghost User')
-      expect(result.email).toBeNull()
-      expect(result.username).toBeNull()
-      expect(result.userId).toBeNull()
-    }
+    if (result instanceof DomainError) throw result
+    expect(result.name).toBe('Ghost User')
+    expect(result.email).toBeNull()
+    expect(result.username).toBeNull()
+    expect(result.userId).toBeNull()
   })
 
   it('should create the platform identity record for the shadow member', async () => {
@@ -51,12 +47,10 @@ describe('resolveOrCreateMember', () => {
       displayName: 'Identity Check',
     })
 
-    expect(result).not.toBeInstanceOf(DomainError)
-    if (!(result instanceof DomainError)) {
-      const identity = await findMemberByProviderIdentity('discord', providerUserId)
-      expect(identity).not.toBeNull()
-      expect(identity?.id).toBe(result.id)
-    }
+    if (result instanceof DomainError) throw result
+    const identity = await findMemberByProviderIdentity('discord', providerUserId)
+    expect(identity).not.toBeNull()
+    expect(identity?.id).toBe(result.id)
   })
 
   it('should be idempotent — same providerUserId returns same memberId', async () => {
@@ -74,11 +68,9 @@ describe('resolveOrCreateMember', () => {
       displayName: 'Second Call',
     })
 
-    expect(first).not.toBeInstanceOf(DomainError)
-    expect(second).not.toBeInstanceOf(DomainError)
-    if (!(first instanceof DomainError) && !(second instanceof DomainError)) {
-      expect(second.id).toBe(first.id)
-    }
+    if (first instanceof DomainError) throw first
+    if (second instanceof DomainError) throw second
+    expect(second.id).toBe(first.id)
   })
 
   it('should treat same providerUserId on different providers as distinct members', async () => {
@@ -96,10 +88,8 @@ describe('resolveOrCreateMember', () => {
       displayName: 'GitHub User',
     })
 
-    expect(discord).not.toBeInstanceOf(DomainError)
-    expect(github).not.toBeInstanceOf(DomainError)
-    if (!(discord instanceof DomainError) && !(github instanceof DomainError)) {
-      expect(discord.id).not.toBe(github.id)
-    }
+    if (discord instanceof DomainError) throw discord
+    if (github instanceof DomainError) throw github
+    expect(discord.id).not.toBe(github.id)
   })
 })
