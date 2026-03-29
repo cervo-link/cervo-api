@@ -1,3 +1,4 @@
+import assert from 'node:assert'
 import { describe, expect, it } from 'vitest'
 import { DomainError } from '@/domain/errors/domain-error'
 import { findMemberByProviderIdentity } from '@/infra/db/repositories/member-platform-identities-repository'
@@ -20,7 +21,7 @@ describe('resolveOrCreateMember', () => {
       displayName: 'Should Not Matter',
     })
 
-    if (result instanceof DomainError) throw result
+    assert(!(result instanceof DomainError))
     expect(result.id).toBe(member.id)
   })
 
@@ -31,7 +32,7 @@ describe('resolveOrCreateMember', () => {
       displayName: 'Ghost User',
     })
 
-    if (result instanceof DomainError) throw result
+    assert(!(result instanceof DomainError))
     expect(result.name).toBe('Ghost User')
     expect(result.email).toBeNull()
     expect(result.username).toBeNull()
@@ -47,7 +48,7 @@ describe('resolveOrCreateMember', () => {
       displayName: 'Identity Check',
     })
 
-    if (result instanceof DomainError) throw result
+    assert(!(result instanceof DomainError))
     const identity = await findMemberByProviderIdentity('discord', providerUserId)
     expect(identity).not.toBeNull()
     expect(identity?.id).toBe(result.id)
@@ -68,8 +69,8 @@ describe('resolveOrCreateMember', () => {
       displayName: 'Second Call',
     })
 
-    if (first instanceof DomainError) throw first
-    if (second instanceof DomainError) throw second
+    assert(!(first instanceof DomainError))
+    assert(!(second instanceof DomainError))
     expect(second.id).toBe(first.id)
   })
 
@@ -88,8 +89,8 @@ describe('resolveOrCreateMember', () => {
       displayName: 'GitHub User',
     })
 
-    if (discord instanceof DomainError) throw discord
-    if (github instanceof DomainError) throw github
+    assert(!(discord instanceof DomainError))
+    assert(!(github instanceof DomainError))
     expect(discord.id).not.toBe(github.id)
   })
 })

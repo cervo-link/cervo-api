@@ -1,3 +1,4 @@
+import assert from 'node:assert'
 import { faker } from '@faker-js/faker'
 import { describe, expect, it } from 'vitest'
 import { DomainError } from '@/domain/errors/domain-error'
@@ -21,7 +22,7 @@ describe('linkMemberIdentity', () => {
 			providerUserId: `new-user-${Date.now()}`,
 		})
 
-		if (result instanceof DomainError) throw result
+		assert(!(result instanceof DomainError))
 		expect(result.memberId).toBe(member.id)
 		expect(result.provider).toBe('discord')
 	})
@@ -83,21 +84,16 @@ describe('linkMemberIdentity', () => {
 			providerUserId,
 		})
 
-		if (result instanceof DomainError) throw result
+		assert(!(result instanceof DomainError))
 		expect(result.memberId).toBe(real.id)
 
-		// Shadow member must be gone
 		const deletedShadow = await findById(shadow.id)
 		expect(deletedShadow).toBeNull()
 	})
 
 	it('should preserve shadow bookmarks under real member after merge', async () => {
 		const real = await makeMember()
-		const shadow = await makeMember({
-			email: null,
-			username: null,
-			userId: null,
-		})
+		const shadow = await makeMember({ email: null, username: null, userId: null })
 		const workspace = await makeWorkspace({ ownerId: real.id })
 		const providerUserId = `shadow-bm-${Date.now()}`
 

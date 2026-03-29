@@ -1,3 +1,4 @@
+import assert from 'node:assert'
 import { describe, expect, it } from 'vitest'
 import { DomainError } from '@/domain/errors/domain-error'
 import { makeWaitingListEntry } from '@/tests/factories/make-waiting-list-entry'
@@ -10,7 +11,7 @@ describe('joinWaitingList', () => {
       allowPromoEmails: false,
     })
 
-    if (result instanceof DomainError) throw result
+    assert(!(result instanceof DomainError))
     expect(result).not.toBeNull()
     expect(result?.email).toBe('test@example.com')
     expect(result?.allowPromoEmails).toBe(false)
@@ -24,7 +25,7 @@ describe('joinWaitingList', () => {
       allowPromoEmails: true,
     })
 
-    if (result instanceof DomainError) throw result
+    assert(!(result instanceof DomainError))
     expect(result).not.toBeNull()
     expect(result?.allowPromoEmails).toBe(true)
   })
