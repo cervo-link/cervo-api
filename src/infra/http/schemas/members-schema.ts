@@ -97,6 +97,18 @@ export const syncMemberResponseSchema = {
   500: z.object({ message: z.string() }).describe('Failed to sync member'),
 }
 
+export const resolveMemberBodySchema = z.object({
+  provider: z.string().min(1, 'Provider must not be empty'),
+  providerUserId: z.string().min(1, 'Provider user ID must not be empty'),
+  displayName: z.string().min(1, 'Display name must not be empty'),
+})
+
+export const resolveMemberResponseSchema = {
+  201: z.object({ member: memberResponseSchema }).describe('Member resolved'),
+  400: z.object({ message: z.string() }).describe('Invalid request'),
+  500: z.object({ message: z.string() }).describe('Failed to resolve member'),
+}
+
 export const getMeResponseSchema = {
   200: z
     .object({

@@ -4,6 +4,7 @@ import { DomainError } from '@/domain/errors/domain-error'
 import { addMemberToWorkspace } from '@/domain/services/members/add-member-service'
 import { createMemberFromOAuth } from '@/domain/services/members/create-member-from-oauth-service'
 import { createMember } from '@/domain/services/members/create-member-service'
+import { resolveOrCreateMember } from '@/domain/services/members/resolve-or-create-member-service'
 import { auth } from '@/infra/auth'
 import { findByUserId } from '@/infra/db/repositories/members-repository'
 import { findByOwnerId } from '@/infra/db/repositories/workspaces-repository'
@@ -13,6 +14,7 @@ import { withSpan } from '@/infra/utils/with-span'
 import {
   addMemberToWorkspaceBodySchemaRequest,
   createMemberBodySchemaRequest,
+  resolveMemberBodySchema,
 } from '../schemas/members-schema'
 
 export async function createMemberController(
@@ -75,6 +77,22 @@ export async function syncMemberController(
     }
 
     return reply.status(201).send({ member: result })
+  })
+}
+
+export async function resolveMemberController(
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
+  return withSpan('resolve-member', async () => {
+    const { provider, providerUserId, displayName } =
+      resolveMemberBodySchema.parse(request.body)
+
+    const member = await resolveOrCreateMember({ provider, providerUserId, displayName })
+
+    if (member instanceof DomainError) return replyWithError(reply, member)
+
+    return reply.status(201).send({ member })
   })
 }
 

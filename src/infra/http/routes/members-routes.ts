@@ -10,6 +10,7 @@ import {
   addMemberToWorkspaceController,
   createMemberController,
   getMeController,
+  resolveMemberController,
   syncMemberController,
 } from '../controllers/members-controller'
 import {
@@ -23,6 +24,8 @@ import {
   findMemberByIdentityQuerySchema,
   findMemberByIdentityResponseSchema,
   getMeResponseSchema,
+  resolveMemberBodySchema,
+  resolveMemberResponseSchema,
   syncMemberResponseSchema,
 } from '../schemas/members-schema'
 
@@ -48,6 +51,19 @@ export async function memberRoutes(app: FastifyInstance) {
       response: syncMemberResponseSchema,
     },
     handler: syncMemberController,
+  })
+
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: 'POST',
+    url: '/members/resolve',
+    onRequest: [apiKeyAuth],
+    schema: {
+      description: 'Resolve or create a shadow member by provider identity (idempotent)',
+      tags: ['members'],
+      body: resolveMemberBodySchema,
+      response: resolveMemberResponseSchema,
+    },
+    handler: resolveMemberController,
   })
 
   app.withTypeProvider<ZodTypeProvider>().route({
