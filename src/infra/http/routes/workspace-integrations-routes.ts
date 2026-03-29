@@ -2,7 +2,10 @@ import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import {
   addWorkspaceIntegrationController,
+  deleteIntegrationByProviderController,
+  deleteWorkspaceIntegrationController,
   getWorkspaceByIntegrationController,
+  getWorkspaceIntegrationsController,
 } from '@/infra/http/controllers/workspace-integrations-controller'
 import { anyAuth } from '@/infra/http/middlewares/any-auth'
 import { apiKeyAuth } from '@/infra/http/middlewares/api-key-auth'
@@ -11,8 +14,14 @@ import {
   addWorkspaceIntegrationBodySchema,
   addWorkspaceIntegrationParamsSchema,
   addWorkspaceIntegrationResponseSchema,
+  deleteIntegrationByProviderQuerySchema,
+  deleteIntegrationByProviderResponseSchema,
+  deleteWorkspaceIntegrationParamsSchema,
+  deleteWorkspaceIntegrationResponseSchema,
   getWorkspaceByIntegrationQuerySchema,
   getWorkspaceByIntegrationResponseSchema,
+  getWorkspaceIntegrationsParamsSchema,
+  getWorkspaceIntegrationsResponseSchema,
 } from '@/infra/http/schemas/workspace-integrations-schema'
 
 export async function workspaceIntegrationsRoutes(app: FastifyInstance) {
@@ -32,6 +41,32 @@ export async function workspaceIntegrationsRoutes(app: FastifyInstance) {
 
   app.withTypeProvider<ZodTypeProvider>().route({
     method: 'GET',
+    url: '/workspaces/:workspaceId/integrations',
+    onRequest: [anyAuth(sessionAuth, apiKeyAuth)],
+    schema: {
+      description: 'List integrations for a workspace',
+      tags: ['workspace-integrations'],
+      params: getWorkspaceIntegrationsParamsSchema,
+      response: getWorkspaceIntegrationsResponseSchema,
+    },
+    handler: getWorkspaceIntegrationsController,
+  })
+
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: 'DELETE',
+    url: '/workspaces/:workspaceId/integrations/:integrationId',
+    onRequest: [anyAuth(sessionAuth, apiKeyAuth)],
+    schema: {
+      description: 'Remove a platform integration from a workspace',
+      tags: ['workspace-integrations'],
+      params: deleteWorkspaceIntegrationParamsSchema,
+      response: deleteWorkspaceIntegrationResponseSchema,
+    },
+    handler: deleteWorkspaceIntegrationController,
+  })
+
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: 'GET',
     url: '/workspaces/by-integration',
     onRequest: [apiKeyAuth],
     schema: {
@@ -41,5 +76,18 @@ export async function workspaceIntegrationsRoutes(app: FastifyInstance) {
       response: getWorkspaceByIntegrationResponseSchema,
     },
     handler: getWorkspaceByIntegrationController,
+  })
+
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: 'DELETE',
+    url: '/workspaces/by-integration',
+    onRequest: [apiKeyAuth],
+    schema: {
+      description: 'Remove an integration by provider ID (bot-facing)',
+      tags: ['workspace-integrations'],
+      query: deleteIntegrationByProviderQuerySchema,
+      response: deleteIntegrationByProviderResponseSchema,
+    },
+    handler: deleteIntegrationByProviderController,
   })
 }
