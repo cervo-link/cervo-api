@@ -5,6 +5,7 @@ import { makeWorkspaceIntegration } from '@/tests/factories/make-workspace-integ
 import {
   findWorkspaceByIntegration,
   insertWorkspaceIntegration,
+  updateIntegrationProviderName,
 } from './workspace-integrations-repository'
 
 describe('workspace-integrations-repository', () => {
@@ -38,6 +39,28 @@ describe('workspace-integrations-repository', () => {
       })
 
       expect(result).toBeInstanceOf(IntegrationAlreadyExists)
+    })
+  })
+
+  describe('updateIntegrationProviderName', () => {
+    it('should update and return the integration with the new name', async () => {
+      const workspace = await makeWorkspace()
+      const integration = await makeWorkspaceIntegration({ workspaceId: workspace.id })
+
+      const result = await updateIntegrationProviderName(
+        integration.provider,
+        integration.providerId,
+        'My Server'
+      )
+
+      expect(result).toEqual(
+        expect.objectContaining({ id: integration.id, providerName: 'My Server' })
+      )
+    })
+
+    it('should return null when integration does not exist', async () => {
+      const result = await updateIntegrationProviderName('discord', 'nonexistent', 'Name')
+      expect(result).toBeNull()
     })
   })
 

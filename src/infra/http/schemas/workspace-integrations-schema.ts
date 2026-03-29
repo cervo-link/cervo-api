@@ -81,3 +81,17 @@ export const getWorkspaceByIntegrationResponseSchema = {
   200: z.object({ workspace: workspaceSchema }).describe('Workspace found'),
   404: z.object({ message: z.string() }).describe('Workspace not found'),
 }
+
+export const patchIntegrationByProviderQuerySchema = z.object({
+  provider: z.string().min(1),
+  providerId: z.string().min(1),
+})
+
+export const patchIntegrationByProviderBodySchema = z.object({
+  providerName: z.string().min(1),
+})
+
+export const patchIntegrationByProviderResponseSchema = {
+  200: z.object({ integration: integrationSchema }).describe('Integration updated'),
+  404: z.object({ message: z.string() }).describe('Integration not found'),
+}

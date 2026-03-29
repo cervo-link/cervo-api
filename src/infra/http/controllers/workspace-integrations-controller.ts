@@ -8,6 +8,7 @@ import {
   deleteIntegrationByProvider,
   deleteIntegrationById,
   findIntegrationsByWorkspaceId,
+  updateIntegrationProviderName,
 } from '@/infra/db/repositories/workspace-integrations-repository'
 import type {
   addWorkspaceIntegrationBodySchema,
@@ -16,6 +17,8 @@ import type {
   deleteWorkspaceIntegrationParamsSchema,
   getWorkspaceByIntegrationQuerySchema,
   getWorkspaceIntegrationsParamsSchema,
+  patchIntegrationByProviderBodySchema,
+  patchIntegrationByProviderQuerySchema,
 } from '@/infra/http/schemas/workspace-integrations-schema'
 import { replyWithError } from '@/infra/http/utils/reply-with'
 import { withSpan } from '@/infra/utils/with-span'
@@ -137,5 +140,30 @@ export async function getWorkspaceByIntegrationController(
       return replyWithError(reply, workspace)
 
     return reply.status(200).send({ workspace })
+  })
+}
+
+export async function patchIntegrationByProviderController(
+  request: FastifyRequest<{
+    Querystring: z.infer<typeof patchIntegrationByProviderQuerySchema>
+    Body: z.infer<typeof patchIntegrationByProviderBodySchema>
+  }>,
+  reply: FastifyReply
+) {
+  return withSpan('patch-integration-by-provider', async () => {
+    const { provider, providerId } = request.query
+    const { providerName } = request.body
+
+    const integration = await updateIntegrationProviderName(
+      provider,
+      providerId,
+      providerName
+    )
+
+    if (!integration) {
+      return reply.status(404).send({ message: 'Integration not found' })
+    }
+
+    return reply.status(200).send({ integration })
   })
 }

@@ -6,6 +6,7 @@ import {
   deleteWorkspaceIntegrationController,
   getWorkspaceByIntegrationController,
   getWorkspaceIntegrationsController,
+  patchIntegrationByProviderController,
 } from '@/infra/http/controllers/workspace-integrations-controller'
 import { anyAuth } from '@/infra/http/middlewares/any-auth'
 import { apiKeyAuth } from '@/infra/http/middlewares/api-key-auth'
@@ -22,6 +23,9 @@ import {
   getWorkspaceByIntegrationResponseSchema,
   getWorkspaceIntegrationsParamsSchema,
   getWorkspaceIntegrationsResponseSchema,
+  patchIntegrationByProviderBodySchema,
+  patchIntegrationByProviderQuerySchema,
+  patchIntegrationByProviderResponseSchema,
 } from '@/infra/http/schemas/workspace-integrations-schema'
 
 export async function workspaceIntegrationsRoutes(app: FastifyInstance) {
@@ -76,6 +80,20 @@ export async function workspaceIntegrationsRoutes(app: FastifyInstance) {
       response: getWorkspaceByIntegrationResponseSchema,
     },
     handler: getWorkspaceByIntegrationController,
+  })
+
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: 'PATCH',
+    url: '/workspaces/by-integration',
+    onRequest: [apiKeyAuth],
+    schema: {
+      description: 'Update integration metadata by provider ID (bot-facing)',
+      tags: ['workspace-integrations'],
+      query: patchIntegrationByProviderQuerySchema,
+      body: patchIntegrationByProviderBodySchema,
+      response: patchIntegrationByProviderResponseSchema,
+    },
+    handler: patchIntegrationByProviderController,
   })
 
   app.withTypeProvider<ZodTypeProvider>().route({
