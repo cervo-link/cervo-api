@@ -29,7 +29,7 @@ export async function addWorkspaceIntegrationController(
 ) {
   return withSpan('add-workspace-integration', async () => {
     const { workspaceId } = request.params
-    const { provider, providerId } = request.body
+    const { provider, providerId, providerName } = request.body
 
     if (request.member) {
       const workspace = await findById(workspaceId)
@@ -45,6 +45,7 @@ export async function addWorkspaceIntegrationController(
       workspaceId,
       provider,
       providerId,
+      providerName,
     })
 
     if (result instanceof DomainError) return replyWithError(reply, result)

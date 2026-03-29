@@ -9,6 +9,7 @@ type CreateWorkspaceIntegrationInput = {
   workspaceId: string
   provider: string
   providerId: string
+  providerName?: string
 }
 
 export async function createWorkspaceIntegration(

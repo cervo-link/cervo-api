@@ -1601,6 +1601,9 @@
                   "providerId": {
                     "type": "string",
                     "minLength": 1
+                  },
+                  "providerName": {
+                    "type": "string"
                   }
                 },
                 "required": [
@@ -1647,6 +1650,10 @@
                         "providerId": {
                           "type": "string"
                         },
+                        "providerName": {
+                          "nullable": true,
+                          "type": "string"
+                        },
                         "createdAt": {
                           "type": "string",
                           "format": "date-time"
@@ -1664,6 +1671,7 @@
                         "workspaceId",
                         "provider",
                         "providerId",
+                        "providerName",
                         "createdAt",
                         "updatedAt",
                         "active"
@@ -1784,6 +1792,10 @@
                           "providerId": {
                             "type": "string"
                           },
+                          "providerName": {
+                            "nullable": true,
+                            "type": "string"
+                          },
                           "createdAt": {
                             "type": "string",
                             "format": "date-time"
@@ -1801,6 +1813,7 @@
                           "workspaceId",
                           "provider",
                           "providerId",
+                          "providerName",
                           "createdAt",
                           "updatedAt",
                           "active"

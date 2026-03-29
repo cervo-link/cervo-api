@@ -120,6 +120,13 @@
       "when": 1774625282547,
       "tag": "20260327152802_add_is_personal_to_workspaces",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1774758417547,
+      "tag": "20260329042657_add_provider_name_to_workspace_integrations",
+      "breakpoints": true
     }
   ]
 }

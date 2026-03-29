@@ -1,0 +1,1 @@
+ALTER TABLE "workspace_integrations" ADD COLUMN "provider_name" text;

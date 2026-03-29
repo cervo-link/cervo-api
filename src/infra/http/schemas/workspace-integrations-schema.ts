@@ -3,6 +3,7 @@ import { z } from 'zod'
 export const addWorkspaceIntegrationBodySchema = z.object({
   provider: z.string().min(1),
   providerId: z.string().min(1),
+  providerName: z.string().optional(),
 })
 
 export const addWorkspaceIntegrationParamsSchema = z.object({
@@ -30,6 +31,7 @@ const integrationSchema = z.object({
   workspaceId: z.string(),
   provider: z.string(),
   providerId: z.string(),
+  providerName: z.string().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
   active: z.boolean(),
