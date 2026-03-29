@@ -37,6 +37,7 @@ const integrationSchema = z.object({
 
 export const addWorkspaceIntegrationResponseSchema = {
   201: z.object({ integration: integrationSchema }).describe('Integration added'),
+  403: z.object({ message: z.string() }).describe('Forbidden'),
   404: z.object({ message: z.string() }).describe('Workspace not found'),
   422: z.object({ message: z.string() }).describe('Integration already exists'),
 }

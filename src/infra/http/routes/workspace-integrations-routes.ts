@@ -4,7 +4,9 @@ import {
   addWorkspaceIntegrationController,
   getWorkspaceByIntegrationController,
 } from '@/infra/http/controllers/workspace-integrations-controller'
+import { anyAuth } from '@/infra/http/middlewares/any-auth'
 import { apiKeyAuth } from '@/infra/http/middlewares/api-key-auth'
+import { sessionAuth } from '@/infra/http/middlewares/session-auth'
 import {
   addWorkspaceIntegrationBodySchema,
   addWorkspaceIntegrationParamsSchema,
@@ -17,7 +19,7 @@ export async function workspaceIntegrationsRoutes(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().route({
     method: 'POST',
     url: '/workspaces/:workspaceId/integrations',
-    onRequest: [apiKeyAuth],
+    onRequest: [anyAuth(sessionAuth, apiKeyAuth)],
     schema: {
       description: 'Add a platform integration to a workspace',
       tags: ['workspace-integrations'],

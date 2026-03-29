@@ -3,6 +3,7 @@ import type { z } from 'zod'
 import { DomainError } from '@/domain/errors/domain-error'
 import { createWorkspaceIntegration } from '@/domain/services/workspace-integrations/create-workspace-integration-service'
 import { getWorkspaceByIntegration } from '@/domain/services/workspace-integrations/get-workspace-by-integration-service'
+import { findById } from '@/infra/db/repositories/workspaces-repository'
 import type {
   addWorkspaceIntegrationBodySchema,
   addWorkspaceIntegrationParamsSchema,
@@ -21,6 +22,16 @@ export async function addWorkspaceIntegrationController(
   return withSpan('add-workspace-integration', async () => {
     const { workspaceId } = request.params
     const { provider, providerId } = request.body
+
+    if (request.member) {
+      const workspace = await findById(workspaceId)
+      if (!workspace) {
+        return reply.status(404).send({ message: 'Workspace not found' })
+      }
+      if (workspace.ownerId !== request.member.id) {
+        return reply.status(403).send({ message: 'Forbidden' })
+      }
+    }
 
     const result = await createWorkspaceIntegration({
       workspaceId,
