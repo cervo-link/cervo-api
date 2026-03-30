@@ -1,4 +1,5 @@
 import '@/infra/telemetry/otel'
+
 import { startServer } from '@/infra/http/server'
 
 async function main() {
