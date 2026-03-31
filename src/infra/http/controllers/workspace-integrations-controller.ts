@@ -21,6 +21,7 @@ import type {
   patchIntegrationByProviderQuerySchema,
 } from '@/infra/http/schemas/workspace-integrations-schema'
 import { replyWithError } from '@/infra/http/utils/reply-with'
+import { logger } from '@/infra/logger'
 import { withSpan } from '@/infra/utils/with-span'
 
 export async function addWorkspaceIntegrationController(
@@ -51,8 +52,12 @@ export async function addWorkspaceIntegrationController(
       providerName,
     })
 
-    if (result instanceof DomainError) return replyWithError(reply, result)
+    if (result instanceof DomainError) {
+      logger.warn({ workspaceId, provider, providerId, error: result.message }, 'workspace integration failed')
+      return replyWithError(reply, result)
+    }
 
+    logger.info({ workspaceId, provider, providerId, integrationId: result.id }, 'workspace integration added')
     return reply.status(201).send({ integration: result })
   })
 }

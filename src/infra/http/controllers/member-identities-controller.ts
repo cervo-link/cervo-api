@@ -5,6 +5,7 @@ import { findMemberByPlatform } from '@/domain/services/members/find-member-by-p
 import { linkMemberIdentity } from '@/domain/services/members/link-member-identity-service'
 import { findIdentitiesByMemberId } from '@/infra/db/repositories/member-platform-identities-repository'
 import { replyWithError } from '@/infra/http/utils/reply-with'
+import { logger } from '@/infra/logger'
 import { withSpan } from '@/infra/utils/with-span'
 import {
   createMemberIdentityBodySchema,
@@ -42,8 +43,12 @@ export async function linkMemberIdentityController(
       providerUserId,
     })
 
-    if (result instanceof DomainError) return replyWithError(reply, result)
+    if (result instanceof DomainError) {
+      logger.warn({ memberId: request.member.id, provider, error: result.message }, 'member identity link failed')
+      return replyWithError(reply, result)
+    }
 
+    logger.info({ memberId: request.member.id, provider, identityId: result.id }, 'member identity linked')
     return reply.status(201).send({ identity: result })
   })
 }

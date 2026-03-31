@@ -17,6 +17,7 @@ import { createEmbeddingProvider } from '@/infra/factories/embedding-service-fac
 import { createScrappingService } from '@/infra/factories/scrapping-service-factory'
 import { createSummarizeService } from '@/infra/factories/summarize-service-factory'
 import { replyWithError } from '@/infra/http/utils/reply-with'
+import { logger } from '@/infra/logger'
 import { withSpan } from '@/infra/utils/with-span'
 import {
   bookmarkSchema,
@@ -52,6 +53,8 @@ export async function createBookmarkController(
     const embeddingAdapter = createEmbeddingProvider(config.openai.EMBEDDING_PROVIDER)
     const summarizeAdapter = createSummarizeService(config.openai.SUMMARIZE_PROVIDER)
 
+    logger.info({ workspaceId, memberId, url, source }, 'bookmark submitted')
+
     const result = await createBookmark(
       { workspaceId, memberId, url, source: source ?? 'web' },
       scrappingAdapter,
@@ -59,8 +62,12 @@ export async function createBookmarkController(
       summarizeAdapter
     )
 
-    if (result instanceof DomainError) return replyWithError(reply, result)
+    if (result instanceof DomainError) {
+      logger.warn({ workspaceId, memberId, url, error: result.message }, 'bookmark submission failed')
+      return replyWithError(reply, result)
+    }
 
+    logger.info({ bookmarkId: result.id, workspaceId, memberId }, 'bookmark queued for processing')
     return reply.status(201).send({ id: result.id, status: result.status })
   })
 }
@@ -86,6 +93,8 @@ export async function getBookmarksController(
     const embeddingAdapter = createEmbeddingProvider(config.openai.EMBEDDING_PROVIDER)
     const summarizeAdapter = createSummarizeService(config.openai.SUMMARIZE_PROVIDER)
 
+    logger.info({ workspaceId, memberId, text, limit }, 'bookmark search')
+
     const bookmarks = await getBookmarks(
       { workspaceId, memberId, text, limit },
       embeddingAdapter,
@@ -94,6 +103,7 @@ export async function getBookmarksController(
 
     if (bookmarks instanceof DomainError) return replyWithError(reply, bookmarks)
 
+    logger.info({ workspaceId, memberId, count: bookmarks.length }, 'bookmark search results')
     return reply.status(200).send(bookmarks)
   })
 }
@@ -109,9 +119,14 @@ export async function retryBookmarkController(
     const embeddingAdapter = createEmbeddingProvider(config.openai.EMBEDDING_PROVIDER)
     const summarizeAdapter = createSummarizeService(config.openai.SUMMARIZE_PROVIDER)
 
+    logger.info({ bookmarkId: id }, 'bookmark retry triggered')
+
     const result = await retryBookmark(id, scrappingAdapter, embeddingAdapter, summarizeAdapter)
 
-    if (result instanceof DomainError) return replyWithError(reply, result)
+    if (result instanceof DomainError) {
+      logger.warn({ bookmarkId: id, error: result.message }, 'bookmark retry failed')
+      return replyWithError(reply, result)
+    }
 
     return reply.status(200).send({ message: 'Retry triggered' })
   })
