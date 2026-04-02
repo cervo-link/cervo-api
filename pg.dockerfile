@@ -1,19 +1,20 @@
-FROM bitnami/postgresql:latest as build
+FROM postgres:17 as build
 ARG PGVECTOR_VERSION=v0.8.0
 
 USER root
 
 RUN set -e; \
-    install_packages build-essential git ; \
+    apt-get update ; \
+    apt-get install -y build-essential git postgresql-server-dev-17 ; \
     git clone --branch $PGVECTOR_VERSION https://github.com/pgvector/pgvector.git /tmp/pgvector ; \
     cd /tmp/pgvector ; \
     make OPTFLAGS="" ; \
     make install ; \
     :
 
-FROM bitnami/postgresql:latest
+FROM postgres:17
 
-# Doc
+# Doc
 COPY --from=build \
      /tmp/pgvector/README.md \
      /tmp/pgvector/LICENSE \
@@ -21,10 +22,10 @@ COPY --from=build \
 # Code
 COPY --from=build \
      /tmp/pgvector/vector.so \
-       /opt/bitnami/postgresql/lib/
+       /usr/lib/postgresql/17/lib/
 COPY --from=build \
      /tmp/pgvector/vector.control \
-       /opt/bitnami/postgresql/share/extension/
+       /usr/share/postgresql/17/extension/
 COPY --from=build \
      /tmp/pgvector/sql/*.sql \
-       /opt/bitnami/postgresql/share/extension/
+       /usr/share/postgresql/17/extension/
