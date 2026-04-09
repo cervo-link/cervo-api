@@ -52,7 +52,12 @@ src/
 │   │   └── migrations/        # SQL migration files
 │   ├── http/
 │   │   ├── controllers/       # Request handlers
-│   │   ├── routes/            # Route definitions with auth middleware
+│   │   ├── routes/
+│   │   │   ├── api/           # /api/v1/* — session auth (web frontend)
+│   │   │   ├── integrations/  # /integrations/v1/* — API key auth (bot/extensions)
+│   │   │   ├── auth-routes.ts
+│   │   │   ├── healthcheck.ts
+│   │   │   └── waiting-list-routes.ts
 │   │   ├── schemas/           # Zod request/response schemas
 │   │   ├── middlewares/       # sessionAuth, apiKeyAuth, requireAbility
 │   │   └── app.ts             # Fastify setup, Swagger UI, error handler
@@ -171,35 +176,70 @@ Memberships have a `role` column: `viewer | editor | owner`. Routes are guarded 
 
 `requireAbility` reads `workspaceId` from route params, looks up the caller's role in the DB, builds a CASL ability, and returns 403 if the action is not allowed. It also validates that `workspaceId` is a valid UUID (returns 400 otherwise).
 
-Bookmark creation (`POST /bookmarks`) enforces the `manage Link` ability using the `memberId` from the request body — this applies to both session and API-key (Discord bot) callers.
+Bookmark creation (`POST /api/v1/bookmarks` and `POST /integrations/v1/bookmarks`) enforces the `manage Link` ability using the `memberId` from the request body — this applies to both session and API key callers.
 
 ## HTTP Routes
 
-Domain routes require API key auth (`Authorization: Bearer`, `X-API-Key`, or `?api_key`). Auth routes are handled by Better Auth with no API key required.
+Routes are split into two prefixed namespaces:
+
+- **`/api/v1`** — session auth (cookie), consumed by the web frontend
+- **`/integrations/v1`** — API key auth (`Authorization: Bearer`, `X-API-Key`, or `?api_key`), consumed by the Discord bot and Raycast extension
+
+Unprefixed routes are unchanged.
+
+### Unprefixed
 
 | Method | URL | Auth | Description |
 |---|---|---|---|
 | GET | `/health` | none | Health check |
 | GET/POST | `/api/auth/*` | none | Better Auth (OAuth sign-in, session, logout) |
-| POST | `/bookmarks` | session or API key | Submit URL for processing |
-| GET | `/bookmarks` | session or API key | Vector similarity search |
-| POST | `/bookmarks/:id/retry` | session or API key | Retry failed bookmark |
-| POST | `/members/create` | API key | Create member |
-| PUT | `/members/add` | API key | Add member to workspace |
-| POST | `/members/:memberId/identities` | API key | Link platform identity to member |
-| GET | `/members/by-identity` | API key | Find member by platform identity |
-| GET | `/members/me` | session | Get current authenticated member |
-| POST | `/workspaces/create` | session or API key | Create workspace |
-| GET | `/workspaces` | session or API key | Get workspace by ID |
-| GET | `/workspaces/me` | session | List workspaces for authenticated member (with `role`) |
-| PATCH | `/workspaces/:workspaceId` | session + owner | Update workspace |
-| DELETE | `/workspaces/:workspaceId` | session + owner | Delete workspace |
-| GET | `/workspaces/:workspaceId/members` | session + any member | List members with roles |
-| POST | `/workspaces/:workspaceId/members` | session + owner | Invite member by email |
-| DELETE | `/workspaces/:workspaceId/members/:memberId` | session + owner | Remove member |
-| PATCH | `/workspaces/:workspaceId/members/:memberId` | session + owner | Change member role |
-| POST | `/workspaces/:workspaceId/integrations` | session or API key | Add platform integration |
-| GET | `/workspaces/by-integration` | session or API key | Find workspace by platform ID |
+| POST | `/waiting-list` | none | Join the waiting list |
+
+### `/api/v1` — session auth (web frontend)
+
+| Method | URL | Auth | Description |
+|---|---|---|---|
+| POST | `/api/v1/bookmarks` | session | Submit URL for processing |
+| GET | `/api/v1/bookmarks` | session | Vector similarity search |
+| GET | `/api/v1/bookmarks/:id` | session | Get bookmark by ID |
+| POST | `/api/v1/bookmarks/:id/retry` | session | Retry failed bookmark |
+| DELETE | `/api/v1/bookmarks/:id` | session + manage Link | Delete bookmark |
+| GET | `/api/v1/members/me` | session | Get current authenticated member |
+| POST | `/api/v1/members/sync` | none | Sync Better Auth user → member record |
+| POST | `/api/v1/members/me/identities` | session | Link provider identity, merge shadow member |
+| GET | `/api/v1/members/me/identities` | session | List linked provider identities |
+| POST | `/api/v1/workspaces/create` | session | Create workspace |
+| GET | `/api/v1/workspaces` | session | Get workspace by ID |
+| GET | `/api/v1/workspaces/me` | session | List workspaces for authenticated member (with `role`) |
+| PATCH | `/api/v1/workspaces/:workspaceId` | session + update Workspace | Update name/description/visibility |
+| DELETE | `/api/v1/workspaces/:workspaceId` | session + delete Workspace | Delete workspace |
+| GET | `/api/v1/workspaces/:workspaceId/members` | session + read Workspace | List members with roles |
+| POST | `/api/v1/workspaces/:workspaceId/members` | session + manage Member | Invite member by email |
+| DELETE | `/api/v1/workspaces/:workspaceId/members/:memberId` | session + manage Member | Remove member |
+| PATCH | `/api/v1/workspaces/:workspaceId/members/:memberId` | session + manage Member | Change member role |
+| GET | `/api/v1/workspaces/:workspaceId/integrations` | session + read Workspace | List workspace integrations |
+| POST | `/api/v1/workspaces/:workspaceId/integrations` | session + manage Workspace | Add platform integration |
+| DELETE | `/api/v1/workspaces/:workspaceId/integrations/:integrationId` | session + manage Workspace | Remove platform integration |
+
+### `/integrations/v1` — API key auth (Discord bot, Raycast)
+
+| Method | URL | Auth | Description |
+|---|---|---|---|
+| POST | `/integrations/v1/bookmarks` | API key | Submit URL for processing |
+| GET | `/integrations/v1/bookmarks` | API key | Vector similarity search |
+| POST | `/integrations/v1/members/create` | API key | Create member |
+| POST | `/integrations/v1/members/resolve` | API key | Resolve or create member by provider identity |
+| PUT | `/integrations/v1/members/add` | API key | Add member to workspace |
+| POST | `/integrations/v1/members/:memberId/identities` | API key | Link platform identity to member |
+| GET | `/integrations/v1/members/by-identity` | API key | Find member by platform identity |
+| POST | `/integrations/v1/workspaces/create` | API key | Create workspace |
+| GET | `/integrations/v1/workspaces/by-member/:memberId` | API key | List workspaces a member belongs to |
+| GET | `/integrations/v1/workspaces/:workspaceId/integrations` | API key | List workspace integrations |
+| POST | `/integrations/v1/workspaces/:workspaceId/integrations` | API key | Add platform integration |
+| DELETE | `/integrations/v1/workspaces/:workspaceId/integrations/:integrationId` | API key | Remove platform integration |
+| GET | `/integrations/v1/workspaces/by-integration` | API key | Find workspace by provider ID |
+| PATCH | `/integrations/v1/workspaces/by-integration` | API key | Update integration provider name |
+| DELETE | `/integrations/v1/workspaces/by-integration` | API key | Remove integration by provider ID |
 
 ## Database
 

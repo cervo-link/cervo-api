@@ -194,7 +194,7 @@ export async function deleteBookmarkController(
     }
 
     const role = await findMembershipRole(bookmark.workspaceId, request.member.id)
-    if (defineAbilitiesFor(role).cannot('manage' as never, 'Link' as never)) {
+    if (defineAbilitiesFor(role).cannot('manage', 'Link')) {
       return reply
         .status(403)
         .send({ message: 'Requires ability to manage Link' })
