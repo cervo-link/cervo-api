@@ -75,15 +75,14 @@ describe('members-repository', () => {
 
   describe('findByEmail', () => {
     it('should return the member when found', async () => {
-      const email = 'member-find-by-email@example.com'
-      const member = await makeMember({ email })
-      const result = await findByEmail(email)
+      const member = await makeMember()
+      const result = await findByEmail(member.email as string)
 
       expect(result).toEqual(expect.objectContaining({ id: member.id }))
     })
 
     it('should return null when not found', async () => {
-      const result = await findByEmail('nonexistent@example.com')
+      const result = await findByEmail(`nonexistent-${Date.now()}@example.com`)
 
       expect(result).toBeNull()
     })
@@ -92,7 +91,7 @@ describe('members-repository', () => {
   describe('findByUserId', () => {
     it('should return the member when userId matches', async () => {
       const raw = makeRawMember()
-      const userId = 'user-abc-123'
+      const userId = `user-${Date.now()}`
       const inserted = await insertMember({ ...raw, userId })
 
       const result = await findByUserId(userId)
@@ -103,7 +102,7 @@ describe('members-repository', () => {
     })
 
     it('should return null when userId not found', async () => {
-      const result = await findByUserId('nonexistent-user-id')
+      const result = await findByUserId(`nonexistent-user-${Date.now()}`)
 
       expect(result).toBeNull()
     })

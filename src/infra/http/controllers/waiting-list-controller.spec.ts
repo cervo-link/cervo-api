@@ -4,19 +4,18 @@ import { makeWaitingListEntry } from '@/tests/factories/make-waiting-list-entry'
 
 describe('joinWaitingListController', () => {
   it('should join the waiting list', async () => {
+    const email = `newuser-${Date.now()}@example.com`
+
     const response = await app.inject({
       method: 'POST',
       url: '/waiting-list',
-      payload: {
-        email: 'newuser@example.com',
-        allowPromoEmails: false,
-      },
+      payload: { email, allowPromoEmails: false },
     })
 
     expect(response.statusCode).toBe(201)
     const body = JSON.parse(response.body)
     expect(body.id).toBeDefined()
-    expect(body.email).toBe('newuser@example.com')
+    expect(body.email).toBe(email)
     expect(body.allowPromoEmails).toBe(false)
     expect(body.createdAt).toBeDefined()
   })
@@ -25,9 +24,7 @@ describe('joinWaitingListController', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/waiting-list',
-      payload: {
-        email: 'defaultpromo@example.com',
-      },
+      payload: { email: `defaultpromo-${Date.now()}@example.com` },
     })
 
     expect(response.statusCode).toBe(201)
@@ -41,10 +38,7 @@ describe('joinWaitingListController', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/waiting-list',
-      payload: {
-        email: entry.email,
-        allowPromoEmails: false,
-      },
+      payload: { email: entry.email, allowPromoEmails: false },
     })
 
     expect(response.statusCode).toBe(200)
@@ -55,10 +49,7 @@ describe('joinWaitingListController', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/waiting-list',
-      payload: {
-        email: 'not-an-email',
-        allowPromoEmails: false,
-      },
+      payload: { email: 'not-an-email', allowPromoEmails: false },
     })
 
     expect(response.statusCode).toBe(400)
@@ -68,9 +59,7 @@ describe('joinWaitingListController', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/waiting-list',
-      payload: {
-        allowPromoEmails: true,
-      },
+      payload: { allowPromoEmails: true },
     })
 
     expect(response.statusCode).toBe(400)
@@ -80,10 +69,7 @@ describe('joinWaitingListController', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/waiting-list',
-      payload: {
-        email: 'noauth@example.com',
-        allowPromoEmails: false,
-      },
+      payload: { email: `noauth-${Date.now()}@example.com`, allowPromoEmails: false },
     })
 
     expect(response.statusCode).toBe(201)

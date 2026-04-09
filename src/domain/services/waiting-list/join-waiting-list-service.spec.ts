@@ -6,14 +6,13 @@ import { joinWaitingList } from './join-waiting-list-service'
 
 describe('joinWaitingList', () => {
   it('should add an email to the waiting list', async () => {
-    const result = await joinWaitingList({
-      email: 'test@example.com',
-      allowPromoEmails: false,
-    })
+    const email = `test-${Date.now()}@example.com`
+
+    const result = await joinWaitingList({ email, allowPromoEmails: false })
 
     assert(!(result instanceof DomainError))
     expect(result).not.toBeNull()
-    expect(result?.email).toBe('test@example.com')
+    expect(result?.email).toBe(email)
     expect(result?.allowPromoEmails).toBe(false)
     expect(result?.id).toBeDefined()
     expect(result?.createdAt).toBeDefined()
@@ -21,7 +20,7 @@ describe('joinWaitingList', () => {
 
   it('should store allowPromoEmails as true when provided', async () => {
     const result = await joinWaitingList({
-      email: 'promo@example.com',
+      email: `promo-${Date.now()}@example.com`,
       allowPromoEmails: true,
     })
 

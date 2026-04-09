@@ -62,7 +62,136 @@
         }
       }
     },
-    "/bookmarks": {
+    "/waiting-list": {
+      "post": {
+        "tags": [
+          "waiting-list"
+        ],
+        "description": "Join the waiting list",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                  },
+                  "allowPromoEmails": {
+                    "default": false,
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "email"
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Email already registered",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Email already registered"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Successfully joined the waiting list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "email": {
+                      "type": "string"
+                    },
+                    "allowPromoEmails": {
+                      "type": "boolean"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "email",
+                    "allowPromoEmails",
+                    "createdAt"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Successfully joined the waiting list"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Invalid request body"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Internal server error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/bookmarks": {
       "post": {
         "tags": [
           "bookmarks"
@@ -382,7 +511,7 @@
         }
       }
     },
-    "/bookmarks/{id}/retry": {
+    "/api/v1/bookmarks/{id}/retry": {
       "post": {
         "tags": [
           "bookmarks"
@@ -464,7 +593,7 @@
         }
       }
     },
-    "/bookmarks/{id}": {
+    "/api/v1/bookmarks/{id}": {
       "delete": {
         "tags": [
           "bookmarks"
@@ -653,7 +782,7 @@
         }
       }
     },
-    "/workspaces/create": {
+    "/api/v1/workspaces/create": {
       "post": {
         "tags": [
           "workspaces"
@@ -811,7 +940,236 @@
         }
       }
     },
-    "/workspaces/{workspaceId}": {
+    "/api/v1/workspaces": {
+      "get": {
+        "tags": [
+          "workspaces"
+        ],
+        "description": "Get a workspace by ID",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "query",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Workspace found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "workspace": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "ownerId": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "isPublic": {
+                          "type": "boolean"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "active": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "ownerId",
+                        "name",
+                        "description",
+                        "isPublic",
+                        "createdAt",
+                        "updatedAt",
+                        "active"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "workspace"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Workspace found."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Workspace not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Workspace not found"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to get workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Failed to get workspace"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces/me": {
+      "get": {
+        "tags": [
+          "workspaces"
+        ],
+        "description": "List all workspaces the authenticated member belongs to",
+        "responses": {
+          "200": {
+            "description": "List of workspaces the member belongs to",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "workspaces": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "ownerId": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "isPublic": {
+                            "type": "boolean"
+                          },
+                          "isPersonal": {
+                            "type": "boolean"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "updatedAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "active": {
+                            "type": "boolean"
+                          },
+                          "role": {
+                            "type": "string",
+                            "enum": [
+                              "viewer",
+                              "editor",
+                              "owner"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "ownerId",
+                          "name",
+                          "description",
+                          "isPublic",
+                          "isPersonal",
+                          "createdAt",
+                          "updatedAt",
+                          "active",
+                          "role"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "workspaces"
+                  ],
+                  "additionalProperties": false,
+                  "description": "List of workspaces the member belongs to"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to get workspaces",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Failed to get workspaces"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces/{workspaceId}": {
       "patch": {
         "tags": [
           "workspaces"
@@ -1090,7 +1448,128 @@
         }
       }
     },
-    "/workspaces/{workspaceId}/members": {
+    "/api/v1/workspaces/{workspaceId}/members": {
+      "get": {
+        "tags": [
+          "workspaces"
+        ],
+        "description": "List all members of a workspace",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "workspaceId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of workspace members",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "members": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "username": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "email": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "role": {
+                            "type": "string",
+                            "enum": [
+                              "viewer",
+                              "editor",
+                              "owner"
+                            ]
+                          },
+                          "joinedAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "username",
+                          "email",
+                          "role",
+                          "joinedAt"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "members"
+                  ],
+                  "additionalProperties": false,
+                  "description": "List of workspace members"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Forbidden"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Internal error"
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
         "tags": [
           "workspaces"
@@ -1238,130 +1717,9 @@
             }
           }
         }
-      },
-      "get": {
-        "tags": [
-          "workspaces"
-        ],
-        "description": "List all members of a workspace",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-            },
-            "in": "path",
-            "name": "workspaceId",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "List of workspace members",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "members": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "string"
-                          },
-                          "name": {
-                            "nullable": true,
-                            "type": "string"
-                          },
-                          "username": {
-                            "nullable": true,
-                            "type": "string"
-                          },
-                          "email": {
-                            "nullable": true,
-                            "type": "string"
-                          },
-                          "role": {
-                            "type": "string",
-                            "enum": [
-                              "viewer",
-                              "editor",
-                              "owner"
-                            ]
-                          },
-                          "joinedAt": {
-                            "type": "string",
-                            "format": "date-time"
-                          }
-                        },
-                        "required": [
-                          "id",
-                          "name",
-                          "username",
-                          "email",
-                          "role",
-                          "joinedAt"
-                        ],
-                        "additionalProperties": false
-                      }
-                    }
-                  },
-                  "required": [
-                    "members"
-                  ],
-                  "additionalProperties": false,
-                  "description": "List of workspace members"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "message"
-                  ],
-                  "additionalProperties": false,
-                  "description": "Forbidden"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "message"
-                  ],
-                  "additionalProperties": false,
-                  "description": "Internal error"
-                }
-              }
-            }
-          }
-        }
       }
     },
-    "/workspaces/{workspaceId}/members/{memberId}": {
+    "/api/v1/workspaces/{workspaceId}/members/{memberId}": {
       "delete": {
         "tags": [
           "workspaces"
@@ -1606,119 +1964,12 @@
         }
       }
     },
-    "/workspaces/me": {
+    "/api/v1/workspaces/{workspaceId}/integrations": {
       "get": {
         "tags": [
-          "workspaces"
+          "workspace-integrations"
         ],
-        "description": "List all workspaces the authenticated member belongs to",
-        "responses": {
-          "200": {
-            "description": "List of workspaces the member belongs to",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "workspaces": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "string"
-                          },
-                          "ownerId": {
-                            "nullable": true,
-                            "type": "string"
-                          },
-                          "name": {
-                            "type": "string"
-                          },
-                          "description": {
-                            "nullable": true,
-                            "type": "string"
-                          },
-                          "isPublic": {
-                            "type": "boolean"
-                          },
-                          "isPersonal": {
-                            "type": "boolean"
-                          },
-                          "createdAt": {
-                            "type": "string",
-                            "format": "date-time"
-                          },
-                          "updatedAt": {
-                            "type": "string",
-                            "format": "date-time"
-                          },
-                          "active": {
-                            "type": "boolean"
-                          },
-                          "role": {
-                            "type": "string",
-                            "enum": [
-                              "viewer",
-                              "editor",
-                              "owner"
-                            ]
-                          }
-                        },
-                        "required": [
-                          "id",
-                          "ownerId",
-                          "name",
-                          "description",
-                          "isPublic",
-                          "isPersonal",
-                          "createdAt",
-                          "updatedAt",
-                          "active",
-                          "role"
-                        ],
-                        "additionalProperties": false
-                      }
-                    }
-                  },
-                  "required": [
-                    "workspaces"
-                  ],
-                  "additionalProperties": false,
-                  "description": "List of workspaces the member belongs to"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Failed to get workspaces",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "message"
-                  ],
-                  "additionalProperties": false,
-                  "description": "Failed to get workspaces"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/workspaces/by-member/{memberId}": {
-      "get": {
-        "tags": [
-          "workspaces"
-        ],
-        "description": "List all workspaces a given member belongs to",
+        "description": "List integrations for a workspace",
         "parameters": [
           {
             "schema": {
@@ -1727,19 +1978,19 @@
               "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
             },
             "in": "path",
-            "name": "memberId",
+            "name": "workspaceId",
             "required": true
           }
         ],
         "responses": {
           "200": {
-            "description": "List of workspaces",
+            "description": "Integrations found",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "workspaces": {
+                    "integrations": {
                       "type": "array",
                       "items": {
                         "type": "object",
@@ -1747,22 +1998,18 @@
                           "id": {
                             "type": "string"
                           },
-                          "ownerId": {
+                          "workspaceId": {
+                            "type": "string"
+                          },
+                          "provider": {
+                            "type": "string"
+                          },
+                          "providerId": {
+                            "type": "string"
+                          },
+                          "providerName": {
                             "nullable": true,
                             "type": "string"
-                          },
-                          "name": {
-                            "type": "string"
-                          },
-                          "description": {
-                            "nullable": true,
-                            "type": "string"
-                          },
-                          "isPublic": {
-                            "type": "boolean"
-                          },
-                          "isPersonal": {
-                            "type": "boolean"
                           },
                           "createdAt": {
                             "type": "string",
@@ -1774,43 +2021,33 @@
                           },
                           "active": {
                             "type": "boolean"
-                          },
-                          "role": {
-                            "type": "string",
-                            "enum": [
-                              "viewer",
-                              "editor",
-                              "owner"
-                            ]
                           }
                         },
                         "required": [
                           "id",
-                          "ownerId",
-                          "name",
-                          "description",
-                          "isPublic",
-                          "isPersonal",
+                          "workspaceId",
+                          "provider",
+                          "providerId",
+                          "providerName",
                           "createdAt",
                           "updatedAt",
-                          "active",
-                          "role"
+                          "active"
                         ],
                         "additionalProperties": false
                       }
                     }
                   },
                   "required": [
-                    "workspaces"
+                    "integrations"
                   ],
                   "additionalProperties": false,
-                  "description": "List of workspaces"
+                  "description": "Integrations found"
                 }
               }
             }
           },
-          "404": {
-            "description": "Member not found",
+          "403": {
+            "description": "Forbidden",
             "content": {
               "application/json": {
                 "schema": {
@@ -1824,109 +2061,7 @@
                     "message"
                   ],
                   "additionalProperties": false,
-                  "description": "Member not found"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Failed to get workspaces",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "message"
-                  ],
-                  "additionalProperties": false,
-                  "description": "Failed to get workspaces"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/workspaces": {
-      "get": {
-        "tags": [
-          "workspaces"
-        ],
-        "description": "Get a workspace by platform ID",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-            },
-            "in": "query",
-            "name": "id",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Workspace found.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "workspace": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string"
-                        },
-                        "ownerId": {
-                          "type": "string"
-                        },
-                        "name": {
-                          "type": "string"
-                        },
-                        "description": {
-                          "nullable": true,
-                          "type": "string"
-                        },
-                        "isPublic": {
-                          "type": "boolean"
-                        },
-                        "createdAt": {
-                          "type": "string",
-                          "format": "date-time"
-                        },
-                        "updatedAt": {
-                          "type": "string",
-                          "format": "date-time"
-                        },
-                        "active": {
-                          "type": "boolean"
-                        }
-                      },
-                      "required": [
-                        "id",
-                        "ownerId",
-                        "name",
-                        "description",
-                        "isPublic",
-                        "createdAt",
-                        "updatedAt",
-                        "active"
-                      ],
-                      "additionalProperties": false
-                    }
-                  },
-                  "required": [
-                    "workspace"
-                  ],
-                  "additionalProperties": false,
-                  "description": "Workspace found."
+                  "description": "Forbidden"
                 }
               }
             }
@@ -1950,31 +2085,9 @@
                 }
               }
             }
-          },
-          "500": {
-            "description": "Failed to get workspace",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "message"
-                  ],
-                  "additionalProperties": false,
-                  "description": "Failed to get workspace"
-                }
-              }
-            }
           }
         }
-      }
-    },
-    "/workspaces/{workspaceId}/integrations": {
+      },
       "post": {
         "tags": [
           "workspace-integrations"
@@ -2141,132 +2254,9 @@
             }
           }
         }
-      },
-      "get": {
-        "tags": [
-          "workspace-integrations"
-        ],
-        "description": "List integrations for a workspace",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-            },
-            "in": "path",
-            "name": "workspaceId",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Integrations found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "integrations": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "string"
-                          },
-                          "workspaceId": {
-                            "type": "string"
-                          },
-                          "provider": {
-                            "type": "string"
-                          },
-                          "providerId": {
-                            "type": "string"
-                          },
-                          "providerName": {
-                            "nullable": true,
-                            "type": "string"
-                          },
-                          "createdAt": {
-                            "type": "string",
-                            "format": "date-time"
-                          },
-                          "updatedAt": {
-                            "type": "string",
-                            "format": "date-time"
-                          },
-                          "active": {
-                            "type": "boolean"
-                          }
-                        },
-                        "required": [
-                          "id",
-                          "workspaceId",
-                          "provider",
-                          "providerId",
-                          "providerName",
-                          "createdAt",
-                          "updatedAt",
-                          "active"
-                        ],
-                        "additionalProperties": false
-                      }
-                    }
-                  },
-                  "required": [
-                    "integrations"
-                  ],
-                  "additionalProperties": false,
-                  "description": "Integrations found"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "message"
-                  ],
-                  "additionalProperties": false,
-                  "description": "Forbidden"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Workspace not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "message"
-                  ],
-                  "additionalProperties": false,
-                  "description": "Workspace not found"
-                }
-              }
-            }
-          }
-        }
       }
     },
-    "/workspaces/{workspaceId}/integrations/{integrationId}": {
+    "/api/v1/workspaces/{workspaceId}/integrations/{integrationId}": {
       "delete": {
         "tags": [
           "workspace-integrations"
@@ -2341,295 +2331,7 @@
         }
       }
     },
-    "/workspaces/by-integration": {
-      "get": {
-        "tags": [
-          "workspace-integrations"
-        ],
-        "description": "Find a workspace by its platform integration (bot-facing)",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "minLength": 1
-            },
-            "in": "query",
-            "name": "provider",
-            "required": true
-          },
-          {
-            "schema": {
-              "type": "string",
-              "minLength": 1
-            },
-            "in": "query",
-            "name": "providerId",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Workspace found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "workspace": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string"
-                        },
-                        "ownerId": {
-                          "type": "string"
-                        },
-                        "name": {
-                          "type": "string"
-                        },
-                        "description": {
-                          "nullable": true,
-                          "type": "string"
-                        },
-                        "isPublic": {
-                          "type": "boolean"
-                        },
-                        "createdAt": {
-                          "type": "string",
-                          "format": "date-time"
-                        },
-                        "updatedAt": {
-                          "type": "string",
-                          "format": "date-time"
-                        },
-                        "active": {
-                          "type": "boolean"
-                        }
-                      },
-                      "required": [
-                        "id",
-                        "ownerId",
-                        "name",
-                        "description",
-                        "isPublic",
-                        "createdAt",
-                        "updatedAt",
-                        "active"
-                      ],
-                      "additionalProperties": false
-                    }
-                  },
-                  "required": [
-                    "workspace"
-                  ],
-                  "additionalProperties": false,
-                  "description": "Workspace found"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Workspace not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "message"
-                  ],
-                  "additionalProperties": false,
-                  "description": "Workspace not found"
-                }
-              }
-            }
-          }
-        }
-      },
-      "patch": {
-        "tags": [
-          "workspace-integrations"
-        ],
-        "description": "Update integration metadata by provider ID (bot-facing)",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "providerName": {
-                    "type": "string",
-                    "minLength": 1
-                  }
-                },
-                "required": [
-                  "providerName"
-                ]
-              }
-            }
-          },
-          "required": true
-        },
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "minLength": 1
-            },
-            "in": "query",
-            "name": "provider",
-            "required": true
-          },
-          {
-            "schema": {
-              "type": "string",
-              "minLength": 1
-            },
-            "in": "query",
-            "name": "providerId",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Integration updated",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "integration": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string"
-                        },
-                        "workspaceId": {
-                          "type": "string"
-                        },
-                        "provider": {
-                          "type": "string"
-                        },
-                        "providerId": {
-                          "type": "string"
-                        },
-                        "providerName": {
-                          "nullable": true,
-                          "type": "string"
-                        },
-                        "createdAt": {
-                          "type": "string",
-                          "format": "date-time"
-                        },
-                        "updatedAt": {
-                          "type": "string",
-                          "format": "date-time"
-                        },
-                        "active": {
-                          "type": "boolean"
-                        }
-                      },
-                      "required": [
-                        "id",
-                        "workspaceId",
-                        "provider",
-                        "providerId",
-                        "providerName",
-                        "createdAt",
-                        "updatedAt",
-                        "active"
-                      ],
-                      "additionalProperties": false
-                    }
-                  },
-                  "required": [
-                    "integration"
-                  ],
-                  "additionalProperties": false,
-                  "description": "Integration updated"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Integration not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "message"
-                  ],
-                  "additionalProperties": false,
-                  "description": "Integration not found"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "workspace-integrations"
-        ],
-        "description": "Remove an integration by provider ID (bot-facing)",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "minLength": 1
-            },
-            "in": "query",
-            "name": "provider",
-            "required": true
-          },
-          {
-            "schema": {
-              "type": "string",
-              "minLength": 1
-            },
-            "in": "query",
-            "name": "providerId",
-            "required": true
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Integration deleted"
-          },
-          "404": {
-            "description": "Integration not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "message"
-                  ],
-                  "additionalProperties": false,
-                  "description": "Integration not found"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/members/me": {
+    "/api/v1/members/me": {
       "get": {
         "tags": [
           "members"
@@ -2758,7 +2460,7 @@
         }
       }
     },
-    "/members/sync": {
+    "/api/v1/members/sync": {
       "post": {
         "tags": [
           "members"
@@ -2944,438 +2646,7 @@
         }
       }
     },
-    "/members/resolve": {
-      "post": {
-        "tags": [
-          "members"
-        ],
-        "description": "Resolve or create a shadow member by provider identity (idempotent)",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "provider": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "providerUserId": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "displayName": {
-                    "type": "string",
-                    "minLength": 1
-                  }
-                },
-                "required": [
-                  "provider",
-                  "providerUserId",
-                  "displayName"
-                ]
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "description": "Member resolved",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "member": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string"
-                        },
-                        "name": {
-                          "nullable": true,
-                          "type": "string"
-                        },
-                        "username": {
-                          "nullable": true,
-                          "type": "string"
-                        },
-                        "email": {
-                          "nullable": true,
-                          "type": "string"
-                        },
-                        "createdAt": {
-                          "type": "string",
-                          "format": "date-time"
-                        },
-                        "updatedAt": {
-                          "type": "string",
-                          "format": "date-time"
-                        },
-                        "active": {
-                          "type": "boolean"
-                        }
-                      },
-                      "required": [
-                        "id",
-                        "name",
-                        "username",
-                        "email",
-                        "createdAt",
-                        "updatedAt",
-                        "active"
-                      ],
-                      "additionalProperties": false
-                    }
-                  },
-                  "required": [
-                    "member"
-                  ],
-                  "additionalProperties": false,
-                  "description": "Member resolved"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "message"
-                  ],
-                  "additionalProperties": false,
-                  "description": "Invalid request"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Failed to resolve member",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "message"
-                  ],
-                  "additionalProperties": false,
-                  "description": "Failed to resolve member"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/members/create": {
-      "post": {
-        "tags": [
-          "members"
-        ],
-        "description": "Create a member",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "username": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "email": {
-                    "type": "string",
-                    "format": "email",
-                    "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
-                  }
-                },
-                "required": [
-                  "name",
-                  "username",
-                  "email"
-                ]
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "description": "Member created.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "member": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string"
-                        },
-                        "name": {
-                          "nullable": true,
-                          "type": "string"
-                        },
-                        "username": {
-                          "nullable": true,
-                          "type": "string"
-                        },
-                        "email": {
-                          "nullable": true,
-                          "type": "string"
-                        },
-                        "createdAt": {
-                          "type": "string",
-                          "format": "date-time"
-                        },
-                        "updatedAt": {
-                          "type": "string",
-                          "format": "date-time"
-                        },
-                        "active": {
-                          "type": "boolean"
-                        }
-                      },
-                      "required": [
-                        "id",
-                        "name",
-                        "username",
-                        "email",
-                        "createdAt",
-                        "updatedAt",
-                        "active"
-                      ],
-                      "additionalProperties": false
-                    }
-                  },
-                  "required": [
-                    "member"
-                  ],
-                  "additionalProperties": false,
-                  "description": "Member created."
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Failed to create member",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "message"
-                  ],
-                  "additionalProperties": false,
-                  "description": "Failed to create member"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Member already exists",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "message"
-                  ],
-                  "additionalProperties": false,
-                  "description": "Member already exists"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Failed to create member",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "message"
-                  ],
-                  "additionalProperties": false,
-                  "description": "Failed to create member"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/members/add": {
-      "put": {
-        "tags": [
-          "members"
-        ],
-        "description": "Add a member to a workspace",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "workspaceId": {
-                    "type": "string",
-                    "format": "uuid",
-                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-                  },
-                  "memberId": {
-                    "type": "string",
-                    "format": "uuid",
-                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-                  }
-                },
-                "required": [
-                  "workspaceId",
-                  "memberId"
-                ]
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "description": "Member invited to workspace.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "message"
-                  ],
-                  "additionalProperties": false,
-                  "description": "Member invited to workspace."
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Failed to add member to workspace",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "message"
-                  ],
-                  "additionalProperties": false,
-                  "description": "Failed to add member to workspace"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Workspace or member not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "message"
-                  ],
-                  "additionalProperties": false,
-                  "description": "Workspace or member not found"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Membership already exists",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "message"
-                  ],
-                  "additionalProperties": false,
-                  "description": "Membership already exists"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Failed to add member to workspace",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "message"
-                  ],
-                  "additionalProperties": false,
-                  "description": "Failed to add member to workspace"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/members/me/identities": {
+    "/api/v1/members/me/identities": {
       "post": {
         "tags": [
           "members"
@@ -3572,10 +2843,1713 @@
         }
       }
     },
-    "/members/{memberId}/identities": {
+    "/integrations/v1/bookmarks": {
       "post": {
         "tags": [
-          "members"
+          "integrations-bookmarks"
+        ],
+        "description": "Create a bookmark",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "workspaceId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "memberId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "url": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "source": {
+                    "default": "web",
+                    "type": "string",
+                    "enum": [
+                      "web",
+                      "discord",
+                      "raycast",
+                      "api"
+                    ]
+                  }
+                },
+                "required": [
+                  "workspaceId",
+                  "memberId",
+                  "url"
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Bookmark submitted for processing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "status"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Bookmark submitted for processing"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Failed to create bookmark",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Failed to create bookmark"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Workspace or member not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Workspace or member not found"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to create bookmark",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Failed to create bookmark"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "integrations-bookmarks"
+        ],
+        "description": "Get all bookmarks",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "query",
+            "name": "workspaceId",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "query",
+            "name": "memberId",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "in": "query",
+            "name": "text",
+            "required": true
+          },
+          {
+            "schema": {
+              "default": 5,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            },
+            "in": "query",
+            "name": "limit",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bookmarks retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "workspaceId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "memberId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "url": {
+                        "type": "string"
+                      },
+                      "urlHashId": {
+                        "type": "string",
+                        "minLength": 64,
+                        "maxLength": 64
+                      },
+                      "status": {
+                        "type": "string"
+                      },
+                      "title": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "description": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "tags": {
+                        "nullable": true,
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "failureReason": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "source": {
+                        "type": "string"
+                      },
+                      "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "updatedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "visible": {
+                        "type": "boolean"
+                      },
+                      "matchedBecause": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "workspaceId",
+                      "memberId",
+                      "url",
+                      "urlHashId",
+                      "status",
+                      "title",
+                      "description",
+                      "tags",
+                      "failureReason",
+                      "source",
+                      "createdAt",
+                      "updatedAt",
+                      "visible"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "description": "Bookmarks retrieved successfully"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Failed to get bookmarks",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Failed to get bookmarks"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to get bookmarks",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Failed to get bookmarks"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/v1/workspaces/create": {
+      "post": {
+        "tags": [
+          "integrations-workspaces"
+        ],
+        "description": "Create a workspace",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "ownerId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  }
+                },
+                "required": [
+                  "name",
+                  "ownerId"
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Workspace created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "workspace": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "ownerId": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "isPublic": {
+                          "type": "boolean"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "active": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "ownerId",
+                        "name",
+                        "description",
+                        "isPublic",
+                        "createdAt",
+                        "updatedAt",
+                        "active"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "workspace"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Workspace created."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Failed to create workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Failed to create workspace"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Cannot create workspace due constraint",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Cannot create workspace due constraint"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to create workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Failed to create workspace"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/v1/workspaces/by-member/{memberId}": {
+      "get": {
+        "tags": [
+          "integrations-workspaces"
+        ],
+        "description": "List all workspaces a given member belongs to",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "memberId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of workspaces",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "workspaces": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "ownerId": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "isPublic": {
+                            "type": "boolean"
+                          },
+                          "isPersonal": {
+                            "type": "boolean"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "updatedAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "active": {
+                            "type": "boolean"
+                          },
+                          "role": {
+                            "type": "string",
+                            "enum": [
+                              "viewer",
+                              "editor",
+                              "owner"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "ownerId",
+                          "name",
+                          "description",
+                          "isPublic",
+                          "isPersonal",
+                          "createdAt",
+                          "updatedAt",
+                          "active",
+                          "role"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "workspaces"
+                  ],
+                  "additionalProperties": false,
+                  "description": "List of workspaces"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Member not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Member not found"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to get workspaces",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Failed to get workspaces"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/v1/workspaces/{workspaceId}/integrations": {
+      "post": {
+        "tags": [
+          "integrations-workspace-integrations"
+        ],
+        "description": "Add a platform integration to a workspace",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "provider": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "providerId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "providerName": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "provider",
+                  "providerId"
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "workspaceId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Integration added",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "integration": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "workspaceId": {
+                          "type": "string"
+                        },
+                        "provider": {
+                          "type": "string"
+                        },
+                        "providerId": {
+                          "type": "string"
+                        },
+                        "providerName": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "active": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "workspaceId",
+                        "provider",
+                        "providerId",
+                        "providerName",
+                        "createdAt",
+                        "updatedAt",
+                        "active"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "integration"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Integration added"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Workspace not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Workspace not found"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Integration already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Integration already exists"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "integrations-workspace-integrations"
+        ],
+        "description": "List integrations for a workspace",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "workspaceId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Integrations found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "integrations": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "workspaceId": {
+                            "type": "string"
+                          },
+                          "provider": {
+                            "type": "string"
+                          },
+                          "providerId": {
+                            "type": "string"
+                          },
+                          "providerName": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "updatedAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "active": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "workspaceId",
+                          "provider",
+                          "providerId",
+                          "providerName",
+                          "createdAt",
+                          "updatedAt",
+                          "active"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "integrations"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Integrations found"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Workspace not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Workspace not found"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/v1/workspaces/{workspaceId}/integrations/{integrationId}": {
+      "delete": {
+        "tags": [
+          "integrations-workspace-integrations"
+        ],
+        "description": "Remove a platform integration from a workspace",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "workspaceId",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "integrationId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Integration deleted"
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Integration not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Integration not found"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/v1/workspaces/by-integration": {
+      "get": {
+        "tags": [
+          "integrations-workspace-integrations"
+        ],
+        "description": "Find a workspace by its platform integration (bot-facing)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "in": "query",
+            "name": "provider",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "in": "query",
+            "name": "providerId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Workspace found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "workspace": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "ownerId": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "isPublic": {
+                          "type": "boolean"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "active": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "ownerId",
+                        "name",
+                        "description",
+                        "isPublic",
+                        "createdAt",
+                        "updatedAt",
+                        "active"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "workspace"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Workspace found"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Workspace not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Workspace not found"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "integrations-workspace-integrations"
+        ],
+        "description": "Update integration metadata by provider ID (bot-facing)",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "providerName": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "providerName"
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "in": "query",
+            "name": "provider",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "in": "query",
+            "name": "providerId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Integration updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "integration": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "workspaceId": {
+                          "type": "string"
+                        },
+                        "provider": {
+                          "type": "string"
+                        },
+                        "providerId": {
+                          "type": "string"
+                        },
+                        "providerName": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "active": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "workspaceId",
+                        "provider",
+                        "providerId",
+                        "providerName",
+                        "createdAt",
+                        "updatedAt",
+                        "active"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "integration"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Integration updated"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Integration not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Integration not found"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "integrations-workspace-integrations"
+        ],
+        "description": "Remove an integration by provider ID (bot-facing)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "in": "query",
+            "name": "provider",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "in": "query",
+            "name": "providerId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Integration deleted"
+          },
+          "404": {
+            "description": "Integration not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Integration not found"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/v1/members/resolve": {
+      "post": {
+        "tags": [
+          "integrations-members"
+        ],
+        "description": "Resolve or create a shadow member by provider identity (idempotent)",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "provider": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "providerUserId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "displayName": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "provider",
+                  "providerUserId",
+                  "displayName"
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Member resolved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "member": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "username": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "email": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "active": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "username",
+                        "email",
+                        "createdAt",
+                        "updatedAt",
+                        "active"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "member"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Member resolved"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Invalid request"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to resolve member",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Failed to resolve member"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/v1/members/create": {
+      "post": {
+        "tags": [
+          "integrations-members"
+        ],
+        "description": "Create a member",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "username": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                  }
+                },
+                "required": [
+                  "name",
+                  "username",
+                  "email"
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Member created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "member": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "username": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "email": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "active": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "username",
+                        "email",
+                        "createdAt",
+                        "updatedAt",
+                        "active"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "member"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Member created."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Failed to create member",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Failed to create member"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Member already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Member already exists"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to create member",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Failed to create member"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/v1/members/add": {
+      "put": {
+        "tags": [
+          "integrations-members"
+        ],
+        "description": "Add a member to a workspace",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "workspaceId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "memberId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  }
+                },
+                "required": [
+                  "workspaceId",
+                  "memberId"
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Member invited to workspace.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Member invited to workspace."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Failed to add member to workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Failed to add member to workspace"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Workspace or member not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Workspace or member not found"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Membership already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Membership already exists"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to add member to workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Failed to add member to workspace"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/v1/members/{memberId}/identities": {
+      "post": {
+        "tags": [
+          "integrations-members"
         ],
         "description": "Link a platform identity to a member",
         "requestBody": {
@@ -3704,10 +4678,10 @@
         }
       }
     },
-    "/members/by-identity": {
+    "/integrations/v1/members/by-identity": {
       "get": {
         "tags": [
-          "members"
+          "integrations-members"
         ],
         "description": "Find a member by platform identity (bot-facing)",
         "parameters": [
@@ -3805,135 +4779,6 @@
                   ],
                   "additionalProperties": false,
                   "description": "Member not found"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/waiting-list": {
-      "post": {
-        "tags": [
-          "waiting-list"
-        ],
-        "description": "Join the waiting list",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "email": {
-                    "type": "string",
-                    "format": "email",
-                    "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
-                  },
-                  "allowPromoEmails": {
-                    "default": false,
-                    "type": "boolean"
-                  }
-                },
-                "required": [
-                  "email"
-                ]
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Email already registered",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "message"
-                  ],
-                  "additionalProperties": false,
-                  "description": "Email already registered"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "Successfully joined the waiting list",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "id": {
-                      "type": "string",
-                      "format": "uuid",
-                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-                    },
-                    "email": {
-                      "type": "string"
-                    },
-                    "allowPromoEmails": {
-                      "type": "boolean"
-                    },
-                    "createdAt": {
-                      "type": "string",
-                      "format": "date-time"
-                    }
-                  },
-                  "required": [
-                    "id",
-                    "email",
-                    "allowPromoEmails",
-                    "createdAt"
-                  ],
-                  "additionalProperties": false,
-                  "description": "Successfully joined the waiting list"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid request body",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "message"
-                  ],
-                  "additionalProperties": false,
-                  "description": "Invalid request body"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "message"
-                  ],
-                  "additionalProperties": false,
-                  "description": "Internal server error"
                 }
               }
             }

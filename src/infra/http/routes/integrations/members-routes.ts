@@ -1,20 +1,15 @@
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import { apiKeyAuth } from '@/infra/http/middlewares/api-key-auth'
-import { sessionAuth } from '@/infra/http/middlewares/session-auth'
 import {
   createMemberIdentityController,
   findMemberByIdentityController,
-  getMemberIdentitiesController,
-  linkMemberIdentityController,
-} from '../controllers/member-identities-controller'
+} from '@/infra/http/controllers/member-identities-controller'
 import {
   addMemberToWorkspaceController,
   createMemberController,
-  getMeController,
   resolveMemberController,
-  syncMemberController,
-} from '../controllers/members-controller'
+} from '@/infra/http/controllers/members-controller'
 import {
   addMemberToWorkspaceBodySchemaRequest,
   addMemberToWorkspaceBodySchemaResponse,
@@ -25,46 +20,18 @@ import {
   createMemberIdentityResponseSchema,
   findMemberByIdentityQuerySchema,
   findMemberByIdentityResponseSchema,
-  getMeResponseSchema,
-  getMemberIdentitiesResponseSchema,
-  linkMemberIdentityBodySchema,
-  linkMemberIdentityResponseSchema,
   resolveMemberBodySchema,
   resolveMemberResponseSchema,
-  syncMemberResponseSchema,
-} from '../schemas/members-schema'
+} from '@/infra/http/schemas/members-schema'
 
-export async function memberRoutes(app: FastifyInstance) {
-  app.withTypeProvider<ZodTypeProvider>().route({
-    method: 'GET',
-    url: '/members/me',
-    onRequest: [sessionAuth],
-    schema: {
-      description: 'Get the currently authenticated member',
-      tags: ['members'],
-      response: getMeResponseSchema,
-    },
-    handler: getMeController,
-  })
-
-  app.withTypeProvider<ZodTypeProvider>().route({
-    method: 'POST',
-    url: '/members/sync',
-    schema: {
-      description: 'Create member from active session if not exists (idempotent)',
-      tags: ['members'],
-      response: syncMemberResponseSchema,
-    },
-    handler: syncMemberController,
-  })
-
+export async function integrationsMembersRoutes(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().route({
     method: 'POST',
     url: '/members/resolve',
     onRequest: [apiKeyAuth],
     schema: {
       description: 'Resolve or create a shadow member by provider identity (idempotent)',
-      tags: ['members'],
+      tags: ['integrations-members'],
       body: resolveMemberBodySchema,
       response: resolveMemberResponseSchema,
     },
@@ -77,7 +44,7 @@ export async function memberRoutes(app: FastifyInstance) {
     onRequest: [apiKeyAuth],
     schema: {
       description: 'Create a member',
-      tags: ['members'],
+      tags: ['integrations-members'],
       response: createMemberBodySchemaResponse,
       body: createMemberBodySchemaRequest,
     },
@@ -90,7 +57,7 @@ export async function memberRoutes(app: FastifyInstance) {
     onRequest: [apiKeyAuth],
     schema: {
       description: 'Add a member to a workspace',
-      tags: ['members'],
+      tags: ['integrations-members'],
       response: addMemberToWorkspaceBodySchemaResponse,
       body: addMemberToWorkspaceBodySchemaRequest,
     },
@@ -99,36 +66,11 @@ export async function memberRoutes(app: FastifyInstance) {
 
   app.withTypeProvider<ZodTypeProvider>().route({
     method: 'POST',
-    url: '/members/me/identities',
-    onRequest: [sessionAuth],
-    schema: {
-      description: 'Link a provider identity to the authenticated member, merging any shadow member',
-      tags: ['members'],
-      body: linkMemberIdentityBodySchema,
-      response: linkMemberIdentityResponseSchema,
-    },
-    handler: linkMemberIdentityController,
-  })
-
-  app.withTypeProvider<ZodTypeProvider>().route({
-    method: 'GET',
-    url: '/members/me/identities',
-    onRequest: [sessionAuth],
-    schema: {
-      description: 'List all provider identities linked to the authenticated member',
-      tags: ['members'],
-      response: getMemberIdentitiesResponseSchema,
-    },
-    handler: getMemberIdentitiesController,
-  })
-
-  app.withTypeProvider<ZodTypeProvider>().route({
-    method: 'POST',
     url: '/members/:memberId/identities',
     onRequest: [apiKeyAuth],
     schema: {
       description: 'Link a platform identity to a member',
-      tags: ['members'],
+      tags: ['integrations-members'],
       params: createMemberIdentityParamsSchema,
       body: createMemberIdentityBodySchema,
       response: createMemberIdentityResponseSchema,
@@ -142,7 +84,7 @@ export async function memberRoutes(app: FastifyInstance) {
     onRequest: [apiKeyAuth],
     schema: {
       description: 'Find a member by platform identity (bot-facing)',
-      tags: ['members'],
+      tags: ['integrations-members'],
       query: findMemberByIdentityQuerySchema,
       response: findMemberByIdentityResponseSchema,
     },

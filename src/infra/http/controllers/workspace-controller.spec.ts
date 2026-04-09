@@ -18,7 +18,7 @@ vi.mock('@/infra/http/middlewares/session-auth', () => ({
 }))
 
 describe('WorkspaceController', () => {
-	describe('GET /workspaces/me', () => {
+	describe('GET /api/v1/workspaces/me', () => {
 		it('should return all workspaces for the authenticated member', async () => {
 			const owner = await makeMember()
 			const workspace = await makeWorkspace({ ownerId: owner.id })
@@ -27,7 +27,7 @@ describe('WorkspaceController', () => {
 
 			const response = await app.inject({
 				method: 'GET',
-				url: '/workspaces/me',
+				url: '/api/v1/workspaces/me',
 			})
 
 			expect(response.statusCode).toBe(200)
@@ -43,7 +43,7 @@ describe('WorkspaceController', () => {
 
 			const response = await app.inject({
 				method: 'GET',
-				url: '/workspaces/me',
+				url: '/api/v1/workspaces/me',
 			})
 
 			expect(response.statusCode).toBe(200)
@@ -58,7 +58,7 @@ describe('WorkspaceController', () => {
 
 			const response = await app.inject({
 				method: 'GET',
-				url: '/workspaces/me',
+				url: '/api/v1/workspaces/me',
 			})
 
 			expect(response.statusCode).toBe(200)
@@ -68,7 +68,7 @@ describe('WorkspaceController', () => {
 		})
 	})
 
-	describe('POST /workspaces/create', () => {
+	describe('POST /integrations/v1/workspaces/create', () => {
 		it('should be able to create a workspace', async () => {
 			const owner = await makeMember()
 
@@ -80,7 +80,7 @@ describe('WorkspaceController', () => {
 
 			const response = await app.inject({
 				method: 'POST',
-				url: '/workspaces/create',
+				url: '/integrations/v1/workspaces/create',
 				headers: { authorization: `Bearer ${API_KEY}` },
 				payload,
 			})
@@ -101,14 +101,14 @@ describe('WorkspaceController', () => {
 		})
 	})
 
-	describe('GET /workspaces', () => {
+	describe('GET /api/v1/workspaces', () => {
 		it('should be able to get a workspace by id', async () => {
 			const workspace = await makeWorkspace()
+			currentMember = await makeMember()
 
 			const response = await app.inject({
 				method: 'GET',
-				url: `/workspaces?id=${workspace.id}`,
-				headers: { authorization: `Bearer ${API_KEY}` },
+				url: `/api/v1/workspaces?id=${workspace.id}`,
 			})
 
 			expect(response.statusCode).toBe(200)
@@ -127,10 +127,11 @@ describe('WorkspaceController', () => {
 		})
 
 		it('should return 404 when workspace is not found', async () => {
+			currentMember = await makeMember()
+
 			const response = await app.inject({
 				method: 'GET',
-				url: '/workspaces?id=00000000-0000-0000-0000-000000000000',
-				headers: { authorization: `Bearer ${API_KEY}` },
+				url: '/api/v1/workspaces?id=00000000-0000-0000-0000-000000000000',
 			})
 
 			expect(response.statusCode).toBe(404)
@@ -140,7 +141,7 @@ describe('WorkspaceController', () => {
 		})
 	})
 
-	describe('PATCH /workspaces/:workspaceId', () => {
+	describe('PATCH /api/v1/workspaces/:workspaceId', () => {
 		it('should update workspace name', async () => {
 			const owner = await makeMember()
 			const workspace = await makeWorkspace({ ownerId: owner.id })
@@ -149,7 +150,7 @@ describe('WorkspaceController', () => {
 
 			const response = await app.inject({
 				method: 'PATCH',
-				url: `/workspaces/${workspace.id}`,
+				url: `/api/v1/workspaces/${workspace.id}`,
 				payload: { name: 'Updated Name' },
 			})
 
@@ -165,7 +166,7 @@ describe('WorkspaceController', () => {
 
 			const response = await app.inject({
 				method: 'PATCH',
-				url: `/workspaces/${workspace.id}`,
+				url: `/api/v1/workspaces/${workspace.id}`,
 				payload: { description: 'New description' },
 			})
 
@@ -183,7 +184,7 @@ describe('WorkspaceController', () => {
 
 			const response = await app.inject({
 				method: 'PATCH',
-				url: `/workspaces/${workspace.id}`,
+				url: `/api/v1/workspaces/${workspace.id}`,
 				payload: { isPublic: true },
 			})
 
@@ -196,7 +197,7 @@ describe('WorkspaceController', () => {
 
 			const response = await app.inject({
 				method: 'PATCH',
-				url: `/workspaces/${randomUUID()}`,
+				url: `/api/v1/workspaces/${randomUUID()}`,
 				payload: { name: 'New Name' },
 			})
 
@@ -211,7 +212,7 @@ describe('WorkspaceController', () => {
 
 			const response = await app.inject({
 				method: 'PATCH',
-				url: `/workspaces/${workspace.id}`,
+				url: `/api/v1/workspaces/${workspace.id}`,
 				payload: { name: 'New Name' },
 			})
 
@@ -226,7 +227,7 @@ describe('WorkspaceController', () => {
 
 			const response = await app.inject({
 				method: 'PATCH',
-				url: `/workspaces/${workspace.id}`,
+				url: `/api/v1/workspaces/${workspace.id}`,
 				payload: {},
 			})
 
@@ -238,7 +239,7 @@ describe('WorkspaceController', () => {
 
 			const response = await app.inject({
 				method: 'PATCH',
-				url: '/workspaces/not-a-uuid',
+				url: '/api/v1/workspaces/not-a-uuid',
 				payload: { name: 'New Name' },
 			})
 
@@ -246,7 +247,7 @@ describe('WorkspaceController', () => {
 		})
 	})
 
-	describe('DELETE /workspaces/:workspaceId', () => {
+	describe('DELETE /api/v1/workspaces/:workspaceId', () => {
 		it('should delete a workspace', async () => {
 			const owner = await makeMember()
 			const workspace = await makeWorkspace({ ownerId: owner.id })
@@ -255,7 +256,7 @@ describe('WorkspaceController', () => {
 
 			const response = await app.inject({
 				method: 'DELETE',
-				url: `/workspaces/${workspace.id}`,
+				url: `/api/v1/workspaces/${workspace.id}`,
 			})
 
 			expect(response.statusCode).toBe(204)
@@ -266,7 +267,7 @@ describe('WorkspaceController', () => {
 
 			const response = await app.inject({
 				method: 'DELETE',
-				url: `/workspaces/${randomUUID()}`,
+				url: `/api/v1/workspaces/${randomUUID()}`,
 			})
 
 			expect(response.statusCode).toBe(403)
@@ -279,12 +280,12 @@ describe('WorkspaceController', () => {
 			currentMember = owner
 
 			// Delete it once
-			await app.inject({ method: 'DELETE', url: `/workspaces/${workspace.id}` })
+			await app.inject({ method: 'DELETE', url: `/api/v1/workspaces/${workspace.id}` })
 
 			// Try again — no membership anymore (cascading delete), so 403
 			const response = await app.inject({
 				method: 'DELETE',
-				url: `/workspaces/${workspace.id}`,
+				url: `/api/v1/workspaces/${workspace.id}`,
 			})
 
 			expect(response.statusCode).toBe(403)
@@ -298,7 +299,7 @@ describe('WorkspaceController', () => {
 
 			const response = await app.inject({
 				method: 'DELETE',
-				url: `/workspaces/${workspace.id}`,
+				url: `/api/v1/workspaces/${workspace.id}`,
 			})
 
 			expect(response.statusCode).toBe(403)
@@ -309,7 +310,7 @@ describe('WorkspaceController', () => {
 
 			const response = await app.inject({
 				method: 'DELETE',
-				url: '/workspaces/not-a-uuid',
+				url: '/api/v1/workspaces/not-a-uuid',
 			})
 
 			expect(response.statusCode).toBe(400)
@@ -317,7 +318,7 @@ describe('WorkspaceController', () => {
 	})
 
 	describe('Role-based access control', () => {
-		describe('PATCH /workspaces/:workspaceId', () => {
+		describe('PATCH /api/v1/workspaces/:workspaceId', () => {
 			it('viewer cannot update workspace settings', async () => {
 				const owner = await makeMember()
 				const viewer = await makeMember()
@@ -327,7 +328,7 @@ describe('WorkspaceController', () => {
 
 				const response = await app.inject({
 					method: 'PATCH',
-					url: `/workspaces/${workspace.id}`,
+					url: `/api/v1/workspaces/${workspace.id}`,
 					payload: { name: 'Viewer Update' },
 				})
 
@@ -343,7 +344,7 @@ describe('WorkspaceController', () => {
 
 				const response = await app.inject({
 					method: 'PATCH',
-					url: `/workspaces/${workspace.id}`,
+					url: `/api/v1/workspaces/${workspace.id}`,
 					payload: { name: 'Editor Update' },
 				})
 
@@ -358,7 +359,7 @@ describe('WorkspaceController', () => {
 
 				const response = await app.inject({
 					method: 'PATCH',
-					url: `/workspaces/${workspace.id}`,
+					url: `/api/v1/workspaces/${workspace.id}`,
 					payload: { name: 'Owner Update' },
 				})
 
@@ -366,7 +367,7 @@ describe('WorkspaceController', () => {
 			})
 		})
 
-		describe('DELETE /workspaces/:workspaceId', () => {
+		describe('DELETE /api/v1/workspaces/:workspaceId', () => {
 			it('viewer cannot delete a workspace', async () => {
 				const owner = await makeMember()
 				const viewer = await makeMember()
@@ -376,7 +377,7 @@ describe('WorkspaceController', () => {
 
 				const response = await app.inject({
 					method: 'DELETE',
-					url: `/workspaces/${workspace.id}`,
+					url: `/api/v1/workspaces/${workspace.id}`,
 				})
 
 				expect(response.statusCode).toBe(403)
@@ -391,7 +392,7 @@ describe('WorkspaceController', () => {
 
 				const response = await app.inject({
 					method: 'DELETE',
-					url: `/workspaces/${workspace.id}`,
+					url: `/api/v1/workspaces/${workspace.id}`,
 				})
 
 				expect(response.statusCode).toBe(403)
@@ -405,14 +406,14 @@ describe('WorkspaceController', () => {
 
 				const response = await app.inject({
 					method: 'DELETE',
-					url: `/workspaces/${workspace.id}`,
+					url: `/api/v1/workspaces/${workspace.id}`,
 				})
 
 				expect(response.statusCode).toBe(204)
 			})
 		})
 
-		describe('POST /workspaces/:workspaceId/members', () => {
+		describe('POST /api/v1/workspaces/:workspaceId/members', () => {
 			it('viewer cannot invite members', async () => {
 				const owner = await makeMember()
 				const viewer = await makeMember()
@@ -422,7 +423,7 @@ describe('WorkspaceController', () => {
 
 				const response = await app.inject({
 					method: 'POST',
-					url: `/workspaces/${workspace.id}/members`,
+					url: `/api/v1/workspaces/${workspace.id}/members`,
 					payload: { email: 'someone@example.com' },
 				})
 
@@ -438,7 +439,7 @@ describe('WorkspaceController', () => {
 
 				const response = await app.inject({
 					method: 'POST',
-					url: `/workspaces/${workspace.id}/members`,
+					url: `/api/v1/workspaces/${workspace.id}/members`,
 					payload: { email: 'someone@example.com' },
 				})
 
@@ -454,7 +455,7 @@ describe('WorkspaceController', () => {
 
 				const response = await app.inject({
 					method: 'POST',
-					url: `/workspaces/${workspace.id}/members`,
+					url: `/api/v1/workspaces/${workspace.id}/members`,
 					payload: { email: invitee.email },
 				})
 
@@ -463,7 +464,7 @@ describe('WorkspaceController', () => {
 			})
 		})
 
-		describe('PATCH /workspaces/:workspaceId/members/:memberId', () => {
+		describe('PATCH /api/v1/workspaces/:workspaceId/members/:memberId', () => {
 			it('owner can change a member role', async () => {
 				const owner = await makeMember()
 				const member = await makeMember()
@@ -474,7 +475,7 @@ describe('WorkspaceController', () => {
 
 				const response = await app.inject({
 					method: 'PATCH',
-					url: `/workspaces/${workspace.id}/members/${member.id}`,
+					url: `/api/v1/workspaces/${workspace.id}/members/${member.id}`,
 					payload: { role: 'editor' },
 				})
 
@@ -489,7 +490,7 @@ describe('WorkspaceController', () => {
 
 				const response = await app.inject({
 					method: 'PATCH',
-					url: `/workspaces/${workspace.id}/members/${owner.id}`,
+					url: `/api/v1/workspaces/${workspace.id}/members/${owner.id}`,
 					payload: { role: 'viewer' },
 				})
 
@@ -507,7 +508,7 @@ describe('WorkspaceController', () => {
 
 				const response = await app.inject({
 					method: 'PATCH',
-					url: `/workspaces/${workspace.id}/members/${other.id}`,
+					url: `/api/v1/workspaces/${workspace.id}/members/${other.id}`,
 					payload: { role: 'editor' },
 				})
 
@@ -515,7 +516,7 @@ describe('WorkspaceController', () => {
 			})
 		})
 
-		describe('GET /workspaces/:workspaceId/members', () => {
+		describe('GET /api/v1/workspaces/:workspaceId/members', () => {
 			it('returns all members with their roles', async () => {
 				const owner = await makeMember()
 				const viewer = await makeMember()
@@ -526,7 +527,7 @@ describe('WorkspaceController', () => {
 
 				const response = await app.inject({
 					method: 'GET',
-					url: `/workspaces/${workspace.id}/members`,
+					url: `/api/v1/workspaces/${workspace.id}/members`,
 				})
 
 				expect(response.statusCode).toBe(200)
@@ -546,7 +547,7 @@ describe('WorkspaceController', () => {
 
 				const response = await app.inject({
 					method: 'GET',
-					url: `/workspaces/${workspace.id}/members`,
+					url: `/api/v1/workspaces/${workspace.id}/members`,
 				})
 
 				// requireAbility checks membership — outsider has no role → 403
@@ -554,7 +555,7 @@ describe('WorkspaceController', () => {
 			})
 		})
 
-		describe('DELETE /workspaces/:workspaceId/members/:memberId', () => {
+		describe('DELETE /api/v1/workspaces/:workspaceId/members/:memberId', () => {
 			it('owner can remove a member', async () => {
 				const owner = await makeMember()
 				const viewer = await makeMember()
@@ -565,7 +566,7 @@ describe('WorkspaceController', () => {
 
 				const response = await app.inject({
 					method: 'DELETE',
-					url: `/workspaces/${workspace.id}/members/${viewer.id}`,
+					url: `/api/v1/workspaces/${workspace.id}/members/${viewer.id}`,
 				})
 
 				expect(response.statusCode).toBe(200)
@@ -583,7 +584,7 @@ describe('WorkspaceController', () => {
 
 				const response = await app.inject({
 					method: 'DELETE',
-					url: `/workspaces/${workspace.id}/members/${other.id}`,
+					url: `/api/v1/workspaces/${workspace.id}/members/${other.id}`,
 				})
 
 				expect(response.statusCode).toBe(403)
@@ -597,7 +598,7 @@ describe('WorkspaceController', () => {
 
 				const response = await app.inject({
 					method: 'DELETE',
-					url: `/workspaces/${workspace.id}/members/${owner.id}`,
+					url: `/api/v1/workspaces/${workspace.id}/members/${owner.id}`,
 				})
 
 				expect(response.statusCode).toBe(403)
@@ -613,7 +614,7 @@ describe('WorkspaceController', () => {
 
 				const response = await app.inject({
 					method: 'DELETE',
-					url: `/workspaces/${workspace.id}/members/${owner.id}`,
+					url: `/api/v1/workspaces/${workspace.id}/members/${owner.id}`,
 				})
 
 				expect(response.statusCode).toBe(403)

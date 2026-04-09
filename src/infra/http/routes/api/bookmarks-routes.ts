@@ -19,19 +19,13 @@ import {
   retryBookmarkParamsSchema,
   retryBookmarkResponseSchema,
 } from '@/infra/http/schemas/bookmarks-schema'
-import { anyAuth } from '@/infra/http/middlewares/any-auth'
-import { apiKeyAuth } from '@/infra/http/middlewares/api-key-auth'
 import { sessionAuth } from '@/infra/http/middlewares/session-auth'
 
-// TODO(tech-debt): bookmark routes use anyAuth(sessionAuth, apiKeyAuth) which forces
-// role enforcement to be conditional inside the controller rather than declarative
-// middleware. Separate session-only routes from API-key-only routes (e.g. a /bot prefix)
-// so that role guards can be applied uniformly via requireAbility middleware.
-export async function bookmarksRoutes(app: FastifyInstance) {
+export async function apiBookmarksRoutes(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().route({
     method: 'POST',
     url: '/bookmarks',
-    onRequest: [anyAuth(sessionAuth, apiKeyAuth)],
+    onRequest: [sessionAuth],
     schema: {
       description: 'Create a bookmark',
       tags: ['bookmarks'],
@@ -44,7 +38,7 @@ export async function bookmarksRoutes(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().route({
     method: 'GET',
     url: '/bookmarks',
-    onRequest: [anyAuth(sessionAuth, apiKeyAuth)],
+    onRequest: [sessionAuth],
     schema: {
       description: 'Get all bookmarks',
       tags: ['bookmarks'],
@@ -57,7 +51,7 @@ export async function bookmarksRoutes(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().route({
     method: 'POST',
     url: '/bookmarks/:id/retry',
-    onRequest: [anyAuth(sessionAuth, apiKeyAuth)],
+    onRequest: [sessionAuth],
     schema: {
       description: 'Retry processing a failed bookmark',
       tags: ['bookmarks'],
@@ -70,7 +64,7 @@ export async function bookmarksRoutes(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().route({
     method: 'DELETE',
     url: '/bookmarks/:id',
-    onRequest: [anyAuth(sessionAuth, apiKeyAuth)],
+    onRequest: [sessionAuth],
     schema: {
       description: 'Delete a bookmark',
       tags: ['bookmarks'],
@@ -83,7 +77,7 @@ export async function bookmarksRoutes(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().route({
     method: 'GET',
     url: '/bookmarks/:id',
-    onRequest: [anyAuth(sessionAuth, apiKeyAuth)],
+    onRequest: [sessionAuth],
     schema: {
       description: 'Get a bookmark by ID',
       tags: ['bookmarks'],

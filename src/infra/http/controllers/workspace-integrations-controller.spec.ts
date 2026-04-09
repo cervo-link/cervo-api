@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Member } from '@/domain/entities/member'
 import app from '@/infra/http/app'
 import { makeMember } from '@/tests/factories/make-member'
+import { makeMembership } from '@/tests/factories/make-membership'
 import { makeWorkspace } from '@/tests/factories/make-workspace'
 import { makeWorkspaceIntegration } from '@/tests/factories/make-workspace-integration'
 
@@ -20,12 +21,12 @@ vi.mock('@/infra/http/middlewares/session-auth', () => ({
 }))
 
 describe('POST /workspaces/:workspaceId/integrations', () => {
-  it('should add an integration to a workspace', async () => {
+  it('should add an integration to a workspace via API key', async () => {
     const workspace = await makeWorkspace()
 
     const response = await app.inject({
       method: 'POST',
-      url: `/workspaces/${workspace.id}/integrations`,
+      url: `/integrations/v1/workspaces/${workspace.id}/integrations`,
       headers: { authorization: `Bearer ${API_KEY}` },
       payload: { provider: 'discord', providerId: `guild-${Date.now()}` },
     })
@@ -36,10 +37,10 @@ describe('POST /workspaces/:workspaceId/integrations', () => {
     expect(body.integration.provider).toBe('discord')
   })
 
-  it('should return 404 when workspace does not exist', async () => {
+  it('should return 404 when workspace does not exist via API key', async () => {
     const response = await app.inject({
       method: 'POST',
-      url: '/workspaces/00000000-0000-0000-0000-000000000000/integrations',
+      url: '/integrations/v1/workspaces/00000000-0000-0000-0000-000000000000/integrations',
       headers: { authorization: `Bearer ${API_KEY}` },
       payload: { provider: 'discord', providerId: 'guild-123' },
     })
@@ -48,13 +49,13 @@ describe('POST /workspaces/:workspaceId/integrations', () => {
     expect(JSON.parse(response.body)).toEqual({ message: 'Workspace not found' })
   })
 
-  it('should return 422 when integration already exists', async () => {
+  it('should return 422 when integration already exists via API key', async () => {
     const workspace = await makeWorkspace()
     const integration = await makeWorkspaceIntegration({ workspaceId: workspace.id })
 
     const response = await app.inject({
       method: 'POST',
-      url: `/workspaces/${workspace.id}/integrations`,
+      url: `/integrations/v1/workspaces/${workspace.id}/integrations`,
       headers: { authorization: `Bearer ${API_KEY}` },
       payload: { provider: integration.provider, providerId: integration.providerId },
     })
@@ -69,7 +70,7 @@ describe('POST /workspaces/:workspaceId/integrations', () => {
 
     const response = await app.inject({
       method: 'POST',
-      url: `/workspaces/${workspace.id}/integrations`,
+      url: `/integrations/v1/workspaces/${workspace.id}/integrations`,
       payload: { provider: 'discord', providerId: 'guild-123' },
     })
 
@@ -79,11 +80,12 @@ describe('POST /workspaces/:workspaceId/integrations', () => {
   it('should add an integration via session when requester is the workspace owner', async () => {
     const owner = await makeMember()
     const workspace = await makeWorkspace({ ownerId: owner.id })
+    await makeMembership(workspace.id, owner.id, 'owner')
     currentMember = owner
 
     const response = await app.inject({
       method: 'POST',
-      url: `/workspaces/${workspace.id}/integrations`,
+      url: `/api/v1/workspaces/${workspace.id}/integrations`,
       payload: { provider: 'discord', providerId: `guild-${Date.now()}` },
     })
 
@@ -101,25 +103,25 @@ describe('POST /workspaces/:workspaceId/integrations', () => {
 
     const response = await app.inject({
       method: 'POST',
-      url: `/workspaces/${workspace.id}/integrations`,
+      url: `/api/v1/workspaces/${workspace.id}/integrations`,
       payload: { provider: 'discord', providerId: `guild-${Date.now()}` },
     })
 
     expect(response.statusCode).toBe(403)
-    expect(JSON.parse(response.body)).toEqual({ message: 'Forbidden' })
+    expect(JSON.parse(response.body)).toEqual({ message: 'Requires ability to manage Workspace' })
   })
 
-  it('should return 404 via session when workspace does not exist', async () => {
+  it('should return 403 via session when workspace does not exist (no membership)', async () => {
     currentMember = await makeMember()
 
     const response = await app.inject({
       method: 'POST',
-      url: '/workspaces/00000000-0000-0000-0000-000000000000/integrations',
+      url: '/api/v1/workspaces/00000000-0000-0000-0000-000000000000/integrations',
       payload: { provider: 'discord', providerId: 'guild-123' },
     })
 
-    expect(response.statusCode).toBe(404)
-    expect(JSON.parse(response.body)).toEqual({ message: 'Workspace not found' })
+    // requireAbility runs before the controller — no membership means 403, not 404
+    expect(response.statusCode).toBe(403)
   })
 })
 
@@ -132,7 +134,7 @@ describe('GET /workspaces/:workspaceId/integrations', () => {
 
     const response = await app.inject({
       method: 'GET',
-      url: `/workspaces/${workspace.id}/integrations`,
+      url: `/integrations/v1/workspaces/${workspace.id}/integrations`,
       headers: { authorization: `Bearer ${API_KEY}` },
     })
 
@@ -145,12 +147,13 @@ describe('GET /workspaces/:workspaceId/integrations', () => {
   it('should return integrations via session when requester is the owner', async () => {
     const owner = await makeMember()
     const workspace = await makeWorkspace({ ownerId: owner.id })
+    await makeMembership(workspace.id, owner.id, 'owner')
     await makeWorkspaceIntegration({ workspaceId: workspace.id })
     currentMember = owner
 
     const response = await app.inject({
       method: 'GET',
-      url: `/workspaces/${workspace.id}/integrations`,
+      url: `/api/v1/workspaces/${workspace.id}/integrations`,
     })
 
     expect(response.statusCode).toBe(200)
@@ -165,7 +168,7 @@ describe('GET /workspaces/:workspaceId/integrations', () => {
 
     const response = await app.inject({
       method: 'GET',
-      url: `/workspaces/${workspace.id}/integrations`,
+      url: `/api/v1/workspaces/${workspace.id}/integrations`,
     })
 
     expect(response.statusCode).toBe(403)
@@ -181,19 +184,19 @@ describe('DELETE /workspaces/:workspaceId/integrations/:integrationId', () => {
 
     const response = await app.inject({
       method: 'DELETE',
-      url: `/workspaces/${workspace.id}/integrations/${integration.id}`,
+      url: `/integrations/v1/workspaces/${workspace.id}/integrations/${integration.id}`,
       headers: { authorization: `Bearer ${API_KEY}` },
     })
 
     expect(response.statusCode).toBe(204)
   })
 
-  it('should return 404 when integration does not exist', async () => {
+  it('should return 404 when integration does not exist via API key', async () => {
     const workspace = await makeWorkspace()
 
     const response = await app.inject({
       method: 'DELETE',
-      url: `/workspaces/${workspace.id}/integrations/00000000-0000-0000-0000-000000000000`,
+      url: `/integrations/v1/workspaces/${workspace.id}/integrations/00000000-0000-0000-0000-000000000000`,
       headers: { authorization: `Bearer ${API_KEY}` },
     })
 
@@ -209,7 +212,7 @@ describe('DELETE /workspaces/:workspaceId/integrations/:integrationId', () => {
 
     const response = await app.inject({
       method: 'DELETE',
-      url: `/workspaces/${workspace.id}/integrations/${integration.id}`,
+      url: `/api/v1/workspaces/${workspace.id}/integrations/${integration.id}`,
     })
 
     expect(response.statusCode).toBe(403)
@@ -225,7 +228,7 @@ describe('PATCH /workspaces/by-integration', () => {
 
     const response = await app.inject({
       method: 'PATCH',
-      url: '/workspaces/by-integration',
+      url: '/integrations/v1/workspaces/by-integration',
       headers: { authorization: `Bearer ${API_KEY}` },
       query: { provider: integration.provider, providerId: integration.providerId },
       payload: { providerName: 'My Server' },
@@ -238,7 +241,7 @@ describe('PATCH /workspaces/by-integration', () => {
   it('should return 404 for an unknown integration', async () => {
     const response = await app.inject({
       method: 'PATCH',
-      url: '/workspaces/by-integration',
+      url: '/integrations/v1/workspaces/by-integration',
       headers: { authorization: `Bearer ${API_KEY}` },
       query: { provider: 'discord', providerId: 'nonexistent-guild' },
       payload: { providerName: 'My Server' },
@@ -257,7 +260,7 @@ describe('DELETE /workspaces/by-integration', () => {
 
     const response = await app.inject({
       method: 'DELETE',
-      url: '/workspaces/by-integration',
+      url: '/integrations/v1/workspaces/by-integration',
       headers: { authorization: `Bearer ${API_KEY}` },
       query: { provider: integration.provider, providerId: integration.providerId },
     })
@@ -268,7 +271,7 @@ describe('DELETE /workspaces/by-integration', () => {
   it('should return 404 for an unknown integration', async () => {
     const response = await app.inject({
       method: 'DELETE',
-      url: '/workspaces/by-integration',
+      url: '/integrations/v1/workspaces/by-integration',
       headers: { authorization: `Bearer ${API_KEY}` },
       query: { provider: 'discord', providerId: 'nonexistent-guild' },
     })
