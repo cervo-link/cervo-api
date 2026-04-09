@@ -40,7 +40,7 @@ describe('MembersController', () => {
 
 		const response = await app.inject({
 			method: 'POST',
-			url: '/members/create',
+			url: '/integrations/v1/members/create',
 			headers: { authorization: `Bearer ${API_KEY}` },
 			payload,
 		})
@@ -70,7 +70,7 @@ describe('MembersController', () => {
 
 		const response = await app.inject({
 			method: 'POST',
-			url: '/members/create',
+			url: '/integrations/v1/members/create',
 			headers: { authorization: `Bearer ${API_KEY}` },
 			payload,
 		})
@@ -92,7 +92,7 @@ describe('MembersController', () => {
 
 		const response = await app.inject({
 			method: 'POST',
-			url: '/members/create',
+			url: '/integrations/v1/members/create',
 			headers: { authorization: `Bearer ${API_KEY}` },
 			payload,
 		})
@@ -106,24 +106,25 @@ describe('MembersController', () => {
 	describe('POST /members/resolve', () => {
 		it('should return existing member when identity already exists', async () => {
 			const member = await makeMember()
+			const providerUserId = `known-user-${Date.now()}`
 			await app.inject({
 				method: 'POST',
-				url: '/members/resolve',
+				url: '/integrations/v1/members/resolve',
 				headers: { authorization: `Bearer ${API_KEY}` },
 				payload: {
 					provider: 'discord',
-					providerUserId: 'known-user',
+					providerUserId,
 					displayName: member.name,
 				},
 			})
 
 			const response = await app.inject({
 				method: 'POST',
-				url: '/members/resolve',
+				url: '/integrations/v1/members/resolve',
 				headers: { authorization: `Bearer ${API_KEY}` },
 				payload: {
 					provider: 'discord',
-					providerUserId: 'known-user',
+					providerUserId,
 					displayName: 'Different Name',
 				},
 			})
@@ -138,7 +139,7 @@ describe('MembersController', () => {
 
 			const response = await app.inject({
 				method: 'POST',
-				url: '/members/resolve',
+				url: '/integrations/v1/members/resolve',
 				headers: { authorization: `Bearer ${API_KEY}` },
 				payload: {
 					provider: 'discord',
@@ -163,14 +164,14 @@ describe('MembersController', () => {
 
 			const first = await app.inject({
 				method: 'POST',
-				url: '/members/resolve',
+				url: '/integrations/v1/members/resolve',
 				headers: { authorization: `Bearer ${API_KEY}` },
 				payload,
 			})
 
 			const second = await app.inject({
 				method: 'POST',
-				url: '/members/resolve',
+				url: '/integrations/v1/members/resolve',
 				headers: { authorization: `Bearer ${API_KEY}` },
 				payload,
 			})
@@ -185,7 +186,7 @@ describe('MembersController', () => {
 		it('should return 400 when required fields are missing', async () => {
 			const response = await app.inject({
 				method: 'POST',
-				url: '/members/resolve',
+				url: '/integrations/v1/members/resolve',
 				headers: { authorization: `Bearer ${API_KEY}` },
 				payload: { provider: 'discord' },
 			})
@@ -196,7 +197,7 @@ describe('MembersController', () => {
 		it('should return 401 when API key is not provided', async () => {
 			const response = await app.inject({
 				method: 'POST',
-				url: '/members/resolve',
+				url: '/integrations/v1/members/resolve',
 				payload: {
 					provider: 'discord',
 					providerUserId: 'some-user',
@@ -215,7 +216,7 @@ describe('MembersController', () => {
 
 			const response = await app.inject({
 				method: 'PUT',
-				url: '/members/add',
+				url: '/integrations/v1/members/add',
 				headers: { authorization: `Bearer ${API_KEY}` },
 				payload: { memberId: member.id, workspaceId: workspace.id },
 			})
@@ -231,7 +232,7 @@ describe('MembersController', () => {
 
 			const response = await app.inject({
 				method: 'PUT',
-				url: '/members/add',
+				url: '/integrations/v1/members/add',
 				headers: { authorization: `Bearer ${API_KEY}` },
 				payload: { memberId: member.id, workspaceId: faker.string.uuid() },
 			})
@@ -247,7 +248,7 @@ describe('MembersController', () => {
 
 			const response = await app.inject({
 				method: 'PUT',
-				url: '/members/add',
+				url: '/integrations/v1/members/add',
 				headers: { authorization: `Bearer ${API_KEY}` },
 				payload: { memberId: faker.string.uuid(), workspaceId: workspace.id },
 			})
@@ -263,7 +264,7 @@ describe('MembersController', () => {
 
 			const response = await app.inject({
 				method: 'PUT',
-				url: '/members/add',
+				url: '/integrations/v1/members/add',
 				headers: { authorization: `Bearer ${API_KEY}` },
 				payload: { memberId: member.id, workspaceId: workspace.id },
 			})
@@ -279,7 +280,7 @@ describe('MembersController', () => {
 
 			const response = await app.inject({
 				method: 'PUT',
-				url: '/members/add',
+				url: '/integrations/v1/members/add',
 				headers: { authorization: `Bearer ${API_KEY}` },
 				payload: { workspaceId: workspace.id },
 			})
@@ -292,7 +293,7 @@ describe('MembersController', () => {
 
 			const response = await app.inject({
 				method: 'PUT',
-				url: '/members/add',
+				url: '/integrations/v1/members/add',
 				headers: { authorization: `Bearer ${API_KEY}` },
 				payload: { memberId: member.id },
 			})
@@ -306,7 +307,7 @@ describe('MembersController', () => {
 
 			const response = await app.inject({
 				method: 'PUT',
-				url: '/members/add',
+				url: '/integrations/v1/members/add',
 				payload: { memberId: member.id, workspaceId: workspace.id },
 			})
 
@@ -322,7 +323,7 @@ describe('MembersController', () => {
 
 			const response = await app.inject({
 				method: 'GET',
-				url: '/members/me',
+				url: '/api/v1/members/me',
 			})
 
 			expect(response.statusCode).toBe(200)
@@ -336,7 +337,7 @@ describe('MembersController', () => {
 
 			const response = await app.inject({
 				method: 'GET',
-				url: '/members/me',
+				url: '/api/v1/members/me',
 			})
 
 			expect(response.statusCode).toBe(200)
@@ -357,7 +358,7 @@ describe('MembersController', () => {
 
 			const response = await app.inject({
 				method: 'POST',
-				url: '/members/sync',
+				url: '/api/v1/members/sync',
 			})
 
 			expect(response.statusCode).toBe(200)
@@ -375,7 +376,7 @@ describe('MembersController', () => {
 
 			const response = await app.inject({
 				method: 'POST',
-				url: '/members/sync',
+				url: '/api/v1/members/sync',
 			})
 
 			expect(response.statusCode).toBe(201)
@@ -387,7 +388,7 @@ describe('MembersController', () => {
 
 			const response = await app.inject({
 				method: 'POST',
-				url: '/members/sync',
+				url: '/api/v1/members/sync',
 			})
 
 			expect(response.statusCode).toBe(401)

@@ -22,33 +22,28 @@ vi.mock('@/infra/http/middlewares/session-auth', () => ({
 describe('createMemberIdentityController', () => {
   it('should link a platform identity to a member', async () => {
     const member = await makeMember()
+    const providerUserId = `discord-user-${Date.now()}`
 
     const response = await app.inject({
       method: 'POST',
-      url: `/members/${member.id}/identities`,
+      url: `/integrations/v1/members/${member.id}/identities`,
       headers: { authorization: `Bearer ${API_KEY}` },
-      payload: {
-        provider: 'discord',
-        providerUserId: 'discord-user-abc',
-      },
+      payload: { provider: 'discord', providerUserId },
     })
 
     expect(response.statusCode).toBe(201)
     const body = JSON.parse(response.body)
     expect(body.identity.memberId).toBe(member.id)
     expect(body.identity.provider).toBe('discord')
-    expect(body.identity.providerUserId).toBe('discord-user-abc')
+    expect(body.identity.providerUserId).toBe(providerUserId)
   })
 
   it('should return 404 when member does not exist', async () => {
     const response = await app.inject({
       method: 'POST',
-      url: '/members/00000000-0000-0000-0000-000000000000/identities',
+      url: '/integrations/v1/members/00000000-0000-0000-0000-000000000000/identities',
       headers: { authorization: `Bearer ${API_KEY}` },
-      payload: {
-        provider: 'discord',
-        providerUserId: 'discord-user-xyz',
-      },
+      payload: { provider: 'discord', providerUserId: `discord-notfound-${Date.now()}` },
     })
 
     expect(response.statusCode).toBe(404)
@@ -57,16 +52,14 @@ describe('createMemberIdentityController', () => {
 
   it('should return 422 when identity already exists', async () => {
     const member = await makeMember()
-    await makeMemberPlatformIdentity({ memberId: member.id, provider: 'discord', providerUserId: 'discord-dup-user' })
+    const providerUserId = `discord-dup-${Date.now()}`
+    await makeMemberPlatformIdentity({ memberId: member.id, provider: 'discord', providerUserId })
 
     const response = await app.inject({
       method: 'POST',
-      url: `/members/${member.id}/identities`,
+      url: `/integrations/v1/members/${member.id}/identities`,
       headers: { authorization: `Bearer ${API_KEY}` },
-      payload: {
-        provider: 'discord',
-        providerUserId: 'discord-dup-user',
-      },
+      payload: { provider: 'discord', providerUserId },
     })
 
     expect(response.statusCode).toBe(422)
@@ -80,7 +73,7 @@ describe('POST /members/me/identities', () => {
 
     const response = await app.inject({
       method: 'POST',
-      url: '/members/me/identities',
+      url: '/api/v1/members/me/identities',
       payload: { provider: 'discord', providerUserId: `me-new-${Date.now()}` },
     })
 
@@ -98,7 +91,7 @@ describe('POST /members/me/identities', () => {
 
     const response = await app.inject({
       method: 'POST',
-      url: '/members/me/identities',
+      url: '/api/v1/members/me/identities',
       payload: { provider: 'discord', providerUserId },
     })
 
@@ -117,7 +110,7 @@ describe('POST /members/me/identities', () => {
 
     const response = await app.inject({
       method: 'POST',
-      url: '/members/me/identities',
+      url: '/api/v1/members/me/identities',
       payload: { provider: 'discord', providerUserId },
     })
 
@@ -136,7 +129,7 @@ describe('POST /members/me/identities', () => {
 
     const response = await app.inject({
       method: 'POST',
-      url: '/members/me/identities',
+      url: '/api/v1/members/me/identities',
       payload: { provider: 'discord', providerUserId },
     })
 
@@ -149,7 +142,7 @@ describe('POST /members/me/identities', () => {
 
     const response = await app.inject({
       method: 'POST',
-      url: '/members/me/identities',
+      url: '/api/v1/members/me/identities',
       payload: { provider: 'discord', providerUserId: 'any-user' },
     })
 
@@ -166,7 +159,7 @@ describe('GET /members/me/identities', () => {
 
     const response = await app.inject({
       method: 'GET',
-      url: '/members/me/identities',
+      url: '/api/v1/members/me/identities',
     })
 
     expect(response.statusCode).toBe(200)
@@ -182,7 +175,7 @@ describe('GET /members/me/identities', () => {
 
     const response = await app.inject({
       method: 'GET',
-      url: '/members/me/identities',
+      url: '/api/v1/members/me/identities',
     })
 
     expect(response.statusCode).toBe(200)
@@ -194,7 +187,7 @@ describe('GET /members/me/identities', () => {
 
     const response = await app.inject({
       method: 'GET',
-      url: '/members/me/identities',
+      url: '/api/v1/members/me/identities',
     })
 
     expect(response.statusCode).toBe(401)
@@ -204,16 +197,14 @@ describe('GET /members/me/identities', () => {
 describe('findMemberByIdentityController', () => {
   it('should find a member by platform identity', async () => {
     const member = await makeMember()
-    await makeMemberPlatformIdentity({ memberId: member.id, provider: 'discord', providerUserId: 'discord-find-user' })
+    const providerUserId = `discord-find-${Date.now()}`
+    await makeMemberPlatformIdentity({ memberId: member.id, provider: 'discord', providerUserId })
 
     const response = await app.inject({
       method: 'GET',
-      url: '/members/by-identity',
+      url: '/integrations/v1/members/by-identity',
       headers: { authorization: `Bearer ${API_KEY}` },
-      query: {
-        provider: 'discord',
-        providerUserId: 'discord-find-user',
-      },
+      query: { provider: 'discord', providerUserId },
     })
 
     expect(response.statusCode).toBe(200)
@@ -224,11 +215,11 @@ describe('findMemberByIdentityController', () => {
   it('should return 404 when identity is not found', async () => {
     const response = await app.inject({
       method: 'GET',
-      url: '/members/by-identity',
+      url: '/integrations/v1/members/by-identity',
       headers: { authorization: `Bearer ${API_KEY}` },
       query: {
         provider: 'discord',
-        providerUserId: 'nonexistent-user',
+        providerUserId: `nonexistent-${Date.now()}`,
       },
     })
 

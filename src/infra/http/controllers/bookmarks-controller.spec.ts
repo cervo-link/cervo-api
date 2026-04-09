@@ -12,7 +12,7 @@ import { makeMembership } from '@/tests/factories/make-membership'
 import { makeWorkspace } from '@/tests/factories/make-workspace'
 
 // When set, sessionAuth succeeds and marks request.member (simulates a logged-in session).
-// When undefined, sessionAuth sends 401 so anyAuth falls through to API key auth.
+// When undefined, sessionAuth sends 401.
 let currentMember: Member | undefined
 
 vi.mock('@/infra/http/middlewares/session-auth', () => ({
@@ -57,7 +57,7 @@ describe('createBookmarkController', () => {
 
     const response = await app.inject({
       method: 'POST',
-      url: '/bookmarks',
+      url: '/integrations/v1/bookmarks',
       headers: { authorization: `Bearer ${API_KEY}` },
       payload: {
         workspaceId: workspace.id,
@@ -77,7 +77,7 @@ describe('createBookmarkController', () => {
 
     const response = await app.inject({
       method: 'POST',
-      url: '/bookmarks',
+      url: '/integrations/v1/bookmarks',
       headers: { authorization: `Bearer ${API_KEY}` },
       payload: {
         workspaceId: '00000000-0000-0000-0000-000000000000',
@@ -95,7 +95,7 @@ describe('createBookmarkController', () => {
 
     const response = await app.inject({
       method: 'POST',
-      url: '/bookmarks',
+      url: '/integrations/v1/bookmarks',
       headers: { authorization: `Bearer ${API_KEY}` },
       payload: {
         workspaceId: workspace.id,
@@ -114,7 +114,7 @@ describe('createBookmarkController', () => {
 
     const response = await app.inject({
       method: 'POST',
-      url: '/bookmarks',
+      url: '/integrations/v1/bookmarks',
       headers: { authorization: `Bearer ${API_KEY}` },
       payload: {
         workspaceId: workspace.id,
@@ -134,7 +134,7 @@ describe('createBookmarkController', () => {
 
     const response = await app.inject({
       method: 'POST',
-      url: '/bookmarks',
+      url: '/integrations/v1/bookmarks',
       headers: { authorization: `Bearer ${API_KEY}` },
       payload: {
         workspaceId: workspace.id,
@@ -175,7 +175,7 @@ describe('getBookmarksController', () => {
 
     const response = await app.inject({
       method: 'GET',
-      url: '/bookmarks',
+      url: '/integrations/v1/bookmarks',
       headers: { authorization: `Bearer ${API_KEY}` },
       query: {
         workspaceId: workspace.id,
@@ -212,7 +212,7 @@ describe('getBookmarksController', () => {
 
     const response = await app.inject({
       method: 'GET',
-      url: '/bookmarks',
+      url: '/integrations/v1/bookmarks',
       headers: { authorization: `Bearer ${API_KEY}` },
       query: {
         workspaceId: workspace.id,
@@ -230,7 +230,7 @@ describe('getBookmarksController', () => {
 
     const response = await app.inject({
       method: 'GET',
-      url: '/bookmarks',
+      url: '/integrations/v1/bookmarks',
       headers: { authorization: `Bearer ${API_KEY}` },
       query: {
         workspaceId: '00000000-0000-0000-0000-000000000000',
@@ -248,7 +248,7 @@ describe('getBookmarksController', () => {
 
     const response = await app.inject({
       method: 'GET',
-      url: '/bookmarks',
+      url: '/integrations/v1/bookmarks',
       headers: { authorization: `Bearer ${API_KEY}` },
       query: {
         workspaceId: workspace.id,
@@ -272,7 +272,7 @@ describe('getBookmarksController', () => {
 
     const response = await app.inject({
       method: 'GET',
-      url: '/bookmarks',
+      url: '/integrations/v1/bookmarks',
       headers: { authorization: `Bearer ${API_KEY}` },
       query: {
         workspaceId: workspace.id,
@@ -305,11 +305,11 @@ describe('retryBookmarkController', () => {
       memberId: member.id,
       status: 'failed',
     })
+    currentMember = member
 
     const response = await app.inject({
       method: 'POST',
-      url: `/bookmarks/${bookmark.id}/retry`,
-      headers: { authorization: `Bearer ${API_KEY}` },
+      url: `/api/v1/bookmarks/${bookmark.id}/retry`,
     })
 
     expect(response.statusCode).toBe(200)
@@ -325,11 +325,11 @@ describe('retryBookmarkController', () => {
       memberId: member.id,
       status: 'ready',
     })
+    currentMember = member
 
     const response = await app.inject({
       method: 'POST',
-      url: `/bookmarks/${bookmark.id}/retry`,
-      headers: { authorization: `Bearer ${API_KEY}` },
+      url: `/api/v1/bookmarks/${bookmark.id}/retry`,
     })
 
     expect(response.statusCode).toBe(409)
@@ -337,10 +337,11 @@ describe('retryBookmarkController', () => {
   })
 
   it('should return 404 for unknown bookmark', async () => {
+    currentMember = await makeMember()
+
     const response = await app.inject({
       method: 'POST',
-      url: '/bookmarks/00000000-0000-0000-0000-000000000000/retry',
-      headers: { authorization: `Bearer ${API_KEY}` },
+      url: '/api/v1/bookmarks/00000000-0000-0000-0000-000000000000/retry',
     })
 
     expect(response.statusCode).toBe(404)
@@ -352,13 +353,13 @@ describe('deleteBookmarkController', () => {
   it('should delete an existing bookmark', async () => {
     const member = await makeMember()
     const workspace = await makeWorkspace()
-    await makeMembership(workspace.id, member.id)
+    await makeMembership(workspace.id, member.id, 'editor')
     const bookmark = await makeBookmark({ workspaceId: workspace.id, memberId: member.id })
+    currentMember = member
 
     const response = await app.inject({
       method: 'DELETE',
-      url: `/bookmarks/${bookmark.id}`,
-      headers: { authorization: `Bearer ${API_KEY}` },
+      url: `/api/v1/bookmarks/${bookmark.id}`,
     })
 
     expect(response.statusCode).toBe(200)
@@ -366,10 +367,11 @@ describe('deleteBookmarkController', () => {
   })
 
   it('should return 404 when bookmark does not exist', async () => {
+    currentMember = await makeMember()
+
     const response = await app.inject({
       method: 'DELETE',
-      url: '/bookmarks/00000000-0000-0000-0000-000000000000',
-      headers: { authorization: `Bearer ${API_KEY}` },
+      url: '/api/v1/bookmarks/00000000-0000-0000-0000-000000000000',
     })
 
     expect(response.statusCode).toBe(404)
@@ -383,11 +385,11 @@ describe('getBookmarkByIdController', () => {
     const workspace = await makeWorkspace()
     await makeMembership(workspace.id, member.id)
     const bookmark = await makeBookmark({ workspaceId: workspace.id, memberId: member.id })
+    currentMember = member
 
     const response = await app.inject({
       method: 'GET',
-      url: `/bookmarks/${bookmark.id}`,
-      headers: { authorization: `Bearer ${API_KEY}` },
+      url: `/api/v1/bookmarks/${bookmark.id}`,
     })
 
     expect(response.statusCode).toBe(200)
@@ -399,10 +401,11 @@ describe('getBookmarkByIdController', () => {
   })
 
   it('should return 404 when bookmark does not exist', async () => {
+    currentMember = await makeMember()
+
     const response = await app.inject({
       method: 'GET',
-      url: '/bookmarks/00000000-0000-0000-0000-000000000000',
-      headers: { authorization: `Bearer ${API_KEY}` },
+      url: '/api/v1/bookmarks/00000000-0000-0000-0000-000000000000',
     })
 
     expect(response.statusCode).toBe(404)
@@ -421,7 +424,7 @@ describe('Bookmark role-based access control', () => {
     mockSummarizeService.generateTags.mockResolvedValue(['tag1', 'tag2'])
   })
 
-  describe('POST /bookmarks (session)', () => {
+  describe('POST /api/v1/bookmarks (session)', () => {
     it('editor can save a link via session', async () => {
       const owner = await makeMember()
       const editor = await makeMember()
@@ -431,7 +434,7 @@ describe('Bookmark role-based access control', () => {
 
       const response = await app.inject({
         method: 'POST',
-        url: '/bookmarks',
+        url: '/api/v1/bookmarks',
         payload: { workspaceId: workspace.id, memberId: editor.id, url: 'https://example.com' },
       })
 
@@ -447,7 +450,7 @@ describe('Bookmark role-based access control', () => {
 
       const response = await app.inject({
         method: 'POST',
-        url: '/bookmarks',
+        url: '/api/v1/bookmarks',
         payload: { workspaceId: workspace.id, memberId: viewer.id, url: 'https://example.com' },
       })
 
@@ -462,7 +465,7 @@ describe('Bookmark role-based access control', () => {
 
       const response = await app.inject({
         method: 'POST',
-        url: '/bookmarks',
+        url: '/api/v1/bookmarks',
         payload: { workspaceId: workspace.id, memberId: owner.id, url: 'https://example.com' },
       })
 
@@ -470,7 +473,7 @@ describe('Bookmark role-based access control', () => {
     })
   })
 
-  describe('POST /bookmarks (API key / Discord bot)', () => {
+  describe('POST /integrations/v1/bookmarks (API key / Discord bot)', () => {
     it('editor can save a link via API key', async () => {
       const owner = await makeMember()
       const editor = await makeMember()
@@ -479,7 +482,7 @@ describe('Bookmark role-based access control', () => {
 
       const response = await app.inject({
         method: 'POST',
-        url: '/bookmarks',
+        url: '/integrations/v1/bookmarks',
         headers: { authorization: `Bearer ${API_KEY}` },
         payload: { workspaceId: workspace.id, memberId: editor.id, url: 'https://example.com' },
       })
@@ -495,7 +498,7 @@ describe('Bookmark role-based access control', () => {
 
       const response = await app.inject({
         method: 'POST',
-        url: '/bookmarks',
+        url: '/integrations/v1/bookmarks',
         headers: { authorization: `Bearer ${API_KEY}` },
         payload: { workspaceId: workspace.id, memberId: viewer.id, url: 'https://example.com' },
       })
@@ -504,7 +507,7 @@ describe('Bookmark role-based access control', () => {
     })
   })
 
-  describe('DELETE /bookmarks/:id', () => {
+  describe('DELETE /api/v1/bookmarks/:id', () => {
     it('editor can delete a link via session', async () => {
       const owner = await makeMember()
       const editor = await makeMember()
@@ -515,7 +518,7 @@ describe('Bookmark role-based access control', () => {
 
       const response = await app.inject({
         method: 'DELETE',
-        url: `/bookmarks/${bookmark.id}`,
+        url: `/api/v1/bookmarks/${bookmark.id}`,
       })
 
       expect(response.statusCode).toBe(200)
@@ -531,7 +534,7 @@ describe('Bookmark role-based access control', () => {
 
       const response = await app.inject({
         method: 'DELETE',
-        url: `/bookmarks/${bookmark.id}`,
+        url: `/api/v1/bookmarks/${bookmark.id}`,
       })
 
       expect(response.statusCode).toBe(403)
@@ -546,7 +549,7 @@ describe('Bookmark role-based access control', () => {
 
       const response = await app.inject({
         method: 'GET',
-        url: '/bookmarks',
+        url: '/api/v1/bookmarks',
         query: { workspaceId: workspace.id, memberId: viewer.id, text: 'test' },
       })
 

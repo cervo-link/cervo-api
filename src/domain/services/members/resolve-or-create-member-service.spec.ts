@@ -8,16 +8,17 @@ import { resolveOrCreateMember } from './resolve-or-create-member-service'
 
 describe('resolveOrCreateMember', () => {
   it('should return existing member when identity already exists', async () => {
+    const providerUserId = `discord-known-user-${Date.now()}`
     const member = await makeMember()
     await makeMemberPlatformIdentity({
       memberId: member.id,
       provider: 'discord',
-      providerUserId: 'discord-known-user',
+      providerUserId,
     })
 
     const result = await resolveOrCreateMember({
       provider: 'discord',
-      providerUserId: 'discord-known-user',
+      providerUserId,
       displayName: 'Should Not Matter',
     })
 

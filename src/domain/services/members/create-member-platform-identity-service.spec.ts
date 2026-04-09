@@ -9,24 +9,25 @@ import { createMemberPlatformIdentity } from './create-member-platform-identity-
 describe('createMemberPlatformIdentity', () => {
   it('should link a platform identity to a member', async () => {
     const member = await makeMember()
+    const providerUserId = `discord-user-${Date.now()}`
 
     const result = await createMemberPlatformIdentity({
       memberId: member.id,
       provider: 'discord',
-      providerUserId: 'discord-user-123',
+      providerUserId,
     })
 
     assert(!(result instanceof DomainError))
     expect(result.memberId).toBe(member.id)
     expect(result.provider).toBe('discord')
-    expect(result.providerUserId).toBe('discord-user-123')
+    expect(result.providerUserId).toBe(providerUserId)
   })
 
   it('should return MemberNotFound when member does not exist', async () => {
     const result = await createMemberPlatformIdentity({
       memberId: '00000000-0000-0000-0000-000000000000',
       provider: 'discord',
-      providerUserId: 'discord-user-456',
+      providerUserId: `discord-notfound-${Date.now()}`,
     })
 
     expect(result).toBeInstanceOf(MemberNotFound)
@@ -34,17 +35,18 @@ describe('createMemberPlatformIdentity', () => {
 
   it('should return IdentityAlreadyExists when identity is duplicated', async () => {
     const member = await makeMember()
+    const providerUserId = `discord-dup-${Date.now()}`
 
     await createMemberPlatformIdentity({
       memberId: member.id,
       provider: 'discord',
-      providerUserId: 'discord-user-789',
+      providerUserId,
     })
 
     const result = await createMemberPlatformIdentity({
       memberId: member.id,
       provider: 'discord',
-      providerUserId: 'discord-user-789',
+      providerUserId,
     })
 
     expect(result).toBeInstanceOf(IdentityAlreadyExists)
