@@ -18,10 +18,17 @@ import {
 	getWorkspacesByMemberParamsSchema,
 	inviteMemberBodySchemaRequest,
 	inviteMemberParamsSchemaRequest,
+	listMembersParamsSchemaRequest,
+	removeMemberParamsSchemaRequest,
 	updateWorkspaceBodySchemaRequest,
 	updateWorkspaceParamsSchemaRequest,
 } from '../schemas/workspaces-schema'
-import { updateMembershipRole } from '@/infra/db/repositories/membership-repository'
+import {
+	deleteMembership,
+	listWorkspaceMembers,
+	updateMembershipRole,
+} from '@/infra/db/repositories/membership-repository'
+import { findById as findWorkspaceById } from '@/infra/db/repositories/workspaces-repository'
 
 export async function getMyWorkspacesController(
 	request: FastifyRequest,
@@ -139,6 +146,43 @@ export async function changeMemberRoleController(
 		}
 
 		return reply.status(200).send({ message: 'Role updated.' })
+	})
+}
+
+export async function listWorkspaceMembersController(
+	request: FastifyRequest,
+	reply: FastifyReply
+) {
+	return withSpan('list-workspace-members', async () => {
+		const { workspaceId } = listMembersParamsSchemaRequest.parse(request.params)
+		const members = await listWorkspaceMembers(workspaceId)
+		return reply.status(200).send({ members })
+	})
+}
+
+export async function removeMemberController(
+	request: FastifyRequest,
+	reply: FastifyReply
+) {
+	return withSpan('remove-member', async () => {
+		const { workspaceId, memberId } = removeMemberParamsSchemaRequest.parse(
+			request.params
+		)
+
+		if (memberId === request.member.id) {
+			return reply.status(403).send({ message: 'You cannot remove yourself' })
+		}
+
+		const workspace = await findWorkspaceById(workspaceId)
+		if (workspace?.ownerId === memberId) {
+			return reply.status(403).send({ message: 'You cannot remove the workspace owner' })
+		}
+
+		const deleted = await deleteMembership(workspaceId, memberId)
+		if (!deleted) {
+			return reply.status(404).send({ message: 'Membership not found' })
+		}
+		return reply.status(200).send({ message: 'Member removed.' })
 	})
 }
 
