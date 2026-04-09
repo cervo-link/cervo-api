@@ -3,10 +3,9 @@ import type { z } from 'zod'
 import { DomainError } from '@/domain/errors/domain-error'
 import { createWorkspaceIntegration } from '@/domain/services/workspace-integrations/create-workspace-integration-service'
 import { getWorkspaceByIntegration } from '@/domain/services/workspace-integrations/get-workspace-by-integration-service'
-import { findById } from '@/infra/db/repositories/workspaces-repository'
 import {
-  deleteIntegrationByProvider,
   deleteIntegrationById,
+  deleteIntegrationByProvider,
   findIntegrationsByWorkspaceId,
   updateIntegrationProviderName,
 } from '@/infra/db/repositories/workspace-integrations-repository'
@@ -35,16 +34,6 @@ export async function addWorkspaceIntegrationController(
     const { workspaceId } = request.params
     const { provider, providerId, providerName } = request.body
 
-    if (request.member) {
-      const workspace = await findById(workspaceId)
-      if (!workspace) {
-        return reply.status(404).send({ message: 'Workspace not found' })
-      }
-      if (workspace.ownerId !== request.member.id) {
-        return reply.status(403).send({ message: 'Forbidden' })
-      }
-    }
-
     const result = await createWorkspaceIntegration({
       workspaceId,
       provider,
@@ -53,11 +42,17 @@ export async function addWorkspaceIntegrationController(
     })
 
     if (result instanceof DomainError) {
-      logger.warn({ workspaceId, provider, providerId, error: result.message }, 'workspace integration failed')
+      logger.warn(
+        { workspaceId, provider, providerId, error: result.message },
+        'workspace integration failed'
+      )
       return replyWithError(reply, result)
     }
 
-    logger.info({ workspaceId, provider, providerId, integrationId: result.id }, 'workspace integration added')
+    logger.info(
+      { workspaceId, provider, providerId, integrationId: result.id },
+      'workspace integration added'
+    )
     return reply.status(201).send({ integration: result })
   })
 }
@@ -70,16 +65,6 @@ export async function getWorkspaceIntegrationsController(
 ) {
   return withSpan('get-workspace-integrations', async () => {
     const { workspaceId } = request.params
-
-    if (request.member) {
-      const workspace = await findById(workspaceId)
-      if (!workspace) {
-        return reply.status(404).send({ message: 'Workspace not found' })
-      }
-      if (workspace.ownerId !== request.member.id) {
-        return reply.status(403).send({ message: 'Forbidden' })
-      }
-    }
 
     const integrations = await findIntegrationsByWorkspaceId(workspaceId)
     return reply.status(200).send({ integrations })
@@ -94,16 +79,6 @@ export async function deleteWorkspaceIntegrationController(
 ) {
   return withSpan('delete-workspace-integration', async () => {
     const { workspaceId, integrationId } = request.params
-
-    if (request.member) {
-      const workspace = await findById(workspaceId)
-      if (!workspace) {
-        return reply.status(404).send({ message: 'Workspace not found' })
-      }
-      if (workspace.ownerId !== request.member.id) {
-        return reply.status(403).send({ message: 'Forbidden' })
-      }
-    }
 
     const deleted = await deleteIntegrationById(integrationId, workspaceId)
     if (!deleted) {

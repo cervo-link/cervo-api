@@ -193,17 +193,11 @@ export async function deleteBookmarkController(
       return reply.status(404).send({ message: 'Bookmark not found' })
     }
 
-    // For session-authenticated requests, enforce editor role
-    if (request.member) {
-      const role = await findMembershipRole(
-        bookmark.workspaceId,
-        request.member.id
-      )
-      if (defineAbilitiesFor(role).cannot('manage' as never, 'Link' as never)) {
-        return reply
-          .status(403)
-          .send({ message: 'Requires ability to manage Link' })
-      }
+    const role = await findMembershipRole(bookmark.workspaceId, request.member.id)
+    if (defineAbilitiesFor(role).cannot('manage' as never, 'Link' as never)) {
+      return reply
+        .status(403)
+        .send({ message: 'Requires ability to manage Link' })
     }
 
     await deleteBookmark(id)

@@ -1,7 +1,5 @@
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
-import { anyAuth } from '@/infra/http/middlewares/any-auth'
-import { apiKeyAuth } from '@/infra/http/middlewares/api-key-auth'
 import { sessionAuth } from '@/infra/http/middlewares/session-auth'
 import { requireAbility } from '@/infra/http/middlewares/workspace-role-auth'
 import {
@@ -10,12 +8,11 @@ import {
   deleteWorkspaceController,
   getMyWorkspacesController,
   getWorkspaceController,
-  getWorkspacesByMemberController,
   inviteMemberController,
   listWorkspaceMembersController,
   removeMemberController,
   updateWorkspaceController,
-} from '../controllers/workspace-controller'
+} from '@/infra/http/controllers/workspace-controller'
 import {
   changeMemberRoleBodySchemaRequest,
   changeMemberRoleParamsSchemaRequest,
@@ -27,8 +24,6 @@ import {
   getMyWorkspacesSchemaResponse,
   getWorkspaceQuerySchemaRequest,
   getWorkspaceQuerySchemaResponse,
-  getWorkspacesByMemberParamsSchema,
-  getWorkspacesByMemberResponseSchema,
   inviteMemberBodySchemaRequest,
   inviteMemberParamsSchemaRequest,
   inviteMemberSchemaResponse,
@@ -39,13 +34,13 @@ import {
   updateWorkspaceBodySchemaRequest,
   updateWorkspaceParamsSchemaRequest,
   updateWorkspaceSchemaResponse,
-} from '../schemas/workspaces-schema'
+} from '@/infra/http/schemas/workspaces-schema'
 
-export async function workspaceRoutes(app: FastifyInstance) {
+export async function apiWorkspacesRoutes(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().route({
     method: 'POST',
     url: '/workspaces/create',
-    onRequest: [anyAuth(sessionAuth, apiKeyAuth)],
+    onRequest: [sessionAuth],
     schema: {
       description: 'Create a workspace',
       tags: ['workspaces'],
@@ -53,6 +48,31 @@ export async function workspaceRoutes(app: FastifyInstance) {
       body: createWorkspaceBodySchemaRequest,
     },
     handler: createWorkspaceController,
+  })
+
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: 'GET',
+    url: '/workspaces',
+    onRequest: [sessionAuth],
+    schema: {
+      description: 'Get a workspace by ID',
+      tags: ['workspaces'],
+      response: getWorkspaceQuerySchemaResponse,
+      query: getWorkspaceQuerySchemaRequest,
+    },
+    handler: getWorkspaceController,
+  })
+
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: 'GET',
+    url: '/workspaces/me',
+    onRequest: [sessionAuth],
+    schema: {
+      description: 'List all workspaces the authenticated member belongs to',
+      tags: ['workspaces'],
+      response: getMyWorkspacesSchemaResponse,
+    },
+    handler: getMyWorkspacesController,
   })
 
   app.withTypeProvider<ZodTypeProvider>().route({
@@ -83,6 +103,19 @@ export async function workspaceRoutes(app: FastifyInstance) {
   })
 
   app.withTypeProvider<ZodTypeProvider>().route({
+    method: 'GET',
+    url: '/workspaces/:workspaceId/members',
+    onRequest: [sessionAuth, requireAbility('read', 'Workspace')],
+    schema: {
+      description: 'List all members of a workspace',
+      tags: ['workspaces'],
+      params: listMembersParamsSchemaRequest,
+      response: listMembersSchemaResponse,
+    },
+    handler: listWorkspaceMembersController,
+  })
+
+  app.withTypeProvider<ZodTypeProvider>().route({
     method: 'POST',
     url: '/workspaces/:workspaceId/members',
     onRequest: [sessionAuth, requireAbility('manage', 'Member')],
@@ -94,19 +127,6 @@ export async function workspaceRoutes(app: FastifyInstance) {
       response: inviteMemberSchemaResponse,
     },
     handler: inviteMemberController,
-  })
-
-  app.withTypeProvider<ZodTypeProvider>().route({
-    method: 'GET',
-    url: '/workspaces/:workspaceId/members',
-    onRequest: [sessionAuth, requireAbility('read', 'Workspace')],
-    schema: {
-      description: 'List all members of a workspace',
-      tags: ['workspaces'],
-      params: listMembersParamsSchemaRequest,
-      response: listMembersSchemaResponse,
-    },
-    handler: listWorkspaceMembersController,
   })
 
   app.withTypeProvider<ZodTypeProvider>().route({
@@ -134,43 +154,5 @@ export async function workspaceRoutes(app: FastifyInstance) {
       response: changeMemberRoleSchemaResponse,
     },
     handler: changeMemberRoleController,
-  })
-
-  app.withTypeProvider<ZodTypeProvider>().route({
-    method: 'GET',
-    url: '/workspaces/me',
-    onRequest: [sessionAuth],
-    schema: {
-      description: 'List all workspaces the authenticated member belongs to',
-      tags: ['workspaces'],
-      response: getMyWorkspacesSchemaResponse,
-    },
-    handler: getMyWorkspacesController,
-  })
-
-  app.withTypeProvider<ZodTypeProvider>().route({
-    method: 'GET',
-    url: '/workspaces/by-member/:memberId',
-    onRequest: [anyAuth(sessionAuth, apiKeyAuth)],
-    schema: {
-      description: 'List all workspaces a given member belongs to',
-      tags: ['workspaces'],
-      params: getWorkspacesByMemberParamsSchema,
-      response: getWorkspacesByMemberResponseSchema,
-    },
-    handler: getWorkspacesByMemberController,
-  })
-
-  app.withTypeProvider<ZodTypeProvider>().route({
-    method: 'GET',
-    url: '/workspaces',
-    onRequest: [anyAuth(sessionAuth, apiKeyAuth)],
-    schema: {
-      description: 'Get a workspace by platform ID',
-      tags: ['workspaces'],
-      response: getWorkspaceQuerySchemaResponse,
-      query: getWorkspaceQuerySchemaRequest,
-    },
-    handler: getWorkspaceController,
   })
 }
