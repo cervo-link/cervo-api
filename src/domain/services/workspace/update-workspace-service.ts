@@ -15,7 +15,6 @@ interface UpdateWorkspaceInput {
 
 export async function updateWorkspace(
   workspaceId: string,
-  requestingMemberId: string,
   data: UpdateWorkspaceInput
 ): Promise<Workspace | DomainError> {
   return withSpan('update-workspace', async () => {
@@ -24,8 +23,6 @@ export async function updateWorkspace(
     if (!workspace) return new WorkspaceNotFound()
     if (workspace.isPersonal)
       return new DomainError('Cannot edit a personal workspace', 403)
-    if (workspace.ownerId !== requestingMemberId)
-      return new DomainError('Only the workspace owner can edit it', 403)
 
     const updated = await updateWorkspaceById(workspaceId, data)
     if (!updated) return new DomainError('Failed to update workspace', 500)

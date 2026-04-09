@@ -96,6 +96,9 @@ export const memberPlatformIdentities = pgTable(
   ]
 )
 
+export const MEMBERSHIP_ROLES = ['viewer', 'editor', 'owner'] as const
+export type MembershipRole = (typeof MEMBERSHIP_ROLES)[number]
+
 export const memberships = pgTable(
   'memberships',
   {
@@ -104,6 +107,7 @@ export const memberships = pgTable(
       .$defaultFn(() => uuidv7()),
     memberId: uuid().notNull(),
     workspaceId: uuid().notNull(),
+    role: text('role').$type<MembershipRole>().notNull().default('viewer'),
     createdAt: timestamp().defaultNow().notNull(),
   },
   t => [

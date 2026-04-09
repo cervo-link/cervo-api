@@ -32,6 +32,7 @@
     "typescript": "^5.9.2"
   },
   "dependencies": {
+    "@casl/ability": "^6.8.0",
     "@fastify/cookie": "^11.0.2",
     "@fastify/cors": "^11.1.0",
     "@fastify/otel": "^0.16.0",

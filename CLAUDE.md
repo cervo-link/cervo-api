@@ -54,10 +54,12 @@ src/
 │   │   ├── controllers/       # Request handlers
 │   │   ├── routes/            # Route definitions with auth middleware
 │   │   ├── schemas/           # Zod request/response schemas
-│   │   ├── middlewares/       # apiKeyAuth
+│   │   ├── middlewares/       # sessionAuth, apiKeyAuth, requireAbility
 │   │   └── app.ts             # Fastify setup, Swagger UI, error handler
 │   ├── factories/             # Resolve provider name → concrete adapter
-│   └── ports/                 # TypeScript interfaces for all adapters
+│   ├── ports/                 # TypeScript interfaces for all adapters
+│   └── lib/
+│       └── abilities.ts       # CASL ability definitions (viewer/editor/owner)
 │
 ├── tests/
 │   ├── global-setup.ts        # Spins up PostgreSQL Testcontainer, runs migrations
@@ -155,27 +157,49 @@ const session = await auth.api.getSession({
 | `createWorkspaceIntegration` | `workspace-integrations/create-workspace-integration-service` | `WorkspaceIntegration \| DomainError` |
 | `getWorkspaceByIntegration` | `workspace-integrations/get-workspace-by-integration-service` | `Workspace \| DomainError` |
 
+## Role-Based Access Control
+
+Memberships have a `role` column: `viewer | editor | owner`. Routes are guarded by `requireAbility(action, subject)` middleware from `src/infra/http/middlewares/workspace-role-auth.ts`.
+
+**Ability matrix:**
+
+| Role | Abilities |
+|---|---|
+| `owner` | `manage all` |
+| `editor` | `read Workspace`, `read Link`, `manage Link` |
+| `viewer` | `read Workspace`, `read Link` |
+
+`requireAbility` reads `workspaceId` from route params, looks up the caller's role in the DB, builds a CASL ability, and returns 403 if the action is not allowed. It also validates that `workspaceId` is a valid UUID (returns 400 otherwise).
+
+Bookmark creation (`POST /bookmarks`) enforces the `manage Link` ability using the `memberId` from the request body — this applies to both session and API-key (Discord bot) callers.
+
 ## HTTP Routes
 
 Domain routes require API key auth (`Authorization: Bearer`, `X-API-Key`, or `?api_key`). Auth routes are handled by Better Auth with no API key required.
 
-| Method | URL | Description |
-|---|---|---|
-| GET | `/health` | Health check (no auth) |
-| GET/POST | `/api/auth/*` | Better Auth handler (OAuth sign-in, session, logout) |
-| POST | `/bookmarks` | Submit URL for processing |
-| GET | `/bookmarks` | Vector similarity search (cross-workspace when isPersonal) |
-| POST | `/bookmarks/:id/retry` | Retry failed bookmark |
-| POST | `/members/create` | Create member |
-| PUT | `/members/add` | Add member to workspace |
-| POST | `/members/:memberId/identities` | Link platform identity to member |
-| GET | `/members/by-identity` | Find member by platform identity |
-| GET | `/members/me` | Get current authenticated member + workspace |
-| POST | `/workspaces/create` | Create workspace |
-| GET | `/workspaces` | Get workspace by ID |
-| GET | `/workspaces/me` | Get workspaces for current authenticated member |
-| POST | `/workspaces/:workspaceId/integrations` | Add platform integration |
-| GET | `/workspaces/by-integration` | Find workspace by platform ID |
+| Method | URL | Auth | Description |
+|---|---|---|---|
+| GET | `/health` | none | Health check |
+| GET/POST | `/api/auth/*` | none | Better Auth (OAuth sign-in, session, logout) |
+| POST | `/bookmarks` | session or API key | Submit URL for processing |
+| GET | `/bookmarks` | session or API key | Vector similarity search |
+| POST | `/bookmarks/:id/retry` | session or API key | Retry failed bookmark |
+| POST | `/members/create` | API key | Create member |
+| PUT | `/members/add` | API key | Add member to workspace |
+| POST | `/members/:memberId/identities` | API key | Link platform identity to member |
+| GET | `/members/by-identity` | API key | Find member by platform identity |
+| GET | `/members/me` | session | Get current authenticated member |
+| POST | `/workspaces/create` | session or API key | Create workspace |
+| GET | `/workspaces` | session or API key | Get workspace by ID |
+| GET | `/workspaces/me` | session | List workspaces for authenticated member (with `role`) |
+| PATCH | `/workspaces/:workspaceId` | session + owner | Update workspace |
+| DELETE | `/workspaces/:workspaceId` | session + owner | Delete workspace |
+| GET | `/workspaces/:workspaceId/members` | session + any member | List members with roles |
+| POST | `/workspaces/:workspaceId/members` | session + owner | Invite member by email |
+| DELETE | `/workspaces/:workspaceId/members/:memberId` | session + owner | Remove member |
+| PATCH | `/workspaces/:workspaceId/members/:memberId` | session + owner | Change member role |
+| POST | `/workspaces/:workspaceId/integrations` | session or API key | Add platform integration |
+| GET | `/workspaces/by-integration` | session or API key | Find workspace by platform ID |
 
 ## Database
 
