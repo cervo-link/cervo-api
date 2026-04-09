@@ -17,7 +17,7 @@ export async function createWorkspace(
       return new DomainError('Owner ID is required', 400)
     }
 
-    await insertMembership({ memberId: workspace.ownerId, workspaceId: result.id })
+    await insertMembership({ memberId: workspace.ownerId, workspaceId: result.id, role: 'owner' })
 
     return result
   })

@@ -38,6 +38,7 @@ const workspaceShape = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
   active: z.boolean(),
+  role: z.enum(['viewer', 'editor', 'owner']),
 })
 
 export const getMyWorkspacesSchemaResponse = {
@@ -100,6 +101,7 @@ export const inviteMemberParamsSchemaRequest = z.object({
 
 export const inviteMemberBodySchemaRequest = z.object({
   email: z.string().email('Email must be a valid email'),
+  role: z.enum(['viewer', 'editor']).default('viewer'),
 })
 
 export const inviteMemberSchemaResponse = {
@@ -141,4 +143,20 @@ export const getWorkspaceQuerySchemaResponse = {
       }),
     })
     .describe('Workspace found.'),
+}
+
+export const changeMemberRoleParamsSchemaRequest = z.object({
+  workspaceId: z.string().uuid('Workspace ID must be a valid UUID'),
+  memberId: z.string().uuid('Member ID must be a valid UUID'),
+})
+
+export const changeMemberRoleBodySchemaRequest = z.object({
+  role: z.enum(['viewer', 'editor', 'owner']),
+})
+
+export const changeMemberRoleSchemaResponse = {
+  500: z.object({ message: z.string() }).describe('Internal error'),
+  404: z.object({ message: z.string() }).describe('Membership not found'),
+  403: z.object({ message: z.string() }).describe('Forbidden'),
+  200: z.object({ message: z.string() }).describe('Role updated'),
 }

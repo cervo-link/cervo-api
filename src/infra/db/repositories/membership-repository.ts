@@ -4,7 +4,7 @@ import { CannotCreateMembershipAlreadyExists } from '@/domain/errors/cannot-crea
 import type { DomainError } from '@/domain/errors/domain-error'
 import { withSpan } from '@/infra/utils/with-span'
 import { db } from '@/infra/db'
-import { memberships } from '@/infra/db/schema'
+import { type MembershipRole, memberships } from '@/infra/db/schema'
 import { handleInsertError } from '@/infra/db/utils/insert-with-error-handling'
 
 export async function insertMembership(
@@ -34,5 +34,43 @@ export async function findMembership(
         )
       )
     return result
+  })
+}
+
+export async function findMembershipRole(
+  workspaceId: string,
+  memberId: string
+): Promise<MembershipRole | null> {
+  return withSpan('find-membership-role', async () => {
+    const [result] = await db
+      .select({ role: memberships.role })
+      .from(memberships)
+      .where(
+        and(
+          eq(memberships.workspaceId, workspaceId),
+          eq(memberships.memberId, memberId)
+        )
+      )
+    return result?.role ?? null
+  })
+}
+
+export async function updateMembershipRole(
+  workspaceId: string,
+  memberId: string,
+  role: MembershipRole
+): Promise<Membership | null> {
+  return withSpan('update-membership-role', async () => {
+    const [result] = await db
+      .update(memberships)
+      .set({ role })
+      .where(
+        and(
+          eq(memberships.workspaceId, workspaceId),
+          eq(memberships.memberId, memberId)
+        )
+      )
+      .returning()
+    return result ?? null
   })
 }

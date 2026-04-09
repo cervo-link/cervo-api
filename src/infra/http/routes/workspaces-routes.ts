@@ -1,6 +1,11 @@
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
+import { anyAuth } from '@/infra/http/middlewares/any-auth'
+import { apiKeyAuth } from '@/infra/http/middlewares/api-key-auth'
+import { sessionAuth } from '@/infra/http/middlewares/session-auth'
+import { requireAbility } from '@/infra/http/middlewares/workspace-role-auth'
 import {
+  changeMemberRoleController,
   createWorkspaceController,
   deleteWorkspaceController,
   getMyWorkspacesController,
@@ -10,6 +15,9 @@ import {
   updateWorkspaceController,
 } from '../controllers/workspace-controller'
 import {
+  changeMemberRoleBodySchemaRequest,
+  changeMemberRoleParamsSchemaRequest,
+  changeMemberRoleSchemaResponse,
   createWorkspaceBodySchemaRequest,
   createWorkspaceBodySchemaResponse,
   deleteWorkspaceParamsSchemaRequest,
@@ -26,9 +34,6 @@ import {
   updateWorkspaceParamsSchemaRequest,
   updateWorkspaceSchemaResponse,
 } from '../schemas/workspaces-schema'
-import { anyAuth } from '@/infra/http/middlewares/any-auth'
-import { apiKeyAuth } from '@/infra/http/middlewares/api-key-auth'
-import { sessionAuth } from '@/infra/http/middlewares/session-auth'
 
 export async function workspaceRoutes(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().route({
@@ -47,7 +52,7 @@ export async function workspaceRoutes(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().route({
     method: 'PATCH',
     url: '/workspaces/:workspaceId',
-    onRequest: [sessionAuth],
+    onRequest: [sessionAuth, requireAbility('update', 'Workspace')],
     schema: {
       description: 'Update a workspace name, description, or visibility',
       tags: ['workspaces'],
@@ -61,7 +66,7 @@ export async function workspaceRoutes(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().route({
     method: 'DELETE',
     url: '/workspaces/:workspaceId',
-    onRequest: [sessionAuth],
+    onRequest: [sessionAuth, requireAbility('delete', 'Workspace')],
     schema: {
       description: 'Delete a workspace',
       tags: ['workspaces'],
@@ -74,7 +79,7 @@ export async function workspaceRoutes(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().route({
     method: 'POST',
     url: '/workspaces/:workspaceId/members',
-    onRequest: [sessionAuth],
+    onRequest: [sessionAuth, requireAbility('manage', 'Member')],
     schema: {
       description: 'Invite a member to a workspace by email',
       tags: ['workspaces'],
@@ -83,6 +88,20 @@ export async function workspaceRoutes(app: FastifyInstance) {
       response: inviteMemberSchemaResponse,
     },
     handler: inviteMemberController,
+  })
+
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: 'PATCH',
+    url: '/workspaces/:workspaceId/members/:memberId',
+    onRequest: [sessionAuth, requireAbility('manage', 'Member')],
+    schema: {
+      description: "Change a workspace member's role",
+      tags: ['workspaces'],
+      params: changeMemberRoleParamsSchemaRequest,
+      body: changeMemberRoleBodySchemaRequest,
+      response: changeMemberRoleSchemaResponse,
+    },
+    handler: changeMemberRoleController,
   })
 
   app.withTypeProvider<ZodTypeProvider>().route({

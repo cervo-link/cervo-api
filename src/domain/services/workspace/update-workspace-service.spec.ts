@@ -11,9 +11,7 @@ describe('updateWorkspace', () => {
     const owner = await makeMember()
     const workspace = await makeWorkspace({ ownerId: owner.id })
 
-    const result = await updateWorkspace(workspace.id, owner.id, {
-      name: 'Updated Name',
-    })
+    const result = await updateWorkspace(workspace.id, { name: 'Updated Name' })
 
     expect(result).not.toBeInstanceOf(DomainError)
     expect((result as { name: string }).name).toBe('Updated Name')
@@ -23,7 +21,7 @@ describe('updateWorkspace', () => {
     const owner = await makeMember()
     const workspace = await makeWorkspace({ ownerId: owner.id })
 
-    const result = await updateWorkspace(workspace.id, owner.id, {
+    const result = await updateWorkspace(workspace.id, {
       description: 'A new description',
     })
 
@@ -37,44 +35,23 @@ describe('updateWorkspace', () => {
     const owner = await makeMember()
     const workspace = await makeWorkspace({ ownerId: owner.id, isPublic: false })
 
-    const result = await updateWorkspace(workspace.id, owner.id, {
-      isPublic: true,
-    })
+    const result = await updateWorkspace(workspace.id, { isPublic: true })
 
     expect(result).not.toBeInstanceOf(DomainError)
     expect((result as { isPublic: boolean }).isPublic).toBe(true)
   })
 
   it('should return WorkspaceNotFound when workspace does not exist', async () => {
-    const owner = await makeMember()
-
-    const result = await updateWorkspace(randomUUID(), owner.id, {
-      name: 'New Name',
-    })
+    const result = await updateWorkspace(randomUUID(), { name: 'New Name' })
 
     expect(result).toBeInstanceOf(WorkspaceNotFound)
-  })
-
-  it('should return 403 when requester is not the owner', async () => {
-    const owner = await makeMember()
-    const other = await makeMember()
-    const workspace = await makeWorkspace({ ownerId: owner.id })
-
-    const result = await updateWorkspace(workspace.id, other.id, {
-      name: 'Hijacked',
-    })
-
-    expect(result).toBeInstanceOf(DomainError)
-    expect((result as DomainError).status).toBe(403)
   })
 
   it('should return 403 when workspace is personal', async () => {
     const owner = await makeMember()
     const workspace = await makeWorkspace({ ownerId: owner.id, isPersonal: true })
 
-    const result = await updateWorkspace(workspace.id, owner.id, {
-      name: 'New Name',
-    })
+    const result = await updateWorkspace(workspace.id, { name: 'New Name' })
 
     expect(result).toBeInstanceOf(DomainError)
     expect((result as DomainError).status).toBe(403)

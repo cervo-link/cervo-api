@@ -1,5 +1,6 @@
-import { eq, inArray } from 'drizzle-orm'
+import { eq, getTableColumns } from 'drizzle-orm'
 import type { InsertWorkspace, Workspace } from '@/domain/entities/workspace'
+import type { MembershipRole } from '@/infra/db/schema'
 import { CannotCreateWorkspaceAlreadyExists } from '@/domain/errors/cannot-create-workspace-already-exists'
 import { DomainError } from '@/domain/errors/domain-error'
 import { withSpan } from '@/infra/utils/with-span'
@@ -45,24 +46,21 @@ export async function findByOwnerId(
   })
 }
 
-export async function findByMemberId(memberId: string): Promise<Workspace[]> {
+export async function findByMemberId(
+  memberId: string
+): Promise<Array<Workspace & { role: MembershipRole }>> {
   return withSpan('find-workspaces-by-member-id', async () => {
-    const memberships = await db
-      .select({ workspaceId: schema.memberships.workspaceId })
-      .from(schema.memberships)
-      .where(eq(schema.memberships.memberId, memberId))
-
-    if (memberships.length === 0) return []
-
     return db
-      .select()
-      .from(schema.workspaces)
-      .where(
-        inArray(
-          schema.workspaces.id,
-          memberships.map(m => m.workspaceId)
-        )
+      .select({
+        ...getTableColumns(schema.workspaces),
+        role: schema.memberships.role,
+      })
+      .from(schema.memberships)
+      .innerJoin(
+        schema.workspaces,
+        eq(schema.memberships.workspaceId, schema.workspaces.id)
       )
+      .where(eq(schema.memberships.memberId, memberId))
   })
 }
 

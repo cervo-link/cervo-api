@@ -2,12 +2,28 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const API_KEY = 'test-api-key-for-testing'
 
+import type { FastifyReply, FastifyRequest } from 'fastify'
+import type { Member } from '@/domain/entities/member'
 import app from '@/infra/http/app'
 import { makeBookmark } from '@/tests/factories/make-bookmark'
 import { makeRawEmbedding } from '@/tests/factories/make-embedding'
 import { makeMember } from '@/tests/factories/make-member'
 import { makeMembership } from '@/tests/factories/make-membership'
 import { makeWorkspace } from '@/tests/factories/make-workspace'
+
+// When set, sessionAuth succeeds and marks request.member (simulates a logged-in session).
+// When undefined, sessionAuth sends 401 so anyAuth falls through to API key auth.
+let currentMember: Member | undefined
+
+vi.mock('@/infra/http/middlewares/session-auth', () => ({
+  sessionAuth: vi.fn(async (request: FastifyRequest, reply: FastifyReply) => {
+    if (currentMember) {
+      request.member = currentMember
+    } else {
+      reply.code(401).send({ message: 'Unauthorized' })
+    }
+  }),
+}))
 
 const mockScrappingService = { scrapping: vi.fn() }
 const mockEmbeddingService = { generateEmbedding: vi.fn() }
@@ -25,6 +41,7 @@ vi.mock('@/infra/factories/summarize-service-factory', () => ({
 
 describe('createBookmarkController', () => {
   beforeEach(() => {
+    currentMember = undefined
     vi.clearAllMocks()
     mockScrappingService.scrapping.mockResolvedValue('test content')
     mockEmbeddingService.generateEmbedding.mockResolvedValue(makeRawEmbedding())
@@ -138,6 +155,7 @@ let getBookmarksEmbedding: number[]
 
 describe('getBookmarksController', () => {
   beforeEach(() => {
+    currentMember = undefined
     vi.clearAllMocks()
     getBookmarksEmbedding = makeRawEmbedding()
     mockEmbeddingService.generateEmbedding.mockResolvedValue(getBookmarksEmbedding)
@@ -269,6 +287,7 @@ describe('getBookmarksController', () => {
 
 describe('retryBookmarkController', () => {
   beforeEach(() => {
+    currentMember = undefined
     vi.clearAllMocks()
     mockScrappingService.scrapping.mockResolvedValue('test content')
     mockEmbeddingService.generateEmbedding.mockResolvedValue(makeRawEmbedding())
@@ -388,5 +407,116 @@ describe('getBookmarkByIdController', () => {
 
     expect(response.statusCode).toBe(404)
     expect(JSON.parse(response.body)).toEqual({ message: 'Bookmark not found' })
+  })
+})
+
+describe('Bookmark role-based access control (session auth)', () => {
+  beforeEach(() => {
+    currentMember = undefined
+    vi.clearAllMocks()
+    mockScrappingService.scrapping.mockResolvedValue('test content')
+    mockEmbeddingService.generateEmbedding.mockResolvedValue(makeRawEmbedding())
+    mockSummarizeService.summarize.mockResolvedValue('test summary')
+    mockSummarizeService.generateTitle.mockResolvedValue('Test Title')
+    mockSummarizeService.generateTags.mockResolvedValue(['tag1', 'tag2'])
+  })
+
+  describe('POST /bookmarks', () => {
+    it('editor can save a link via session', async () => {
+      const owner = await makeMember()
+      const editor = await makeMember()
+      const workspace = await makeWorkspace({ ownerId: owner.id })
+      await makeMembership(workspace.id, editor.id, 'editor')
+      currentMember = editor
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/bookmarks',
+        payload: { workspaceId: workspace.id, memberId: editor.id, url: 'https://example.com' },
+      })
+
+      expect(response.statusCode).toBe(201)
+    })
+
+    it('viewer cannot save a link via session', async () => {
+      const owner = await makeMember()
+      const viewer = await makeMember()
+      const workspace = await makeWorkspace({ ownerId: owner.id })
+      await makeMembership(workspace.id, viewer.id, 'viewer')
+      currentMember = viewer
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/bookmarks',
+        payload: { workspaceId: workspace.id, memberId: viewer.id, url: 'https://example.com' },
+      })
+
+      expect(response.statusCode).toBe(403)
+    })
+
+    it('owner can save a link via session', async () => {
+      const owner = await makeMember()
+      const workspace = await makeWorkspace({ ownerId: owner.id })
+      await makeMembership(workspace.id, owner.id, 'owner')
+      currentMember = owner
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/bookmarks',
+        payload: { workspaceId: workspace.id, memberId: owner.id, url: 'https://example.com' },
+      })
+
+      expect(response.statusCode).toBe(201)
+    })
+  })
+
+  describe('DELETE /bookmarks/:id', () => {
+    it('editor can delete a link via session', async () => {
+      const owner = await makeMember()
+      const editor = await makeMember()
+      const workspace = await makeWorkspace({ ownerId: owner.id })
+      await makeMembership(workspace.id, editor.id, 'editor')
+      const bookmark = await makeBookmark({ workspaceId: workspace.id, memberId: editor.id })
+      currentMember = editor
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/bookmarks/${bookmark.id}`,
+      })
+
+      expect(response.statusCode).toBe(200)
+    })
+
+    it('viewer cannot delete a link via session', async () => {
+      const owner = await makeMember()
+      const viewer = await makeMember()
+      const workspace = await makeWorkspace({ ownerId: owner.id })
+      await makeMembership(workspace.id, viewer.id, 'viewer')
+      const bookmark = await makeBookmark({ workspaceId: workspace.id, memberId: owner.id })
+      currentMember = viewer
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/bookmarks/${bookmark.id}`,
+      })
+
+      expect(response.statusCode).toBe(403)
+    })
+
+    it('viewer can list links via session (GET is always allowed)', async () => {
+      const owner = await makeMember()
+      const viewer = await makeMember()
+      const workspace = await makeWorkspace({ ownerId: owner.id })
+      await makeMembership(workspace.id, viewer.id, 'viewer')
+      currentMember = viewer
+
+      const response = await app.inject({
+        method: 'GET',
+        url: '/bookmarks',
+        query: { workspaceId: workspace.id, memberId: viewer.id, text: 'test' },
+      })
+
+      expect(response.statusCode).toBe(200)
+    })
   })
 })

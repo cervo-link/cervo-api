@@ -16,6 +16,8 @@ import { findById as findWorkspaceById } from '@/infra/db/repositories/workspace
 import { createEmbeddingProvider } from '@/infra/factories/embedding-service-factory'
 import { createScrappingService } from '@/infra/factories/scrapping-service-factory'
 import { createSummarizeService } from '@/infra/factories/summarize-service-factory'
+import { defineAbilitiesFor } from '@/lib/abilities'
+import { findMembershipRole } from '@/infra/db/repositories/membership-repository'
 import { replyWithError } from '@/infra/http/utils/reply-with'
 import { logger } from '@/infra/logger'
 import { withSpan } from '@/infra/utils/with-span'
@@ -48,6 +50,14 @@ export async function createBookmarkController(
 
     const membership = await getMembership(workspaceId, memberId)
     if (membership instanceof DomainError) return replyWithError(reply, membership)
+
+    // For session-authenticated requests, enforce editor role
+    if (request.member) {
+      const role = await findMembershipRole(workspaceId, request.member.id)
+      if (defineAbilitiesFor(role).cannot('manage' as never, 'Link' as never)) {
+        return reply.status(403).send({ message: 'Requires ability to manage Link' })
+      }
+    }
 
     const scrappingAdapter = createScrappingService(config.firecrawl.SCRAPPING_PROVIDER)
     const embeddingAdapter = createEmbeddingProvider(config.openai.EMBEDDING_PROVIDER)
@@ -142,6 +152,14 @@ export async function deleteBookmarkController(
     const bookmark = await findBookmarkById(id)
     if (!bookmark) {
       return reply.status(404).send({ message: 'Bookmark not found' })
+    }
+
+    // For session-authenticated requests, enforce editor role
+    if (request.member) {
+      const role = await findMembershipRole(bookmark.workspaceId, request.member.id)
+      if (defineAbilitiesFor(role).cannot('manage' as never, 'Link' as never)) {
+        return reply.status(403).send({ message: 'Requires ability to manage Link' })
+      }
     }
 
     await deleteBookmark(id)

@@ -10,6 +10,8 @@ import { logger } from '@/infra/logger'
 import { replyWithError } from '@/infra/http/utils/reply-with'
 import { withSpan } from '@/infra/utils/with-span'
 import {
+	changeMemberRoleBodySchemaRequest,
+	changeMemberRoleParamsSchemaRequest,
 	createWorkspaceBodySchemaRequest,
 	deleteWorkspaceParamsSchemaRequest,
 	getWorkspaceQuerySchemaRequest,
@@ -19,6 +21,7 @@ import {
 	updateWorkspaceBodySchemaRequest,
 	updateWorkspaceParamsSchemaRequest,
 } from '../schemas/workspaces-schema'
+import { updateMembershipRole } from '@/infra/db/repositories/membership-repository'
 
 export async function getMyWorkspacesController(
 	request: FastifyRequest,
@@ -70,11 +73,7 @@ export async function updateWorkspaceController(
 		)
 		const data = updateWorkspaceBodySchemaRequest.parse(request.body)
 
-		const workspace = await updateWorkspace(
-			workspaceId,
-			request.member.id,
-			data
-		)
+		const workspace = await updateWorkspace(workspaceId, data)
 
 		if (workspace instanceof DomainError)
 			return replyWithError(reply, workspace)
@@ -92,7 +91,7 @@ export async function deleteWorkspaceController(
 			request.params
 		)
 
-		const error = await deleteWorkspace(workspaceId, request.member.id)
+		const error = await deleteWorkspace(workspaceId)
 
 		if (error instanceof DomainError) return replyWithError(reply, error)
 
@@ -108,17 +107,38 @@ export async function inviteMemberController(
 		const { workspaceId } = inviteMemberParamsSchemaRequest.parse(
 			request.params
 		)
-		const { email } = inviteMemberBodySchemaRequest.parse(request.body)
+		const { email, role } = inviteMemberBodySchemaRequest.parse(request.body)
 
-		const result = await inviteMemberByEmail(
-			workspaceId,
-			email,
-			request.member.id
-		)
+		const result = await inviteMemberByEmail(workspaceId, email, role)
 
 		if (result instanceof DomainError) return replyWithError(reply, result)
 
 		return reply.status(201).send({ message: 'Member invited.' })
+	})
+}
+
+export async function changeMemberRoleController(
+	request: FastifyRequest,
+	reply: FastifyReply
+) {
+	return withSpan('change-member-role', async () => {
+		const { workspaceId, memberId } = changeMemberRoleParamsSchemaRequest.parse(
+			request.params
+		)
+		const { role } = changeMemberRoleBodySchemaRequest.parse(request.body)
+
+		if (memberId === request.member.id) {
+			return reply
+				.status(403)
+				.send({ message: 'You cannot change your own role' })
+		}
+
+		const result = await updateMembershipRole(workspaceId, memberId, role)
+		if (!result) {
+			return reply.status(404).send({ message: 'Membership not found' })
+		}
+
+		return reply.status(200).send({ message: 'Role updated.' })
 	})
 }
 
