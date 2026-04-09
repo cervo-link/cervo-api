@@ -23,6 +23,10 @@ import { anyAuth } from '@/infra/http/middlewares/any-auth'
 import { apiKeyAuth } from '@/infra/http/middlewares/api-key-auth'
 import { sessionAuth } from '@/infra/http/middlewares/session-auth'
 
+// TODO(tech-debt): bookmark routes use anyAuth(sessionAuth, apiKeyAuth) which forces
+// role enforcement to be conditional inside the controller rather than declarative
+// middleware. Separate session-only routes from API-key-only routes (e.g. a /bot prefix)
+// so that role guards can be applied uniformly via requireAbility middleware.
 export async function bookmarksRoutes(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().route({
     method: 'POST',

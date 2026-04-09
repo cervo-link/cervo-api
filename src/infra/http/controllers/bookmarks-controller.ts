@@ -51,12 +51,10 @@ export async function createBookmarkController(
     const membership = await getMembership(workspaceId, memberId)
     if (membership instanceof DomainError) return replyWithError(reply, membership)
 
-    // For session-authenticated requests, enforce editor role
-    if (request.member) {
-      const role = await findMembershipRole(workspaceId, request.member.id)
-      if (defineAbilitiesFor(role).cannot('manage' as never, 'Link' as never)) {
-        return reply.status(403).send({ message: 'Requires ability to manage Link' })
-      }
+    // Enforce editor role for the acting member (applies to both session and API key auth)
+    const role = await findMembershipRole(workspaceId, memberId)
+    if (defineAbilitiesFor(role).cannot('manage' as never, 'Link' as never)) {
+      return reply.status(403).send({ message: 'Requires ability to manage Link' })
     }
 
     const scrappingAdapter = createScrappingService(config.firecrawl.SCRAPPING_PROVIDER)

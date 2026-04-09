@@ -53,7 +53,7 @@ describe('createBookmarkController', () => {
   it('should be able to create a bookmark', async () => {
     const member = await makeMember()
     const workspace = await makeWorkspace()
-    await makeMembership(workspace.id, member.id)
+    await makeMembership(workspace.id, member.id, 'editor')
 
     const response = await app.inject({
       method: 'POST',
@@ -410,7 +410,7 @@ describe('getBookmarkByIdController', () => {
   })
 })
 
-describe('Bookmark role-based access control (session auth)', () => {
+describe('Bookmark role-based access control', () => {
   beforeEach(() => {
     currentMember = undefined
     vi.clearAllMocks()
@@ -421,7 +421,7 @@ describe('Bookmark role-based access control (session auth)', () => {
     mockSummarizeService.generateTags.mockResolvedValue(['tag1', 'tag2'])
   })
 
-  describe('POST /bookmarks', () => {
+  describe('POST /bookmarks (session)', () => {
     it('editor can save a link via session', async () => {
       const owner = await makeMember()
       const editor = await makeMember()
@@ -467,6 +467,40 @@ describe('Bookmark role-based access control (session auth)', () => {
       })
 
       expect(response.statusCode).toBe(201)
+    })
+  })
+
+  describe('POST /bookmarks (API key / Discord bot)', () => {
+    it('editor can save a link via API key', async () => {
+      const owner = await makeMember()
+      const editor = await makeMember()
+      const workspace = await makeWorkspace({ ownerId: owner.id })
+      await makeMembership(workspace.id, editor.id, 'editor')
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/bookmarks',
+        headers: { authorization: `Bearer ${API_KEY}` },
+        payload: { workspaceId: workspace.id, memberId: editor.id, url: 'https://example.com' },
+      })
+
+      expect(response.statusCode).toBe(201)
+    })
+
+    it('viewer cannot save a link via API key', async () => {
+      const owner = await makeMember()
+      const viewer = await makeMember()
+      const workspace = await makeWorkspace({ ownerId: owner.id })
+      await makeMembership(workspace.id, viewer.id, 'viewer')
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/bookmarks',
+        headers: { authorization: `Bearer ${API_KEY}` },
+        payload: { workspaceId: workspace.id, memberId: viewer.id, url: 'https://example.com' },
+      })
+
+      expect(response.statusCode).toBe(403)
     })
   })
 
