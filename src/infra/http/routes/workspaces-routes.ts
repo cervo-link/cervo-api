@@ -12,6 +12,8 @@ import {
   getWorkspaceController,
   getWorkspacesByMemberController,
   inviteMemberController,
+  listWorkspaceMembersController,
+  removeMemberController,
   updateWorkspaceController,
 } from '../controllers/workspace-controller'
 import {
@@ -30,6 +32,10 @@ import {
   inviteMemberBodySchemaRequest,
   inviteMemberParamsSchemaRequest,
   inviteMemberSchemaResponse,
+  listMembersParamsSchemaRequest,
+  listMembersSchemaResponse,
+  removeMemberParamsSchemaRequest,
+  removeMemberSchemaResponse,
   updateWorkspaceBodySchemaRequest,
   updateWorkspaceParamsSchemaRequest,
   updateWorkspaceSchemaResponse,
@@ -88,6 +94,32 @@ export async function workspaceRoutes(app: FastifyInstance) {
       response: inviteMemberSchemaResponse,
     },
     handler: inviteMemberController,
+  })
+
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: 'GET',
+    url: '/workspaces/:workspaceId/members',
+    onRequest: [sessionAuth, requireAbility('read', 'Workspace')],
+    schema: {
+      description: 'List all members of a workspace',
+      tags: ['workspaces'],
+      params: listMembersParamsSchemaRequest,
+      response: listMembersSchemaResponse,
+    },
+    handler: listWorkspaceMembersController,
+  })
+
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: 'DELETE',
+    url: '/workspaces/:workspaceId/members/:memberId',
+    onRequest: [sessionAuth, requireAbility('manage', 'Member')],
+    schema: {
+      description: 'Remove a member from a workspace',
+      tags: ['workspaces'],
+      params: removeMemberParamsSchemaRequest,
+      response: removeMemberSchemaResponse,
+    },
+    handler: removeMemberController,
   })
 
   app.withTypeProvider<ZodTypeProvider>().route({

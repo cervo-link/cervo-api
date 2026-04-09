@@ -145,6 +145,37 @@ export const getWorkspaceQuerySchemaResponse = {
     .describe('Workspace found.'),
 }
 
+export const listMembersParamsSchemaRequest = z.object({
+  workspaceId: z.string().uuid('Workspace ID must be a valid UUID'),
+})
+
+const memberItemShape = z.object({
+  id: z.string(),
+  name: z.string().nullable(),
+  username: z.string().nullable(),
+  email: z.string().nullable(),
+  role: z.enum(['viewer', 'editor', 'owner']),
+  joinedAt: z.date(),
+})
+
+export const listMembersSchemaResponse = {
+  500: z.object({ message: z.string() }).describe('Internal error'),
+  403: z.object({ message: z.string() }).describe('Forbidden'),
+  200: z.object({ members: z.array(memberItemShape) }).describe('List of workspace members'),
+}
+
+export const removeMemberParamsSchemaRequest = z.object({
+  workspaceId: z.string().uuid('Workspace ID must be a valid UUID'),
+  memberId: z.string().uuid('Member ID must be a valid UUID'),
+})
+
+export const removeMemberSchemaResponse = {
+  500: z.object({ message: z.string() }).describe('Internal error'),
+  404: z.object({ message: z.string() }).describe('Membership not found'),
+  403: z.object({ message: z.string() }).describe('Forbidden'),
+  200: z.object({ message: z.string() }).describe('Member removed'),
+}
+
 export const changeMemberRoleParamsSchemaRequest = z.object({
   workspaceId: z.string().uuid('Workspace ID must be a valid UUID'),
   memberId: z.string().uuid('Member ID must be a valid UUID'),

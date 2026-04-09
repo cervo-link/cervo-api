@@ -514,5 +514,110 @@ describe('WorkspaceController', () => {
 				expect(response.statusCode).toBe(403)
 			})
 		})
+
+		describe('GET /workspaces/:workspaceId/members', () => {
+			it('returns all members with their roles', async () => {
+				const owner = await makeMember()
+				const viewer = await makeMember()
+				const workspace = await makeWorkspace({ ownerId: owner.id })
+				await makeMembership(workspace.id, owner.id, 'owner')
+				await makeMembership(workspace.id, viewer.id, 'viewer')
+				currentMember = owner
+
+				const response = await app.inject({
+					method: 'GET',
+					url: `/workspaces/${workspace.id}/members`,
+				})
+
+				expect(response.statusCode).toBe(200)
+				const body = JSON.parse(response.body)
+				expect(body.members).toHaveLength(2)
+				const roles = body.members.map((m: { role: string }) => m.role)
+				expect(roles).toContain('owner')
+				expect(roles).toContain('viewer')
+			})
+
+			it('non-member cannot list workspace members', async () => {
+				const owner = await makeMember()
+				const outsider = await makeMember()
+				const workspace = await makeWorkspace({ ownerId: owner.id })
+				await makeMembership(workspace.id, owner.id, 'owner')
+				currentMember = outsider
+
+				const response = await app.inject({
+					method: 'GET',
+					url: `/workspaces/${workspace.id}/members`,
+				})
+
+				// requireAbility checks membership — outsider has no role → 403
+				expect(response.statusCode).toBe(403)
+			})
+		})
+
+		describe('DELETE /workspaces/:workspaceId/members/:memberId', () => {
+			it('owner can remove a member', async () => {
+				const owner = await makeMember()
+				const viewer = await makeMember()
+				const workspace = await makeWorkspace({ ownerId: owner.id })
+				await makeMembership(workspace.id, owner.id, 'owner')
+				await makeMembership(workspace.id, viewer.id, 'viewer')
+				currentMember = owner
+
+				const response = await app.inject({
+					method: 'DELETE',
+					url: `/workspaces/${workspace.id}/members/${viewer.id}`,
+				})
+
+				expect(response.statusCode).toBe(200)
+			})
+
+			it('editor cannot remove a member', async () => {
+				const owner = await makeMember()
+				const editor = await makeMember()
+				const other = await makeMember()
+				const workspace = await makeWorkspace({ ownerId: owner.id })
+				await makeMembership(workspace.id, owner.id, 'owner')
+				await makeMembership(workspace.id, editor.id, 'editor')
+				await makeMembership(workspace.id, other.id, 'viewer')
+				currentMember = editor
+
+				const response = await app.inject({
+					method: 'DELETE',
+					url: `/workspaces/${workspace.id}/members/${other.id}`,
+				})
+
+				expect(response.statusCode).toBe(403)
+			})
+
+			it('owner cannot remove themselves', async () => {
+				const owner = await makeMember()
+				const workspace = await makeWorkspace({ ownerId: owner.id })
+				await makeMembership(workspace.id, owner.id, 'owner')
+				currentMember = owner
+
+				const response = await app.inject({
+					method: 'DELETE',
+					url: `/workspaces/${workspace.id}/members/${owner.id}`,
+				})
+
+				expect(response.statusCode).toBe(403)
+			})
+
+			it('cannot remove the workspace owner', async () => {
+				const owner = await makeMember()
+				const admin = await makeMember()
+				const workspace = await makeWorkspace({ ownerId: owner.id })
+				await makeMembership(workspace.id, owner.id, 'owner')
+				await makeMembership(workspace.id, admin.id, 'owner')
+				currentMember = admin
+
+				const response = await app.inject({
+					method: 'DELETE',
+					url: `/workspaces/${workspace.id}/members/${owner.id}`,
+				})
+
+				expect(response.statusCode).toBe(403)
+			})
+		})
 	})
 })
