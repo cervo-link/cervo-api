@@ -59,9 +59,11 @@ src/
 │   │   ├── controllers/   # One controller per domain area
 │   │   ├── routes/        # Route registration + schema attachment
 │   │   ├── schemas/       # Zod schemas for request/response validation
-│   │   ├── middlewares/   # apiKeyAuth
+│   │   ├── middlewares/   # sessionAuth, apiKeyAuth, requireAbility
 │   │   └── app.ts         # Fastify setup, Swagger UI, error handler
-│   └── ports/             # TypeScript interfaces for all adapters
+│   ├── ports/             # TypeScript interfaces for all adapters
+│   └── lib/
+│       └── abilities.ts   # CASL ability definitions (viewer/editor/owner)
 │
 ├── tests/
 │   ├── global-setup.ts    # Spins up Testcontainer PostgreSQL + runs migrations
@@ -295,7 +297,29 @@ Only returns results with cosine distance < 0.7 (semantically relevant matches).
 
 **`GET /workspaces`** — Get workspace by ID
 
-**`GET /workspaces/me`** — Get workspaces for current authenticated member
+**`GET /workspaces/me`** — List workspaces for the authenticated member (includes `role` field)
+
+**`PATCH /workspaces/:workspaceId`** — Update workspace name/description/visibility *(owner only)*
+
+**`DELETE /workspaces/:workspaceId`** — Delete a workspace *(owner only)*
+
+**`GET /workspaces/:workspaceId/members`** — List all members with their roles *(any member)*
+
+**`POST /workspaces/:workspaceId/members`** — Invite a member by email *(owner only)*
+
+```json
+// Request
+{ "email": "user@example.com", "role": "viewer" }  // role: "viewer" | "editor"
+```
+
+**`DELETE /workspaces/:workspaceId/members/:memberId`** — Remove a member *(owner only; cannot remove self or the workspace owner)*
+
+**`PATCH /workspaces/:workspaceId/members/:memberId`** — Change a member's role *(owner only; cannot change own role)*
+
+```json
+// Request
+{ "role": "editor" }  // role: "viewer" | "editor" | "owner"
+```
 
 **`POST /workspaces/:workspaceId/integrations`** — Add a platform integration
 
@@ -347,6 +371,7 @@ memberships
   id            UUID PK
   memberId      UUID → members.id
   workspaceId   UUID → workspaces.id
+  role          TEXT DEFAULT 'viewer'  -- viewer | editor | owner
   createdAt     TIMESTAMP
   UNIQUE (memberId, workspaceId)
 
@@ -425,7 +450,7 @@ bun run test:coverage
 ```typescript
 const member = await makeMember()
 const workspace = await makeWorkspace()
-await makeMembership(workspace.id, member.id)
+await makeMembership(workspace.id, member.id, 'owner')   // role: 'viewer' | 'editor' | 'owner'
 const bookmark = await makeBookmark({ workspaceId: workspace.id, memberId: member.id })
 ```
 
