@@ -156,6 +156,39 @@ export const bookmarks = pgTable(
   ]
 )
 
+export const workspaceInvites = pgTable(
+  'workspace_invites',
+  {
+    id: uuid()
+      .primaryKey()
+      .$defaultFn(() => uuidv7()),
+    workspaceId: uuid().notNull(),
+    createdBy: uuid().notNull(),
+    email: text().notNull(),
+    token: text().notNull(),
+    role: text('role').$type<MembershipRole>().notNull().default('viewer'),
+    expiresAt: timestamp().notNull(),
+    usedAt: timestamp(),
+    usedBy: uuid(),
+    createdAt: timestamp().defaultNow().notNull(),
+  },
+  t => [
+    foreignKey({
+      columns: [t.workspaceId],
+      foreignColumns: [workspaces.id],
+    }),
+    foreignKey({
+      columns: [t.createdBy],
+      foreignColumns: [members.id],
+    }),
+    foreignKey({
+      columns: [t.usedBy],
+      foreignColumns: [members.id],
+    }),
+    uniqueIndex('token_invite_idx').on(t.token),
+  ]
+)
+
 export const waitingList = pgTable(
   'waiting_list',
   {
@@ -176,6 +209,7 @@ export const schema = {
   memberPlatformIdentities,
   memberships,
   bookmarks,
+  workspaceInvites,
   waitingList,
   user,
   session,
