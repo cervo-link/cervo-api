@@ -101,10 +101,10 @@ export async function addMemberToWorkspaceController(
   reply: FastifyReply
 ) {
   return withSpan('add-member-to-workspace', async () => {
-    const { workspaceId, memberId } =
+    const { workspaceId, memberId, role } =
       addMemberToWorkspaceBodySchemaRequest.parse(request.body)
 
-    const result = await addMemberToWorkspace(memberId, workspaceId)
+    const result = await addMemberToWorkspace(memberId, workspaceId, role)
 
     if (result instanceof DomainError) return replyWithError(reply, result)
 

@@ -34,6 +34,7 @@ export const createMemberBodySchemaResponse = {
 export const addMemberToWorkspaceBodySchemaRequest = z.object({
   workspaceId: z.string().uuid('Workspace ID must be a valid UUID'),
   memberId: z.string().uuid('Member ID must be a valid UUID'),
+  role: z.enum(['viewer', 'editor']).default('editor'),
 })
 
 export const addMemberToWorkspaceBodySchemaResponse = {
