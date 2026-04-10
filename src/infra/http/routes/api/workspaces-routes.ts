@@ -13,6 +13,7 @@ import {
   removeMemberController,
   updateWorkspaceController,
 } from '@/infra/http/controllers/workspace-controller'
+import { createInviteController } from '@/infra/http/controllers/invite-controller'
 import {
   changeMemberRoleBodySchemaRequest,
   changeMemberRoleParamsSchemaRequest,
@@ -35,6 +36,11 @@ import {
   updateWorkspaceParamsSchemaRequest,
   updateWorkspaceSchemaResponse,
 } from '@/infra/http/schemas/workspaces-schema'
+import {
+  createInviteBodySchemaRequest,
+  createInviteParamsSchemaRequest,
+  createInviteSchemaResponse,
+} from '@/infra/http/schemas/invite-schema'
 
 export async function apiWorkspacesRoutes(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().route({
@@ -154,5 +160,19 @@ export async function apiWorkspacesRoutes(app: FastifyInstance) {
       response: changeMemberRoleSchemaResponse,
     },
     handler: changeMemberRoleController,
+  })
+
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: 'POST',
+    url: '/workspaces/:workspaceId/invites',
+    onRequest: [sessionAuth, requireAbility('manage', 'Member')],
+    schema: {
+      description: 'Create an invite link for a workspace',
+      tags: ['invites'],
+      params: createInviteParamsSchemaRequest,
+      body: createInviteBodySchemaRequest,
+      response: createInviteSchemaResponse,
+    },
+    handler: createInviteController,
   })
 }
