@@ -2,10 +2,13 @@ import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { config } from '@/config'
 import { DomainError } from '@/domain/errors/domain-error'
+import { IdentityAlreadyLinked } from '@/domain/errors/identity-already-linked'
 import { createMemberFromOAuth } from '@/domain/services/members/create-member-from-oauth-service'
+import { linkMemberIdentity } from '@/domain/services/members/link-member-identity-service'
 import { db } from '@/infra/db'
 import {
   findByEmail,
+  findByUserId,
   updateUserId,
 } from '@/infra/db/repositories/members-repository'
 import { logger } from '@/infra/logger'
@@ -97,6 +100,62 @@ export const auth = betterAuth({
           } else {
             logger.info({ memberId: result.id }, '[auth:hook] member created')
           }
+        },
+      },
+    },
+    account: {
+      create: {
+        after: async account => {
+          const provider = account.providerId
+          const providerUserId = account.accountId
+
+          logger.info(
+            { userId: account.userId, provider, providerUserId },
+            '[auth:hook] account.create.after fired'
+          )
+
+          if (!provider || !providerUserId) return
+
+          const realMember = await findByUserId(account.userId)
+          if (!realMember) {
+            logger.error(
+              { userId: account.userId, provider },
+              '[auth:hook] no member for account.userId — user.create.after did not run'
+            )
+            return
+          }
+
+          const result = await linkMemberIdentity({
+            realMemberId: realMember.id,
+            provider,
+            providerUserId,
+          })
+
+          if (result instanceof IdentityAlreadyLinked) {
+            logger.info(
+              { memberId: realMember.id, provider },
+              '[auth:hook] identity already linked'
+            )
+            return
+          }
+
+          if (result instanceof DomainError) {
+            logger.error(
+              {
+                message: result.message,
+                status: result.status,
+                memberId: realMember.id,
+                provider,
+              },
+              '[auth:hook] failed to link/merge identity'
+            )
+            return
+          }
+
+          logger.info(
+            { memberId: realMember.id, provider, providerUserId },
+            '[auth:hook] identity linked (shadow merged if any)'
+          )
         },
       },
     },
