@@ -5,6 +5,7 @@ import { DomainError } from '@/domain/errors/domain-error'
 import { IdentityAlreadyLinked } from '@/domain/errors/identity-already-linked'
 import { createMemberFromOAuth } from '@/domain/services/members/create-member-from-oauth-service'
 import { linkMemberIdentity } from '@/domain/services/members/link-member-identity-service'
+import { betterAuthLogger } from '@/infra/auth-logger'
 import { db } from '@/infra/db'
 import {
   findByEmail,
@@ -19,6 +20,7 @@ export const auth = betterAuth({
   baseURL: ba.BETTER_AUTH_URL,
   secret: ba.BETTER_AUTH_SECRET,
   trustedOrigins: ['*'],
+  logger: betterAuthLogger,
   advanced: {
     useSecureCookies: true,
     defaultCookieAttributes: {
