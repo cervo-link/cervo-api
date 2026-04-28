@@ -31,6 +31,9 @@ export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: 'pg',
   }),
+  account: {
+    skipStateCookieCheck: true,
+  },
   socialProviders: {
     ...(ba.GOOGLE_CLIENT_ID &&
       ba.GOOGLE_CLIENT_SECRET && {
