@@ -31,6 +31,10 @@ export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: 'pg',
   }),
+  emailAndPassword: {
+    enabled: true,
+    requireEmailVerification: false,
+  },
   account: {
     skipStateCookieCheck: true,
   },
@@ -119,7 +123,8 @@ export const auth = betterAuth({
             '[auth:hook] account.create.after fired'
           )
 
-          if (!provider || !providerUserId) return
+          // credential = email+password — not a platform identity worth linking
+          if (!provider || !providerUserId || provider === 'credential') return
 
           const realMember = await findByUserId(account.userId)
           if (!realMember) {
