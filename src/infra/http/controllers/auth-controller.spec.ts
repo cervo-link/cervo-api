@@ -3,10 +3,19 @@ import { describe, expect, it } from 'vitest'
 import { findByEmail } from '@/infra/db/repositories/members-repository'
 import app from '@/infra/http/app'
 
+// Better Auth normalises emails to lowercase before storing/returning them.
+// All test emails are lowercased at the source to match what the API returns.
+function uniqueEmail(): string {
+  return `${faker.string.alphanumeric(8)}-${Date.now()}@example.com`.toLowerCase()
+}
+
+type SignUpBody = { token: string; user: { id: string; email: string; name: string } }
+type SignInBody = { token: string; user: { email: string } }
+
 describe('authController (email + password)', () => {
   describe('POST /api/auth/sign-up/email', () => {
     it('should sign up a new user and create a member record', async () => {
-      const email = `${faker.string.alphanumeric(8)}-${Date.now()}@example.com`
+      const email = uniqueEmail()
       const password = 'Password123!'
       const name = faker.person.fullName()
 
@@ -19,7 +28,7 @@ describe('authController (email + password)', () => {
 
       expect(response.statusCode).toBe(200)
 
-      const body = JSON.parse(response.body) as { token: string; user: { id: string; email: string; name: string } }
+      const body = JSON.parse(response.body) as SignUpBody
       expect(body.token).toEqual(expect.any(String))
       expect(body.user.email).toBe(email)
       expect(body.user.name).toBe(name)
@@ -32,15 +41,16 @@ describe('authController (email + password)', () => {
     })
 
     it('should return 422 when email is already registered', async () => {
-      const email = `${faker.string.alphanumeric(8)}-${Date.now()}@example.com`
+      const email = uniqueEmail()
       const password = 'Password123!'
 
-      await app.inject({
+      const first = await app.inject({
         method: 'POST',
         url: '/api/auth/sign-up/email',
         headers: { 'content-type': 'application/json' },
         payload: { email, password, name: faker.person.fullName() },
       })
+      expect(first.statusCode).toBe(200) // guard: first sign-up must succeed
 
       const response = await app.inject({
         method: 'POST',
@@ -52,21 +62,23 @@ describe('authController (email + password)', () => {
       expect(response.statusCode).toBe(422)
     })
 
-    it('should return 422 when password is missing', async () => {
+    it('should return 400 when password is missing', async () => {
+      // Better Auth returns 400 (Bad Request) for missing required fields,
+      // not 422 — 422 is reserved for semantic errors like duplicate email.
       const response = await app.inject({
         method: 'POST',
         url: '/api/auth/sign-up/email',
         headers: { 'content-type': 'application/json' },
-        payload: { email: faker.internet.email(), name: faker.person.fullName() },
+        payload: { email: uniqueEmail(), name: faker.person.fullName() },
       })
 
-      expect(response.statusCode).toBe(422)
+      expect(response.statusCode).toBe(400)
     })
   })
 
   describe('POST /api/auth/sign-in/email', () => {
     it('should sign in with valid credentials and return a session token', async () => {
-      const email = `${faker.string.alphanumeric(8)}-${Date.now()}@example.com`
+      const email = uniqueEmail()
       const password = 'Password123!'
 
       await app.inject({
@@ -85,13 +97,13 @@ describe('authController (email + password)', () => {
 
       expect(response.statusCode).toBe(200)
 
-      const body = JSON.parse(response.body) as { token: string; user: { email: string } }
+      const body = JSON.parse(response.body) as SignInBody
       expect(body.token).toEqual(expect.any(String))
       expect(body.user.email).toBe(email)
     })
 
     it('should return 401 when password is wrong', async () => {
-      const email = `${faker.string.alphanumeric(8)}-${Date.now()}@example.com`
+      const email = uniqueEmail()
       const password = 'Password123!'
 
       await app.inject({
